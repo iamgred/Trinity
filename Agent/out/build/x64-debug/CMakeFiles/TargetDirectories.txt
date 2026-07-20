@@ -1,0 +1,3 @@
+C:/Users/MALDEV01/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/Agent.dir
+C:/Users/MALDEV01/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/edit_cache.dir
+C:/Users/MALDEV01/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/rebuild_cache.dir

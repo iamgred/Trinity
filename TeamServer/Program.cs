@@ -1,4 +1,6 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
+using TeamServer.Services;
+
 namespace TeamServer
 {
     public class Program
@@ -11,6 +13,9 @@ namespace TeamServer
 
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen();
+
+            // Services 
+            builder.Services.AddSingleton<ListenerService>();
 
             var app = builder.Build();
 

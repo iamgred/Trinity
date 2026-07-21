@@ -1,13 +1,20 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //    
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TeamServer.Services;
 
 namespace TeamServer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route(Routes.Listeners)]
     [ApiController]
     public class ListenerController : ControllerBase
     {
+        private ListenerService _listenerService;
+
+        public ListenerController(ListenerService listenerService)
+        {
+            _listenerService = listenerService;
+        }
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// 
@@ -24,9 +31,10 @@ namespace TeamServer.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost("Http")]
         public IActionResult StartHttpListener()
         {
+            _listenerService.StartHttpListener();
             return Ok();
         }
 
@@ -35,6 +43,7 @@ namespace TeamServer.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
+        [HttpPost("Tcp")]
         public IActionResult StartTcpListener()
         {
             return Ok();
@@ -45,6 +54,7 @@ namespace TeamServer.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
+        [HttpDelete]
         public IActionResult DeleteListener()
         {
             return Ok();

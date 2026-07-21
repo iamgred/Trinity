@@ -35,29 +35,7 @@ namespace TeamServer.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
-        [HttpPut]
-        public IActionResult StopHttpListener()
-        {
-            return Ok();
-        }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public IActionResult StartTcpListener()
-        {
-            return Ok();
-        }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        [HttpPut]
-        public IActionResult StopTcpListener()
         {
             return Ok();
         }

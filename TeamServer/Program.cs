@@ -1,3 +1,4 @@
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 namespace TeamServer
 {
     public class Program
@@ -25,7 +26,6 @@ namespace TeamServer
                 });
             }
 
-
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
@@ -34,3 +34,4 @@ namespace TeamServer
         }
     }
 }
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { END OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //

@@ -12,10 +12,14 @@ namespace TeamServer
             // Add services to the container.
 
             builder.Services.AddControllers();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.EnableAnnotations();
+            });
 
             // Services 
             builder.Services.AddSingleton<ListenerService>();
+
 
             var app = builder.Build();
 

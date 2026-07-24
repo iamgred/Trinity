@@ -1,9 +1,11 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using System.Net;
+using TeamServer.DTOs.Listeners;
+using TeamServer.Modules;
 
 namespace TeamServer.Services
 {
-    public class ListenerService : BackgroundService
+    public class ListenerService 
     {
         private HttpListener _httpListener;
 
@@ -11,19 +13,43 @@ namespace TeamServer.Services
         // Specifies => Allowed request type (e.g. POST, GET ect...)
         // Conditional that checks the request type to determine whether it should respond or redirect 
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public void StartHttpListener()
+        public void CreateListener()
         {
-            _httpListener = new HttpListener();
-            _httpListener.Prefixes.Add("http://localhost:8212/");
-            _httpListener.Start();
-
-            if (_httpListener.IsListening)
+            try
             {
-                Console.WriteLine("Listening on port 8888");
+                UriBuilder uriBuilder = new UriBuilder("http", "localhost", 8212);
+                HttpCommModule module = new HttpCommModule("test", uriBuilder.ToString(), "testAgent");
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                throw;
+            }
+        }
 
-            IAsyncResult result = _httpListener.BeginGetContext(new AsyncCallback(HandleRequest), _httpListener);
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public HttpListenerDto StartHttpListener(HttpListenerDto httpListenerDto)
+        {
+            try
+            {
+                UriBuilder uriBuilder = new UriBuilder("http", httpListenerDto.Host, httpListenerDto.Port);
+                HttpCommModule module = new HttpCommModule("test", uriBuilder.ToString(), "testAgent");
+                module.HttpListener.Start();
+
+                if (module.HttpListener.IsListening)
+                {
+                    Console.WriteLine($"Listener has started on port: {httpListenerDto.Port}!");
+                }
+                return httpListenerDto;
+            }
+            catch (HttpListenerException e)
+            {
+                // log the exception here
+                Console.WriteLine(e.ToString());
+                httpListenerDto.Error = "Port is currently occupied!";
+            }
+            return httpListenerDto;
+            //IAsyncResult result = _httpListener.BeginGetContext(new AsyncCallback(HandleRequest), _httpListener);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -67,16 +93,16 @@ namespace TeamServer.Services
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public void Deletelistener() { }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            StartHttpListener();
+        //protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        //{
+        //    StartHttpListener();
 
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                HttpListenerContext context = await _httpListener.GetContextAsync();
-                Console.WriteLine("Background task has started!");
-            }
-        }
+        //    while (!stoppingToken.IsCancellationRequested)
+        //    {
+        //        HttpListenerContext context = await _httpListener.GetContextAsync();
+        //        Console.WriteLine("Background task has started!");
+        //    }
+        //}
     }
 }
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { END OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //

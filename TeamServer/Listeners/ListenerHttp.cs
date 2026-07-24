@@ -1,5 +1,5 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
-namespace TeamServer.Modules
+namespace TeamServer.Listeners
 {
     public class ListenerHttp
     {

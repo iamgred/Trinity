@@ -1,6 +1,7 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //    
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TeamServer.DTOs.Listeners;
 using TeamServer.Services;
 
 namespace TeamServer.Controllers
@@ -31,11 +32,17 @@ namespace TeamServer.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
-        [HttpPost("Http")]
-        public IActionResult StartHttpListener()
+        [HttpPost("http")]
+        public IActionResult StartHttpListener([FromBody] HttpListenerDto httpListenerDto)
         {
-            _listenerService.StartHttpListener();
-            return Ok();
+            HttpListenerDto result = _listenerService.StartHttpListener(httpListenerDto);
+
+            if (!String.IsNullOrEmpty(result.Error))
+            {
+                return BadRequest(result);
+            }
+            
+            return Ok(result);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

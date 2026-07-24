@@ -19,7 +19,7 @@ namespace TeamServer
 
             // Services 
             builder.Services.AddSingleton<ListenerService>();
-
+            //builder.Logging.AddConsole();
 
             var app = builder.Build();
 

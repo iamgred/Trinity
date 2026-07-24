@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TeamServer.DTOs.Listeners;
+using TeamServer.Modules;
 using TeamServer.Services;
 
 namespace TeamServer.Controllers
@@ -24,7 +25,8 @@ namespace TeamServer.Controllers
         [HttpGet]
         public IActionResult Listeners() 
         {
-            return Ok();
+            IEnumerable<HttpCommModule> result = _listenerService.GetListeners();
+            return Ok(result);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

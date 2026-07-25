@@ -7,7 +7,6 @@ namespace TeamServer.Services
 {
     public class ListenerService 
     {
-        private HttpListener _httpListener;
         private List<HttpCommModule> _httpListeners;
         private ILogger _logger;
 
@@ -30,8 +29,7 @@ namespace TeamServer.Services
         {
             try
             {
-                UriBuilder uriBuilder = new UriBuilder("http", httpListenerDto.Host, httpListenerDto.Port);
-                HttpCommModule module = new HttpCommModule("test", uriBuilder.ToString(), "testAgent");
+                HttpCommModule module = new HttpCommModule(httpListenerDto.Name, httpListenerDto.Host, httpListenerDto.Port, httpListenerDto.Headers, httpListenerDto.UserAgent);
                 module.HttpListener.Start();
 
                 if (module.HttpListener.IsListening)
@@ -44,8 +42,13 @@ namespace TeamServer.Services
             }
             catch (HttpListenerException e)
             {
-                _logger.LogInformation($"{e.ToString()}");
-                httpListenerDto.Error = $"Could not start listener, port {httpListenerDto.Port} is occupied!";
+                _logger.LogInformation($"{e.Message}");
+                httpListenerDto.Error = $"{e.Message}";
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogInformation($"{ex.ToString()}");
+                httpListenerDto.Error = $"{ex.Message}";
             }
             return httpListenerDto;
         }
@@ -70,6 +73,9 @@ namespace TeamServer.Services
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
 
+            var headers = request.Headers;
+            module.ValidateRequestHeaders((WebHeaderCollection)headers);
+            
             string responseString = "<HTML><BODY> Recieved </BODY></HTML>";
             byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
 

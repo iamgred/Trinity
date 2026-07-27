@@ -1,6 +1,7 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Net;
 using TeamServer.Exceptions;
+using TeamServer.Modules;
 
 namespace TeamServer.Services.Factories
 {
@@ -17,7 +18,6 @@ namespace TeamServer.Services.Factories
                 UriBuilder uriBuilder = new UriBuilder("http", host, port);
                 HttpListener listener = new HttpListener();
                 listener.Prefixes.Add(uriBuilder.ToString());
-                listener.Start();
                 return listener;
             }
             catch (ArgumentNullException)
@@ -34,7 +34,7 @@ namespace TeamServer.Services.Factories
             {
                 // log exception here
                 // HttpListenerException is only thrown upon intialisation if the host is already registered on the listener
-                throw new ListenerCreationException($"Cannot bind on host: http://{host}:{port}/");
+                throw new ListenerCreationException($"Cannot bind on host: http://{host}:{port}/ already registered");
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Net;
+using TeamServer.Exceptions;
 using TeamServer.Listeners;
 
 namespace TeamServer.Modules
@@ -12,6 +13,7 @@ namespace TeamServer.Modules
         public string UserAgent { get; set; }
         public Dictionary<string, string> Headers { get; set; }
         public override ListenerType Type { get; set; }
+        private CancellationTokenSource _cts;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -33,6 +35,7 @@ namespace TeamServer.Modules
             UserAgent = userAgent;
             Headers = headers != null ? headers : new();
             Type = ListenerType.HTTP;
+            _cts = new CancellationTokenSource();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -53,8 +56,95 @@ namespace TeamServer.Modules
             return false;
         }
 
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="ListenerCreationException"></exception>
+        public void Start()
+        {
+            try
+            {
+                if (HttpListener.IsListening)
+                {
+                    return;
+                }
 
+                HttpListener.Start();
+                _ = HandleResponseAsync(_cts.Token);
+            }
+            catch (HttpListenerException ex)
+            {
+                throw new ListenerCreationException("");
+            }
+        }
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Handles incoming http requests. 
+        /// The returned task stores all non-usage exceptions, exception will be 
+        /// thrown if any when it is awaited. 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public async Task HandleResponseAsync(CancellationToken token)
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    HttpListenerContext context = await HttpListener.GetContextAsync();
+                    _ = Task.Run(() => ProcessRequest(context));
+                }
+            }
+            catch (Exception ex)
+            {
+                // log exceptions in the awaited Task if there is any 
+            }
+        }
 
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Performs validation on the agent HTTP request and returns pending tasks
+        /// in response. 
+        /// </summary>
+        /// <param name="context"></param>
+        private void ProcessRequest(HttpListenerContext context)
+        {
+            try
+            {
+                HttpListenerRequest request = context.Request;
+                HttpListenerResponse response = context.Response;
+                string responseString = "<HTML><BODY> Recieved </BODY></HTML>";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                response.ContentLength64 = buffer.Length;
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                context.Response.Close();
+            }
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Stop()
+        {
+            if (!HttpListener.IsListening)
+            {
+                // throw listener already stopped exception here
+                return;
+            }
+            _cts.Cancel();
+            HttpListener.Stop();
+            HttpListener.Close();
+            _cts.Dispose();
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -36,10 +36,10 @@ namespace TeamServer.Services
                 HttpListener httpListener = (HttpListener)_httpFactory.CreateListener(httpListenerDto.Host, httpListenerDto.Port);
                 HttpCommModule module = new HttpCommModule(httpListenerDto.Name, httpListener, httpListenerDto.Headers, httpListenerDto.UserAgent);
 
+                module.Start();
                 if (module.HttpListener.IsListening)
                 {
                     _logger.LogInformation($"HTTP listener started on port: {httpListenerDto.Port}");
-                    IAsyncResult result = module.HttpListener.BeginGetContext(new AsyncCallback(HandleRequest), module.HttpListener);
                     _httpListeners.Add(module);
                 }
                 return httpListenerDto;
@@ -52,38 +52,6 @@ namespace TeamServer.Services
             return httpListenerDto;
         }
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="result"></param>
-        /// 
-        private void HandleRequest(IAsyncResult result)
-        {
-            Console.WriteLine("Request recieved!");
-
-            HttpListener listener = (HttpListener)result.AsyncState;
-            listener.Prefixes.First();
-
-            // Used to retrieve the associated module of the listener
-            var module = _httpListeners.Find(l => l.HttpListener.Prefixes.Equals(listener.Prefixes));
-
-            HttpListenerContext context = listener.EndGetContext(result);
-            HttpListenerRequest request = context.Request;
-            HttpListenerResponse response = context.Response;
-
-            var headers = request.Headers;
-            module.ValidateRequestHeaders((WebHeaderCollection)headers);
-            
-            string responseString = "<HTML><BODY> Recieved </BODY></HTML>";
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-
-            response.ContentLength64 = buffer.Length;
-            System.IO.Stream responseStream = response.OutputStream;
-            responseStream.Write(buffer, 0, buffer.Length);
-            responseStream.Close();
-
-        }
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public void StartTcpListener() { }
 

@@ -47,14 +47,17 @@ namespace TeamServer.Controllers
             return Ok(result);
         }
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost("Tcp")]
-        public IActionResult StartTcpListener()
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpDelete("http")]
+        public IActionResult StopHttpListener([FromQuery] string moduleId)
         {
+            bool result = _listenerService.StopHttpListener(moduleId);
+
+            if (!result)
+            {
+                return BadRequest();
+            }
+
             return Ok();
         }
 
@@ -63,8 +66,8 @@ namespace TeamServer.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
-        [HttpDelete]
-        public IActionResult DeleteListener()
+        [HttpPost("tcp")]
+        public IActionResult StartTcpListener()
         {
             return Ok();
         }

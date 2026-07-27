@@ -5,7 +5,7 @@ using TeamServer.Listeners;
 
 namespace TeamServer.Modules
 {
-    public class HttpCommModule : Listener
+    public class HttpCommModule : Module
     {
         public override Guid Id { get; }
         public HttpListener HttpListener { get; set; }
@@ -14,6 +14,7 @@ namespace TeamServer.Modules
         public Dictionary<string, string> Headers { get; set; }
         public override ListenerType Type { get; set; }
         private CancellationTokenSource _cts;
+        private ILogger<HttpCommModule> _logger;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -26,7 +27,7 @@ namespace TeamServer.Modules
         /// <param name="uri"></param>
         /// <param name="userAgent"></param>
         /// <param name="rotationStrategy"></param>
-        public HttpCommModule(string name, HttpListener httpListener,  Dictionary<string, string>? headers, string userAgent = "", string rotationStrategy = "")
+        public HttpCommModule(ILogger<HttpCommModule> logger, string name, HttpListener httpListener,  Dictionary<string, string>? headers, string userAgent = "", string rotationStrategy = "")
         {
             Id = Guid.NewGuid();
             HttpListener = httpListener;
@@ -36,6 +37,7 @@ namespace TeamServer.Modules
             Headers = headers != null ? headers : new();
             Type = ListenerType.HTTP;
             _cts = new CancellationTokenSource();
+            _logger = logger;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -67,6 +69,7 @@ namespace TeamServer.Modules
             {
                 if (HttpListener.IsListening)
                 {
+                    _logger.LogInformation($"HTTP listener #{Id} already listening");
                     return;
                 }
 
@@ -75,7 +78,7 @@ namespace TeamServer.Modules
             }
             catch (HttpListenerException ex)
             {
-                throw new ListenerCreationException("");
+                throw new ListenerCreationException("Cannot bind on host already registered");
             }
         }
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -98,7 +101,7 @@ namespace TeamServer.Modules
             }
             catch (Exception ex)
             {
-                // log exceptions in the awaited Task if there is any 
+                _logger.LogError(ex.Message);
             }
         }
 
@@ -112,33 +115,35 @@ namespace TeamServer.Modules
         {
             try
             {
+                _logger.LogInformation($"Request recieved from agent");
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
+
                 string responseString = "<HTML><BODY> Recieved </BODY></HTML>";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.OutputStream.Write(buffer, 0, buffer.Length);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                _logger.LogError(ex.Message);
             }
             finally
             {
+                _logger.LogInformation($"Response sent to agent");
                 context.Response.Close();
             }
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// 
+        /// Terminates the Http listener and the processing of ongoing requests
         /// </summary>
         public void Stop()
         {
             if (!HttpListener.IsListening)
             {
-                // throw listener already stopped exception here
-                return;
+                throw new ListenerAlreadyActiveException($"HTTP listener #{Id} already disposed");
             }
             _cts.Cancel();
             HttpListener.Stop();

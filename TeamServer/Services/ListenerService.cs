@@ -11,14 +11,14 @@ namespace TeamServer.Services
     {
         private List<HttpCommModule> _httpListeners;
         private ILogger _logger;
-        private HttpListenerFactory _httpFactory;
+        private HttpCommModuleFactory _httpModuleFactory;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public ListenerService(ILogger<ListenerService> logger, HttpListenerFactory httpFactory)
+        public ListenerService(ILogger<ListenerService> logger, HttpCommModuleFactory httpFactory)
         {
             _logger = logger;
             _httpListeners = new List<HttpCommModule>();
-            _httpFactory = httpFactory;
+            _httpModuleFactory = httpFactory;
         }
 
         // TODO: Create user-defined type that contains the listener 
@@ -29,12 +29,18 @@ namespace TeamServer.Services
         // Conditional that checks Headers
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Creates a HTTP module and starts its respective listener.
+        /// </summary>
+        /// <param name="httpListenerDto"></param>
+        /// <returns></returns>
         public HttpListenerDto StartHttpListener(HttpListenerDto httpListenerDto)
         {
             try
             {
-                HttpListener httpListener = (HttpListener)_httpFactory.CreateListener(httpListenerDto.Host, httpListenerDto.Port);
-                HttpCommModule module = new HttpCommModule(httpListenerDto.Name, httpListener, httpListenerDto.Headers, httpListenerDto.UserAgent);
+                HttpCommModule module = (HttpCommModule)_httpModuleFactory.CreateModule(httpListenerDto.Name,
+                    httpListenerDto.Host, httpListenerDto.Port,
+                    httpListenerDto.Headers, httpListenerDto.UserAgent);
 
                 module.Start();
                 if (module.HttpListener.IsListening)
@@ -52,6 +58,32 @@ namespace TeamServer.Services
             return httpListenerDto;
         }
 
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Stops a module's HTTP listener 
+        /// </summary>
+        /// <param name="moduleId"></param>
+        /// <returns></returns>
+        public bool StopHttpListener(string moduleId)
+        {
+            try
+            {
+                HttpCommModule? module = _httpListeners.Find(m => m.Id.Equals(moduleId));
+
+                if (module == null)
+                {
+                    return false;
+                }
+                module.Stop();
+            }
+            catch (ListenerAlreadyActiveException ex)
+            {
+                _logger.LogInformation($"{ex.Message}");
+                throw;
+            }
+            return true;
+        }
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public void StartTcpListener() { }
 
@@ -60,9 +92,6 @@ namespace TeamServer.Services
         {
             return _httpListeners;
         }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public void Deletelistener() { }
 
     }
 }

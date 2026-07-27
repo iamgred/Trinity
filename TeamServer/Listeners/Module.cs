@@ -5,7 +5,7 @@ namespace TeamServer.Listeners
     /// <summary>
     /// Base Listener class
     /// </summary>
-    public abstract class Listener
+    public abstract class Module
     {
         public abstract Guid Id { get; }
         public string Name { get; set; }

@@ -21,6 +21,7 @@ namespace TeamServer
             // Services 
             builder.Services.AddSingleton<ListenerService>();
             builder.Services.AddSingleton<HttpListenerFactory>();
+            builder.Services.AddSingleton<HttpCommModuleFactory>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

@@ -1,5 +1,6 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using TeamServer.Services;
+using TeamServer.Services.Factories;
 
 namespace TeamServer
 {
@@ -19,8 +20,7 @@ namespace TeamServer
 
             // Services 
             builder.Services.AddSingleton<ListenerService>();
-            //builder.Logging.AddConsole();
-
+            builder.Services.AddSingleton<HttpListenerFactory>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

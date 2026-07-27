@@ -1,7 +1,9 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using System.Net;
 using TeamServer.DTOs.Listeners;
+using TeamServer.Exceptions;
 using TeamServer.Modules;
+using TeamServer.Services.Factories;
 
 namespace TeamServer.Services
 {
@@ -9,12 +11,14 @@ namespace TeamServer.Services
     {
         private List<HttpCommModule> _httpListeners;
         private ILogger _logger;
+        private HttpListenerFactory _httpFactory;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public ListenerService(ILogger<ListenerService> logger)
+        public ListenerService(ILogger<ListenerService> logger, HttpListenerFactory httpFactory)
         {
             _logger = logger;
             _httpListeners = new List<HttpCommModule>();
+            _httpFactory = httpFactory;
         }
 
         // TODO: Create user-defined type that contains the listener 
@@ -29,8 +33,8 @@ namespace TeamServer.Services
         {
             try
             {
-                HttpCommModule module = new HttpCommModule(httpListenerDto.Name, httpListenerDto.Host, httpListenerDto.Port, httpListenerDto.Headers, httpListenerDto.UserAgent);
-                module.HttpListener.Start();
+                HttpListener httpListener = (HttpListener)_httpFactory.CreateListener(httpListenerDto.Host, httpListenerDto.Port);
+                HttpCommModule module = new HttpCommModule(httpListenerDto.Name, httpListener, httpListenerDto.Headers, httpListenerDto.UserAgent);
 
                 if (module.HttpListener.IsListening)
                 {
@@ -40,14 +44,9 @@ namespace TeamServer.Services
                 }
                 return httpListenerDto;
             }
-            catch (HttpListenerException e)
+            catch (ListenerCreationException ex)
             {
-                _logger.LogInformation($"{e.Message}");
-                httpListenerDto.Error = $"{e.Message}";
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogInformation($"{ex.ToString()}");
+                _logger.LogInformation($"{ex.Message}");
                 httpListenerDto.Error = $"{ex.Message}";
             }
             return httpListenerDto;

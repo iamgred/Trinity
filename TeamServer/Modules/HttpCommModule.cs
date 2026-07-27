@@ -24,24 +24,15 @@ namespace TeamServer.Modules
         /// <param name="uri"></param>
         /// <param name="userAgent"></param>
         /// <param name="rotationStrategy"></param>
-        public HttpCommModule(string name, string host, int port, Dictionary<string, string>? headers, string uri, string userAgent = "", string rotationStrategy = "")
+        public HttpCommModule(string name, HttpListener httpListener,  Dictionary<string, string>? headers, string userAgent = "", string rotationStrategy = "")
         {
-            try
-            {
-                Id = Guid.NewGuid();
-                Name = name;
-                HttpListener = new();
-                UriBuilder uriBuilder = new UriBuilder("http", host, port);
-                HttpListener.Prefixes.Add(uriBuilder.ToString());
-                HostRotationStrategy = rotationStrategy;
-                UserAgent = userAgent;
-                Headers = headers != null ? headers : new();
-                Type = ListenerType.HTTP;
-            }
-            catch
-            {
-                throw;
-            }
+            Id = Guid.NewGuid();
+            HttpListener = httpListener;
+            Name = name;
+            HostRotationStrategy = rotationStrategy;
+            UserAgent = userAgent;
+            Headers = headers != null ? headers : new();
+            Type = ListenerType.HTTP;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -37,16 +37,8 @@ namespace TeamServer.Services.Factories
         /// <returns></returns>
         public override Module CreateModule(string name, string host, int port, Dictionary<string, string> headers, string userAgent)
         {
-            try
-            {
-                HttpListener listener = (HttpListener)_httpListenerFactory.CreateListener(host, port);
-                return new HttpCommModule(_logger, name, listener, headers, userAgent);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
+            HttpListener listener = _httpListenerFactory.CreateListener(host, port);
+            return new HttpCommModule(_logger, name, listener, headers, userAgent);
         }
     }
 }

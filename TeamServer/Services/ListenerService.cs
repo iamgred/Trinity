@@ -45,15 +45,20 @@ namespace TeamServer.Services
                 module.Start();
                 if (module.HttpListener.IsListening)
                 {
-                    _logger.LogInformation($"HTTP listener started on port: {httpListenerDto.Port}");
+                    _logger.LogInformation("HTTP listener started on {host}:{port}", httpListenerDto.Host, httpListenerDto.Port);
                     _httpListeners.Add(module);
                 }
                 return httpListenerDto;
             }
             catch (ListenerCreationException ex)
             {
-                _logger.LogInformation($"{ex.Message}");
-                httpListenerDto.Error = $"{ex.Message}";
+                _logger.LogWarning(ex, "Module creation failed: {Message}", ex.Message);
+                httpListenerDto.Error = $"Creation error: {ex.Message}";
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Module runtime startup failed: {Message}", ex.Message);
+                httpListenerDto.Error = $"Runtime error: {ex.Message}";
             }
             return httpListenerDto;
         }
@@ -68,20 +73,21 @@ namespace TeamServer.Services
         {
             try
             {
-                HttpCommModule? module = _httpListeners.Find(m => m.Id.Equals(moduleId));
+                HttpCommModule? module = _httpListeners.FirstOrDefault(m => m.Id.ToString().Equals(moduleId));
 
                 if (module == null)
                 {
                     return false;
                 }
                 module.Stop();
+                _httpListeners.Remove(module);
+                return true;
             }
-            catch (ListenerAlreadyActiveException ex)
+            catch (InvalidOperationException ex)
             {
-                _logger.LogInformation($"{ex.Message}");
-                throw;
+                _logger.LogError(ex, "Module runtime startup failed: {Message}", ex.Message);
             }
-            return true;
+            return false;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

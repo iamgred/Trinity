@@ -14,6 +14,8 @@ namespace TeamServer.Modules
         public Dictionary<string, string> Headers { get; set; }
         public override ListenerType Type { get; set; }
         private CancellationTokenSource _cts;
+        private readonly Lock _threadLock;
+        private bool _isDisposed;
         private ILogger<HttpCommModule> _logger;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -38,6 +40,8 @@ namespace TeamServer.Modules
             Type = ListenerType.HTTP;
             _cts = new CancellationTokenSource();
             _logger = logger;
+            _threadLock = new();
+            _isDisposed = false;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -78,7 +82,8 @@ namespace TeamServer.Modules
             }
             catch (HttpListenerException ex)
             {
-                throw new ListenerCreationException("Cannot bind on host already registered");
+                _logger.LogError(ex, "Failed to bind HTTP listener #{Id} to the network interface.", Id);
+                throw new InvalidOperationException("Cannot bind listener: the host/port combination is already registered or access is denied.", ex);
             }
         }
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -91,17 +96,25 @@ namespace TeamServer.Modules
         /// <returns></returns>
         public async Task HandleResponseAsync(CancellationToken token)
         {
-            try
+            while (!token.IsCancellationRequested && HttpListener.IsListening)
             {
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    HttpListenerContext context = await HttpListener.GetContextAsync();
-                    _ = Task.Run(() => ProcessRequest(context));
+                    while (!token.IsCancellationRequested && HttpListener.IsListening)
+                    {
+                        HttpListenerContext context = await HttpListener.GetContextAsync();
+                        _ = Task.Run(() => ProcessRequest(context), token);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
+                catch (Exception) when (token.IsCancellationRequested)
+                {
+                    _logger.LogInformation("HTTP listener #{id} stopped via token cancellation", Id);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,"Critical error in HTTP listener #{Id}", Id);
+                }
             }
         }
 
@@ -126,12 +139,19 @@ namespace TeamServer.Modules
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Failed to process agent request on HTTP listener #{Id}.", Id);
             }
             finally
             {
-                _logger.LogInformation($"Response sent to agent");
-                context.Response.Close();
+                try
+                {
+                    context.Response.Close();
+                    _logger.LogInformation("HTTP listener #{id} sent response to agent.", Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Failed to close response context; client likely disconnected prematurely.");
+                }
             }
         }
 
@@ -141,14 +161,39 @@ namespace TeamServer.Modules
         /// </summary>
         public void Stop()
         {
-            if (!HttpListener.IsListening)
+            lock (_threadLock)
             {
-                throw new ListenerAlreadyActiveException($"HTTP listener #{Id} already disposed");
+                if (_isDisposed)
+                {
+                    throw new InvalidOperationException($"HTTP listener #{Id} already disposed.");
+                }
+                _isDisposed = true;
             }
-            _cts.Cancel();
-            HttpListener.Stop();
-            HttpListener.Close();
-            _cts.Dispose();
+
+            try
+            {
+                _cts.Cancel();
+            }
+            catch (ObjectDisposedException){}
+
+            try
+            {
+                if (HttpListener.IsListening)
+                {
+                    HttpListener.Stop();
+                }
+
+                HttpListener.Close();
+            }
+            catch (Exception ex) when (ex is HttpListenerException || ex is ObjectDisposedException){}
+
+            try
+            {
+                _cts.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
     }
 }

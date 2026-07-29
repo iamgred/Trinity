@@ -21,13 +21,6 @@ namespace TeamServer.Services
             _httpModuleFactory = httpFactory;
         }
 
-        // TODO: Create user-defined type that contains the listener 
-        // Specifies => Allowed request type (e.g. POST, GET ect...)
-        // Add exception handler for invalid URI => e.g. when a improper base URI is given
-        // Conditional that checks the request type to determine whether it should respond or redirect 
-        // Conditional that checks the Agent type from request
-        // Conditional that checks Headers
-
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Creates a HTTP module and starts its respective listener.
@@ -48,7 +41,6 @@ namespace TeamServer.Services
                     _logger.LogInformation("HTTP listener started on {host}:{port}", httpListenerDto.Host, httpListenerDto.Port);
                     _httpListeners.Add(module);
                 }
-                return httpListenerDto;
             }
             catch (ListenerCreationException ex)
             {
@@ -65,7 +57,7 @@ namespace TeamServer.Services
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// Stops a module's HTTP listener 
+        /// Stops a module's HTTP listener and removes the respective module
         /// </summary>
         /// <param name="moduleId"></param>
         /// <returns></returns>
@@ -75,13 +67,12 @@ namespace TeamServer.Services
             {
                 HttpCommModule? module = _httpListeners.FirstOrDefault(m => m.Id.ToString().Equals(moduleId));
 
-                if (module == null)
+                if (module != null)
                 {
-                    return false;
+                    module.Stop();
+                    _httpListeners.Remove(module);
+                    return true;
                 }
-                module.Stop();
-                _httpListeners.Remove(module);
-                return true;
             }
             catch (InvalidOperationException ex)
             {

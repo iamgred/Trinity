@@ -88,9 +88,7 @@ namespace TeamServer.Modules
         }
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// Handles incoming http requests. 
-        /// The returned task stores all non-usage exceptions, exception will be 
-        /// thrown if any when it is awaited. 
+        /// Queues the recieved agent HTTP request for processing on the threadpool
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
@@ -100,11 +98,8 @@ namespace TeamServer.Modules
             {
                 try
                 {
-                    while (!token.IsCancellationRequested && HttpListener.IsListening)
-                    {
-                        HttpListenerContext context = await HttpListener.GetContextAsync();
-                        _ = Task.Run(() => ProcessRequest(context), token);
-                    }
+                    HttpListenerContext context = await HttpListener.GetContextAsync();
+                    _ = Task.Run(() => ProcessRequest(context), token);
                 }
                 catch (Exception) when (token.IsCancellationRequested)
                 {
@@ -128,6 +123,7 @@ namespace TeamServer.Modules
         {
             try
             {
+                Thread.Sleep(10000);
                 _logger.LogInformation($"Request recieved from agent");
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
@@ -150,7 +146,7 @@ namespace TeamServer.Modules
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Failed to close response context; client likely disconnected prematurely.");
+                    _logger.LogError(ex, "Failed to close response context; client likely disconnected prematurely.");
                 }
             }
         }
@@ -167,32 +163,19 @@ namespace TeamServer.Modules
                 {
                     throw new InvalidOperationException($"HTTP listener #{Id} already disposed.");
                 }
-                _isDisposed = true;
-            }
 
-            try
-            {
-                _cts.Cancel();
-            }
-            catch (ObjectDisposedException){}
-
-            try
-            {
-                if (HttpListener.IsListening)
+                try
                 {
+                    _cts.Cancel();
                     HttpListener.Stop();
+                    HttpListener.Close();
+                    _cts.Dispose();
+                    _isDisposed = true;
                 }
-
-                HttpListener.Close();
-            }
-            catch (Exception ex) when (ex is HttpListenerException || ex is ObjectDisposedException){}
-
-            try
-            {
-                _cts.Dispose();
-            }
-            catch (ObjectDisposedException)
-            {
+                catch (Exception ex) when (ex is AggregateException)
+                {
+                    _logger.LogError(ex, "Aggregation error has occured on HTTP listener #{Id}", Id);
+                }
             }
         }
     }

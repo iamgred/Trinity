@@ -22,23 +22,23 @@ namespace TeamServer.Services.Factories
         /// <exception cref="ListenerCreationException">Thrown when host or port are invalid or when 
         /// the listener cannot bind because the address is already
         /// registered.</exception>
-        public override HttpListener CreateListener(string host, int port)
+        public override HttpListener CreateListener(int port)
         {
             if (port <= 0 || port > 65535)
             {
-                throw new ListenerCreationException("Port numbers must be between 0 and 65535.");
+                throw new ListenerCreationException("Bind port numbers must be between 0 and 65535.");
             }
 
             try
             {
-                UriBuilder uriBuilder = new UriBuilder("http", host, port);
+                UriBuilder uriBuilder = new UriBuilder("http", "localhost", port);
                 HttpListener listener = new HttpListener();
                 listener.Prefixes.Add(uriBuilder.ToString());
                 return listener;
             }
             catch (Exception ex) when (ex is ArgumentException || ex is UriFormatException || ex is HttpListenerException)
             {
-                throw new ListenerCreationException($"Failed to initialise listener on {host}:{port}.",ex);
+                throw new ListenerCreationException($"Failed to initialise listener on {port}.",ex);
             }
         }
     }

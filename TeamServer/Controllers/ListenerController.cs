@@ -1,6 +1,8 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //    
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using TeamServer.DTOs.Listeners;
 using TeamServer.Modules;
 using TeamServer.Services;
@@ -37,13 +39,32 @@ namespace TeamServer.Controllers
         [HttpPost("http")]
         public IActionResult StartHttpListener([FromBody] HttpListenerDto httpListenerDto)
         {
+            Stopwatch watch = Stopwatch.StartNew();
+            Console.WriteLine($"StartHttpListener current threadId: {Environment.CurrentManagedThreadId}");
             HttpListenerDto result = _listenerService.StartHttpListener(httpListenerDto);
+            watch.Stop();
+
+            Console.WriteLine($"Total time: {watch.ElapsedMilliseconds}ms");
 
             if (!String.IsNullOrEmpty(result.Error))
             {
                 return BadRequest(result);
             }
-            
+            Console.WriteLine($"StartHttpListener current threadId: {Environment.CurrentManagedThreadId}");
+            return Ok(result);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPut("http")]
+        public async Task<IActionResult> UpdateHttpListener([FromBody] HttpListenerDto httpListenerDto)
+        {
+            HttpListenerDto result = await _listenerService.UpdateHttpListener(httpListenerDto);
+
+            if (!String.IsNullOrEmpty(result.Error))
+            {
+                return BadRequest(result);
+            }
+
             return Ok(result);
         }
 

@@ -2,20 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
-using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.DTOs.Tasks
+namespace Trinity.Shared.Models
 {
-    public class TaskDTO
+    public class Operator
     {
-        public string TaskID { get; set; } = String.Empty;
-        public JsonDocument Command { get; set; } = default;
-        public string User { get; set; } = String.Empty;
-        public DateTime Created { get; set; } = new();
-        public DateTime Updated { get; set; } = new();
-        public TaskStatuses Status { get; set; } = default;
-
+        public int ID { get; set; }
+        public required string Username { get; set; }
+        public required string PasswordHash { get; set; }
+        public DateTime? LastLogin { get; set; }
+        public required DateTime CreatedAt { get; set; }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

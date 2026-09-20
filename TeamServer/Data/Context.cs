@@ -10,6 +10,8 @@ namespace TeamServer.Data
     {
         public DbSet<Trinity.Shared.Models.Task> Tasks { get; set; }
         public DbSet<TaskResult> TaskResult { get; set; }
+        public DbSet<Agent> Agents { get; set; }
+        public DbSet<Operator> Operators { get; set; }
         public Context()
         {
         }
@@ -20,6 +22,18 @@ namespace TeamServer.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Trinity.Shared.Models.Task>()
+                .Property(e => e.ID)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<TaskResult>()
+                .Property(e => e.ID)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Agent>()
+                .Property(e => e.ID)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Operator>()
                 .Property(e => e.ID)
                 .ValueGeneratedOnAdd();
         }

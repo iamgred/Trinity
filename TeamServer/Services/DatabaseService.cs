@@ -1,5 +1,8 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using TeamServer.Data;
+using Trinity.Shared.DTOs.Tasks;
 using Trinity.Shared.Models;
 namespace TeamServer.Services
 {
@@ -22,8 +25,23 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public async Task<bool> InsertAgentTask(Trinity.Shared.Models.Task task)
+        public async Task<bool> InsertAgentTask(TaskDTO taskDTO, int agentID)
         {
+            bool agentExists = await _context.Tasks.AnyAsync(a => a.AgentID.Equals(agentID));
+
+            if (!agentExists) 
+            {
+                throw new InvalidOperationException("Invalid: Operator does not exist!");
+            }
+
+            Trinity.Shared.Models.Task task = new Trinity.Shared.Models.Task
+            {
+                AgentID = agentID,
+                CreatedAt = DateTime.UtcNow,
+                Status = Trinity.Shared.Enums.TaskStatuses.Queued,
+                Command = JsonDocument.Parse(JsonSerializer.Serialize(taskDTO.Command)),
+            };
+
             await _context.Tasks.AddAsync(task);
             var result = await _context.SaveChangesAsync();
 

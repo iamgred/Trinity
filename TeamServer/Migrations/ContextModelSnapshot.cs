@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeamServer.Data;
-using Trinity.Shared.Interfaces;
 
 #nullable disable
 
@@ -24,6 +23,77 @@ namespace TeamServer.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Trinity.Shared.Models.Agent", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<int?>("CampaignID")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("FirstSeen")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("Integrity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("LastSeen")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ListenerID")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PayloadID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ProcesseName")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UUID")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Agents");
+                });
+
+            modelBuilder.Entity("Trinity.Shared.Models.Operator", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastLogin")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Operators");
+                });
+
             modelBuilder.Entity("Trinity.Shared.Models.Task", b =>
                 {
                     b.Property<int>("ID")
@@ -35,7 +105,7 @@ namespace TeamServer.Migrations
                     b.Property<int>("AgentID")
                         .HasColumnType("integer");
 
-                    b.Property<ICommand>("Command")
+                    b.Property<JsonDocument>("Command")
                         .IsRequired()
                         .HasColumnType("jsonb");
 
@@ -44,9 +114,6 @@ namespace TeamServer.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("OperatorID")
-                        .HasColumnType("integer");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

@@ -2,15 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.Interfaces;
 
-namespace Trinity.Shared.DTOs.Command
+namespace Trinity.Shared.Interfaces
 {
-    public class BofDTO : ICommand
+    public interface ICommand
     {
-        public string Bof { get; set; } = String.Empty;
-        public string Entrypoint { get; set; } = String.Empty;
-        public string Arguements { get; set; } = String.Empty;
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

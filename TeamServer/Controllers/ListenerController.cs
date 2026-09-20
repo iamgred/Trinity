@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Text.Json;
 using TeamServer.DTOs.Listeners;
 using TeamServer.Modules;
 using TeamServer.Services;
+using Trinity.Shared.DTOs.Command;
 
 namespace TeamServer.Controllers
 {
@@ -25,9 +27,10 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult Listeners() 
+        public async Task<IActionResult> Listeners() 
         {
             IEnumerable<HttpCommModule> result = _listenerService.GetListeners();
+
             return Ok(result);
         }
 

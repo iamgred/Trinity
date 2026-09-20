@@ -27,9 +27,7 @@ namespace TeamServer.Services
             {
                 response.Message = ex.Message;
             }
-            // Check the existance of an Agent 
-            // If true => proceed => validate parameters
-            // Else throw an error => invalid operation => catch => log => return command response failure
+
             return response;
         }
 

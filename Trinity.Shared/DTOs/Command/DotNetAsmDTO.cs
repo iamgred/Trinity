@@ -2,19 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
-using Trinity.Shared.Enums;
+using Trinity.Shared.Interfaces;
 
-namespace Trinity.Shared.DTOs.Tasks
+namespace Trinity.Shared.DTOs.Command
 {
-    public class TaskDTO
+    public class DotNetAsmDTO : ICommand
     {
-        public required JsonDocument Command { get; set; }
-        public string User { get; set; } = String.Empty;
-        public DateTime Created { get; set; } = new();
-        public DateTime Updated { get; set; } = new();
-        public TaskStatuses Status { get; set; } = default;
-
+        public string Assembly { get; set; } = String.Empty;
+        public string Arguments { get; set; } = String.Empty;
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

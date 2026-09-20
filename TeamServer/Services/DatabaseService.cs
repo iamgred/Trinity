@@ -38,7 +38,7 @@ namespace TeamServer.Services
                 AgentID = agentID,
                 CreatedAt = DateTime.UtcNow,
                 Status = Trinity.Shared.Enums.TaskStatuses.Queued,
-                Command = JsonDocument.Parse(JsonSerializer.Serialize(command)),
+                Command = JsonDocument.Parse(JsonSerializer.Serialize(command, command.GetType())),
             };
             var result = await _context.Tasks.AddAsync(task);
             await _context.SaveChangesAsync();

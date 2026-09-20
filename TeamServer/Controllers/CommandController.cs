@@ -135,6 +135,20 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentId}/spawn/dotnetassembly")]
+        public async Task<IActionResult> QueueDotNetAsmCommand([FromRoute] int agentId, DotNetAsmDTO dotNetAsmDTO)
+        {
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(dotNetAsmDTO, agentId);
+
+            if (response.TaskID == null)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/bof")]
         public async Task<IActionResult> QueueBofCommand([FromRoute] int agentId, BofDTO bofDTO)
         {
@@ -149,8 +163,46 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentId}/execute/filedownload")]
+        public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentId, DownloadDTO downloadDTO)
+        {
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(downloadDTO, agentId);
 
+            if (response.TaskID == null)
+            {
+                return BadRequest(response);
+            }
 
+            return Ok(response);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentId}/execute/cancelFileDownload")]
+        public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentId, CancelDownloadDTO cancelDownloadDTO)
+        {
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(cancelDownloadDTO, agentId);
+
+            if (response.TaskID == null)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentId}/execute/upload")]
+        public async Task<IActionResult> QueueUploadCommand([FromRoute] int agentId, UploadDTO uploadDTO)
+        {
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(uploadDTO, agentId);
+
+            if (response.TaskID == null)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

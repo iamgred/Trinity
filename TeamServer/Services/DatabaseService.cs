@@ -2,8 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using TeamServer.Data;
-using Trinity.Shared.DTOs.Tasks;
-using Trinity.Shared.Models;
+using Trinity.Shared.Interfaces;
 namespace TeamServer.Services
 {
     public class DatabaseService
@@ -25,7 +24,7 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public async Task<bool> InsertAgentTask(TaskDTO taskDTO, int agentID)
+        public async Task<int> InsertAgentTask(ICommand command, int agentID)
         {
             bool agentExists = await _context.Agents.AnyAsync(a => a.ID.Equals(agentID));
 
@@ -39,12 +38,12 @@ namespace TeamServer.Services
                 AgentID = agentID,
                 CreatedAt = DateTime.UtcNow,
                 Status = Trinity.Shared.Enums.TaskStatuses.Queued,
-                Command = JsonDocument.Parse(JsonSerializer.Serialize(taskDTO.Command)),
+                Command = JsonDocument.Parse(JsonSerializer.Serialize(command)),
             };
-            await _context.Tasks.AddAsync(task);
-            var result = await _context.SaveChangesAsync();
+            var result = await _context.Tasks.AddAsync(task);
+            await _context.SaveChangesAsync();
 
-            return result > 0;
+            return result.Entity.ID;
         }
     }
 }

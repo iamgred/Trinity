@@ -1,6 +1,7 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Trinity.Shared.DTOs.Command;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Services
@@ -15,12 +16,12 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<AsyncCommandResponseDTO> QueueTask(ICommand commandDTO, int agentID)
+        public async Task<AsyncCommandResponseDTO> QueueTask(ICommand commandDTO, CommandTypes type, int agentID)
         {
             AsyncCommandResponseDTO response = new AsyncCommandResponseDTO();
             try
             {
-                int taskID = await this._db.InsertAgentTask(commandDTO, agentID);
+                int taskID = await this._db.InsertAgentTask(commandDTO, type, agentID);
                 response.TaskID = taskID;
             }
             catch (Exception ex) when (ex is InvalidOperationException)
@@ -30,7 +31,6 @@ namespace TeamServer.Services
 
             return response;
         }
-
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

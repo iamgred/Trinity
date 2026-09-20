@@ -1,8 +1,11 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Text.Json;
 using TeamServer.Data;
 using Trinity.Shared.Interfaces;
+using Trinity.Shared.Enums;
+
 namespace TeamServer.Services
 {
     public class DatabaseService
@@ -24,7 +27,7 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public async Task<int> InsertAgentTask(ICommand command, int agentID)
+        public async Task<int> InsertAgentTask(ICommand command, CommandTypes type, int agentID)
         {
             bool agentExists = await _context.Agents.AnyAsync(a => a.ID.Equals(agentID));
 
@@ -38,6 +41,7 @@ namespace TeamServer.Services
                 AgentID = agentID,
                 CreatedAt = DateTime.UtcNow,
                 Status = Trinity.Shared.Enums.TaskStatuses.Queued,
+                CommandType = type,
                 Command = JsonDocument.Parse(JsonSerializer.Serialize(command, command.GetType())),
             };
             var result = await _context.Tasks.AddAsync(task);
@@ -77,10 +81,10 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<bool> ClearQueue(int agentID)
+        public async Task<bool> ClearQueueAsync(int agentID)
         {
             var result = await _context.Tasks
-                .Where(t => t.AgentID.Equals(agentID))
+                .Where(t => t.AgentID.Equals(agentID) && t.Status.Equals(TaskStatuses.Queued))
                 .ExecuteDeleteAsync();
 
             return result > 0;

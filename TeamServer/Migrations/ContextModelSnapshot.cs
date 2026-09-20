@@ -82,6 +82,9 @@ namespace TeamServer.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
+                    b.Property<int>("CommandType")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 

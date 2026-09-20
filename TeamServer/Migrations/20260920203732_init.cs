@@ -42,6 +42,7 @@ namespace TeamServer.Migrations
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     AgentID = table.Column<int>(type: "integer", nullable: false),
+                    CommandType = table.Column<int>(type: "integer", nullable: false),
                     Command = table.Column<JsonDocument>(type: "jsonb", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),

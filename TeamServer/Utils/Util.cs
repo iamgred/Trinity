@@ -1,18 +1,17 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
-using Trinity.Shared.Enums;
+using System.Runtime.Serialization;
 
-namespace Trinity.Shared.DTOs.Tasks
+namespace TeamServer.Utils
 {
-    public class TaskDTO
+    public static class Util
     {
-        public string Command { get; set; } = String.Empty;
-        public DateTime Created { get; set; } = new();
-        public string Status { get; set; } = String.Empty;
-
+        public static string GetEnumValue<T>(T enumValue) where T : Enum
+        {
+            var type = enumValue.GetType();
+            var memInfo = type.GetMember(enumValue.ToString());
+            var attributes = memInfo[0].GetCustomAttributes(typeof(EnumMemberAttribute), false);
+            return ((EnumMemberAttribute)attributes[0]).Value!;
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

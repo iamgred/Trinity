@@ -13,7 +13,7 @@ using TeamServer.Data;
 namespace TeamServer.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20260920150204_init")]
+    [Migration("20260920203732_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -84,6 +84,9 @@ namespace TeamServer.Migrations
                     b.Property<JsonDocument>("Command")
                         .IsRequired()
                         .HasColumnType("jsonb");
+
+                    b.Property<int>("CommandType")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");

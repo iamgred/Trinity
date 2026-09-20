@@ -4,6 +4,7 @@ using TeamServer.Controllers;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Interfaces;
+using Trinity.Shared.Enums;
 namespace TeamServer.Controllers
 {
     [Route(Routes.Commands)]
@@ -34,7 +35,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/powershell")]
         public async Task<IActionResult> QueuePowerShellCommand([FromRoute] int agentId, PowerShellDTO powershellDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(powershellDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(powershellDTO, CommandTypes.Powershell, agentId);
 
             if (response.TaskID == null)
             {
@@ -54,7 +55,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/shell")]
         public async Task<IActionResult> QueueShellCommand([FromRoute] int agentId, ShellDTO shellDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(shellDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(shellDTO, CommandTypes.Shell, agentId);
 
             if (response.TaskID == null)
             {
@@ -68,7 +69,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/runas")]
         public async Task<IActionResult> QueueRunAsCommand([FromRoute] int agentId, RunAsDTO runAsDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runAsDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runAsDTO, CommandTypes.RunAs, agentId);
 
             if (response.TaskID == null)
             {
@@ -82,7 +83,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/run")]
         public async Task<IActionResult> QueueRunCommand([FromRoute] int agentId, RunDTO runDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runDTO, CommandTypes.Run, agentId);
 
             if (response.TaskID == null)
             {
@@ -96,7 +97,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/runu")]
         public async Task<IActionResult> QueueRunUCommand([FromRoute] int agentId, RunUDTO runUDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runUDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runUDTO, CommandTypes.RunU, agentId);
 
             if (response.TaskID == null)
             {
@@ -108,9 +109,9 @@ namespace TeamServer.Controllers
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/spawn/killprocess")]
-        public async Task<IActionResult> QueueRunUCommand([FromRoute] int agentId, KillProcessDTO killProcessDTO)
+        public async Task<IActionResult> QueueKillCommand([FromRoute] int agentId, KillProcessDTO killProcessDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(killProcessDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(killProcessDTO, CommandTypes.Kill, agentId);
 
             if (response.TaskID == null)
             {
@@ -122,9 +123,9 @@ namespace TeamServer.Controllers
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/spawn/escalate")]
-        public async Task<IActionResult> QueueKillProcessCommand([FromRoute] int agentId, EscalateDTO escalateDTO)
+        public async Task<IActionResult> QueueEscalateCommand([FromRoute] int agentId, EscalateDTO escalateDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(escalateDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(escalateDTO, CommandTypes.Escalate, agentId);
 
             if (response.TaskID == null)
             {
@@ -138,7 +139,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/dotnetassembly")]
         public async Task<IActionResult> QueueDotNetAsmCommand([FromRoute] int agentId, DotNetAsmDTO dotNetAsmDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(dotNetAsmDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(dotNetAsmDTO, CommandTypes.ExecuteAssembly, agentId);
 
             if (response.TaskID == null)
             {
@@ -152,7 +153,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/bof")]
         public async Task<IActionResult> QueueBofCommand([FromRoute] int agentId, BofDTO bofDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(bofDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(bofDTO, CommandTypes.BOF, agentId);
 
             if (response.TaskID == null)
             {
@@ -166,7 +167,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/filedownload")]
         public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentId, DownloadDTO downloadDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(downloadDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(downloadDTO, CommandTypes.Download, agentId);
 
             if (response.TaskID == null)
             {
@@ -178,9 +179,9 @@ namespace TeamServer.Controllers
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/cancelFileDownload")]
-        public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentId, CancelDownloadDTO cancelDownloadDTO)
+        public async Task<IActionResult> QueueCancelFileDownloadCommand([FromRoute] int agentId, CancelDownloadDTO cancelDownloadDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(cancelDownloadDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(cancelDownloadDTO, CommandTypes.CancelDownload, agentId);
 
             if (response.TaskID == null)
             {
@@ -194,7 +195,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/upload")]
         public async Task<IActionResult> QueueUploadCommand([FromRoute] int agentId, UploadDTO uploadDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(uploadDTO, agentId);
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(uploadDTO, CommandTypes.Upload, agentId);
 
             if (response.TaskID == null)
             {

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
+using TeamServer.Services;
+using Trinity.Shared.DTOs.Tasks;
 
 namespace TeamServer.Controllers
 {
@@ -7,14 +9,14 @@ namespace TeamServer.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-
+        private TaskService _taskService;
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public TaskController()
+        public TaskController(TaskService taskService)
         {
-            
+            this._taskService = taskService;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -22,22 +24,11 @@ namespace TeamServer.Controllers
         /// Retrieves all tasks.
         /// </summary>
         /// <returns></returns>
-        [HttpGet("/tasks")]
+        [HttpGet("tasks")]
         public async Task<IActionResult> GetTasks() 
         {
-            return Ok();
-        }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Retrieves a task by ID.
-        /// </summary>
-        /// <param name="taskID"></param>
-        /// <returns></returns>
-        [HttpGet("/tasks/{taskID")]
-        public async Task<IActionResult> GetTaskByID([FromRoute] int taskID)
-        {
-            return Ok();
+            List<TaskDTO> response = await _taskService.GetTasksAsync();
+            return Ok(response);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -46,10 +37,11 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <param name="agentID"></param>
         /// <returns></returns>
-        [HttpGet("/{agentID}")]
+        [HttpGet("{agentID}")]
         public async Task<IActionResult> GetTasksByAgentID([FromRoute] int agentID)
         {
-            return Ok();
+            List<TaskDTO> response = await _taskService.GetTasksByAgentAsync(agentID);
+            return Ok(response);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -58,7 +50,7 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <param name="agentID"></param>
         /// <returns></returns>
-        [HttpGet("/{agentID}/activeDownloads")]
+        [HttpGet("{agentID}/activeDownloads")]
         public async Task<IActionResult> GetActiveDownloadsByAgentID([FromRoute] int agentID)
         {
             return Ok();
@@ -83,9 +75,16 @@ namespace TeamServer.Controllers
         /// <param name="taskID"></param>
         /// <returns></returns>
         [HttpDelete("/{agentID}/clearQueue")]
-        public async Task<IActionResult> ClearQueue([FromRoute] int taskID) 
+        public async Task<IActionResult> ClearQueue([FromRoute] int agentID) 
         {
+            var result = await _taskService.ClearAgentTasksAsync(agentID);
+            if (!result)
+            {
+                return BadRequest();    
+            }
+
             return Ok();
         }
     }
 }
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -9,8 +9,6 @@ namespace Trinity.Shared.DTOs.Tasks
 {
     public class TaskDTO
     {
-        public string TaskID { get; set; } = String.Empty;
-        public string AgentID { get; set; } = String.Empty;
         public JsonDocument Command { get; set; } = default;
         public string User { get; set; } = String.Empty;
         public DateTime Created { get; set; } = new();

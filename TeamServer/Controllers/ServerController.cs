@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using Trinity.Shared.DTOs.TeamServer;
 
 namespace TeamServer.Controllers
 {
@@ -10,8 +12,8 @@ namespace TeamServer.Controllers
     [ApiController]
     public class ServerController : ControllerBase
     {
-        private IPAddress? _IPv4;
-        private IPAddress? _IPv6;
+        private IPAddress _IPv4;
+        private IPAddress _IPv6;
         private ILogger<ServerController> _logger;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -22,9 +24,16 @@ namespace TeamServer.Controllers
         public ServerController(ILogger<ServerController> logger)
         {
             IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName());
-            _IPv4 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork));
-            _IPv6 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetworkV6));
-            _logger = logger;
+            IPAddress? ipV4 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork));
+            IPAddress? ipV6 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetworkV6));
+
+            if (ipV4 == null || ipV6 == null)
+            {
+                throw new InvalidOperationException("Could not determine TeamServer IP addresses!");
+            }
+            this._IPv4 = ipV4;
+            this._IPv6 = ipV6;
+            this._logger = logger;
         }
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -38,16 +47,11 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpGet("teamserverIp")]
+        [HttpGet("teamserverip")]
         public IActionResult GetServerIP()
         {
-            if (_IPv4 != null)
-            {
-                _logger.LogInformation($"Returned teamserver IPv4: {_IPv4}");
-                return Ok(_IPv4.ToString());
-            }
-            _logger.LogInformation("Teamserver IPv4 is null");
-            return BadRequest();
+            TeamServerIpDTO response = new TeamServerIpDTO { IpV4 = _IPv4.ToString(), IpV6 =  _IPv6.ToString() };
+            return Ok(response);
         }
     }
 }

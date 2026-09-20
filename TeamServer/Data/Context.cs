@@ -1,16 +1,19 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
+using Trinity.Shared.Models;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace TeamServer.Data
 {
-    public class GuardRailsDTO
+    public class Context : DbContext
     {
-        public string IpAddress { get; set; } = String.Empty;
-        public string Username { get; set; } = String.Empty;
-        public string ServerName { get; set; } = String.Empty;
-        public string Domain { get; set; } = String.Empty;
+        public DbSet<Trinity.Shared.Models.Task> Tasks { get; set; }
+        public DbSet<TaskResult> TaskResult { get; set; }
+        public Context()
+        {
+        }
+        public Context(DbContextOptions<Context> options) : base(options)
+        {
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -2,15 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace Trinity.Shared.Models
 {
-    public class GuardRailsDTO
+    public class TaskResult
     {
-        public string IpAddress { get; set; } = String.Empty;
-        public string Username { get; set; } = String.Empty;
-        public string ServerName { get; set; } = String.Empty;
-        public string Domain { get; set; } = String.Empty;
+        public int ID { get; set; }
+        public required int TaskID { get; set; }
+        public required bool isSuccess { get; set; }
+        public required JsonDocument Response { get; set; } 
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

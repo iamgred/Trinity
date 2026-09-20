@@ -1,4 +1,6 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Microsoft.EntityFrameworkCore;
+using TeamServer.Data;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
 
@@ -19,6 +21,9 @@ namespace TeamServer
             {
                 options.EnableAnnotations();
             });
+            builder.Services.AddDbContextPool<Context>(opt =>
+                opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

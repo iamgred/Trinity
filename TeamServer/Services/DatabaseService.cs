@@ -45,6 +45,46 @@ namespace TeamServer.Services
 
             return result.Entity.ID;
         }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Retrieves all the tasks.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<Trinity.Shared.Models.Task>> GetTasksAsync() 
+        {
+            List<Trinity.Shared.Models.Task> tasks = await _context.Tasks.ToListAsync();
+
+            return tasks;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<Trinity.Shared.Models.Task?> GetTaskByIDAsync(int taskID)
+        {
+            Trinity.Shared.Models.Task? tasks = await _context.Tasks.FirstOrDefaultAsync(t => t.ID.Equals(taskID));
+
+            return tasks;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<Trinity.Shared.Models.Task>> GetTasksByAgentAsync(int agentID)
+        {
+            List<Trinity.Shared.Models.Task> tasks = await _context.Tasks
+                .Where(t => t.AgentID.Equals(agentID))
+                .ToListAsync();
+
+            return tasks;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<bool> ClearQueue(int agentID)
+        {
+            var result = await _context.Tasks
+                .Where(t => t.AgentID.Equals(agentID))
+                .ExecuteDeleteAsync();
+
+            return result > 0;
+        }
     }
 }
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { END OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //

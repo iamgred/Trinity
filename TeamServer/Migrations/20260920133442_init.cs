@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Trinity.Shared.Interfaces;
 
 #nullable disable
 
@@ -14,51 +15,14 @@ namespace TeamServer.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Agents",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UUID = table.Column<string>(type: "text", nullable: false),
-                    CampaignID = table.Column<int>(type: "integer", nullable: true),
-                    ListenerID = table.Column<int>(type: "integer", nullable: false),
-                    PayloadID = table.Column<int>(type: "integer", nullable: false),
-                    Username = table.Column<string>(type: "text", nullable: true),
-                    ProcesseName = table.Column<string>(type: "text", nullable: true),
-                    Integrity = table.Column<int>(type: "integer", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    FirstSeen = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    LastSeen = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Agents", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Operators",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Username = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Operators", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Tasks",
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     AgentID = table.Column<int>(type: "integer", nullable: false),
-                    Command = table.Column<JsonDocument>(type: "jsonb", nullable: false),
+                    OperatorID = table.Column<int>(type: "integer", nullable: false),
+                    Command = table.Column<ICommand>(type: "jsonb", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -99,12 +63,6 @@ namespace TeamServer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Agents");
-
-            migrationBuilder.DropTable(
-                name: "Operators");
-
             migrationBuilder.DropTable(
                 name: "TaskResult");
 

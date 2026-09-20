@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Trinity.Shared.Interfaces;
 
 namespace Trinity.Shared.DTOs.Command
 {
-    public class RunUDTO
+    public class RunUDTO : ICommand
     {
         public int PID { get; set; } = default;
         public string Command { get; set; } = String.Empty;

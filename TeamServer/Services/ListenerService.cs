@@ -8,6 +8,7 @@ using TeamServer.Services.Factories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Listener;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Models;
 
 namespace TeamServer.Services
 {
@@ -158,9 +159,18 @@ namespace TeamServer.Services
         /// Retrieves the currently active C2 listeners. 
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<HttpCommModule> GetListeners()
+        public async Task<List<SimpleHttpDTO>> GetHttpListeners()
         {
-            return _httpCommModules.Values.ToList<HttpCommModule>();
+            var result = await _db.GetHttpListeners();
+            var dto = result
+                .Select(l => 
+                new SimpleHttpDTO
+                {
+                    Name = l.Name,
+                    Host = "www.test.com",
+                    Type = Util.GetEnumValue<ListenerTypes>(ListenerTypes.HTTP)
+                }).ToList();
+            return dto;
         }
 
     }

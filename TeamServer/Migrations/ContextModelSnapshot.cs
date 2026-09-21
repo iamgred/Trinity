@@ -31,7 +31,7 @@ namespace TeamServer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
-                    b.Property<int?>("CampaignID")
+                    b.Property<int>("CampaignID")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("FirstSeen")
@@ -77,7 +77,7 @@ namespace TeamServer.Migrations
                             FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Integrity = 3,
                             LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ListenerID = 1,
+                            ListenerID = 2,
                             PayloadID = 1,
                             ProcesseName = "bitwarden.exe",
                             Status = 1,
@@ -92,7 +92,7 @@ namespace TeamServer.Migrations
                             FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Integrity = 2,
                             LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ListenerID = 1,
+                            ListenerID = 2,
                             PayloadID = 1,
                             ProcesseName = "notepad.exe",
                             Status = 1,
@@ -122,7 +122,7 @@ namespace TeamServer.Migrations
                             FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Integrity = 2,
                             LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ListenerID = 1,
+                            ListenerID = 2,
                             PayloadID = 1,
                             ProcesseName = "notepad.exe",
                             Status = 1,
@@ -137,7 +137,7 @@ namespace TeamServer.Migrations
                             FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Integrity = 3,
                             LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ListenerID = 2,
+                            ListenerID = 1,
                             PayloadID = 1,
                             ProcesseName = "explorer.exe",
                             Status = 1,
@@ -310,6 +310,22 @@ namespace TeamServer.Migrations
                     b.HasIndex("HttpListenerID");
 
                     b.ToTable("ListenerHosts");
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 1,
+                            AddedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Host = "www.test.com",
+                            ListenerID = 1
+                        },
+                        new
+                        {
+                            ID = 2,
+                            AddedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Host = "www.hello.com",
+                            ListenerID = 1
+                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Payload", b =>

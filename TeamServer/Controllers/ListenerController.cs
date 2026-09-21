@@ -8,6 +8,7 @@ using TeamServer.DTOs.Listeners;
 using TeamServer.Modules;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Listener;
+using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers
 {
@@ -22,19 +23,11 @@ namespace TeamServer.Controllers
             _listenerService = listenerService;
         }
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> Listeners() 
+        [HttpGet("http")]
+        public async Task<IActionResult> GetHttpListeners()
         {
-            IEnumerable<HttpCommModule> result = _listenerService.GetListeners();
-
-            return Ok(result);
+            var response = await _listenerService.GetHttpListeners();
+            return Ok(response);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -69,32 +62,32 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPut("http")]
-        public async Task<IActionResult> UpdateHttpListener([FromBody] HttpListenerDto httpListenerDto)
-        {
-            HttpListenerDto result = await _listenerService.UpdateHttpListener(httpListenerDto);
+        //[HttpPut("http")]
+        //public async Task<IActionResult> UpdateHttpListener([FromBody] HttpListenerDto httpListenerDto)
+        //{
+        //    HttpListenerDto result = await _listenerService.UpdateHttpListener(httpListenerDto);
 
-            if (!String.IsNullOrEmpty(result.Error))
-            {
-                return BadRequest(result);
-            }
+        //    if (!String.IsNullOrEmpty(result.Error))
+        //    {
+        //        return BadRequest(result);
+        //    }
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpDelete("http")]
-        public IActionResult StopHttpListener([FromQuery] string moduleId)
-        {
-            bool result = _listenerService.StopHttpListener(moduleId);
+        //[HttpDelete("http")]
+        //public IActionResult StopHttpListener([FromQuery] string moduleId)
+        //{
+        //    bool result = _listenerService.StopHttpListener(moduleId);
 
-            if (!result)
-            {
-                return BadRequest();
-            }
+        //    if (!result)
+        //    {
+        //        return BadRequest();
+        //    }
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>

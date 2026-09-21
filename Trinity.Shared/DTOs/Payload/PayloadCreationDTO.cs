@@ -8,6 +8,7 @@ namespace Trinity.Shared.DTOs.Payload
 {
     public class PayloadCreationDTO
     {
+        public string Name { get; set; } = String.Empty;
         public int ListenerID { get; set; } = default;
         public string Architecture { get; set; } = String.Empty;
         public string Type { get; set; } = String.Empty;

@@ -38,13 +38,32 @@ namespace TeamServer.Services
             List<PayloadDTO> payloadDTOs = result
                 .Select(p => new PayloadDTO
                 {
-                    Name = p.FileName,
+                    Name = AppendFileExtension(p.FileName, p.PayloadType),
                     Size = 200,
                     Type = Util.GetEnumValue<PayloadTypes>(p.PayloadType),
                     CreateTime = p.CreatedAt
                 }).ToList();
 
             return payloadDTOs;
+        }
+
+        private string AppendFileExtension(string fileName, PayloadTypes type)
+        {
+            string name;
+            switch (type)
+            {
+                case PayloadTypes.WinExe:
+                    name = fileName + ".exe";
+                    break;
+                case PayloadTypes.Powershell:
+                    name = fileName + ".ps1";
+                    break;
+                default:
+                    name = fileName + ".dll";
+                    break;
+            }
+
+            return name;
         }
 
     }

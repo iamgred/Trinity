@@ -172,13 +172,23 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<HttpListener>> GetHttpListeners()
+        {
+            List<HttpListener> result = await _context.HttpListeners
+                .Include(l => l.Hosts)
+                .ToListAsync();
+            return result;
+        }
+
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<int> InsertPayloadAsync(PayloadCreationDTO payloadCreationDTO)
         {
             Payload payload = new Payload
             {
                 ListenerID = payloadCreationDTO.ListenerID,
                 Architecture = Util.GetEnumString<Architectures>(payloadCreationDTO.Architecture),
-                FileName = "test",
+                FileName = payloadCreationDTO.Name,
                 CreatedAt = DateTime.UtcNow,
                 PayloadType = Util.GetEnumString<PayloadTypes>(payloadCreationDTO.Type),
                 Platform = Platforms.Windows,
@@ -206,11 +216,20 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<(Agent, string)> GetAgentAsync(int agentID)
+        {
+            Agent result = await _context.Agents.FirstOrDefaultAsync(a => a.ID.Equals(agentID));
+            Campaign campaign = await _context.Campaigns.FirstOrDefaultAsync(c => c.ID.Equals(result.CampaignID));
+            return (result, campaign.Name);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<List<Campaign>> GetCampaignsAsync()
         {
             List<Campaign> result = await _context.Campaigns.ToListAsync();
             return result;
         }
+
     }
 }
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { END OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //

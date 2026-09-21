@@ -93,7 +93,24 @@ namespace TeamServer.Data
                     C2Port = 8888,
                     Header = "X-Agent",
                     Name = "HTTP Listener",
-                    UserAgent = "User Agent"
+                    UserAgent = "User Agent",
+                }
+            );
+
+            modelBuilder.Entity<ListenerHost>().HasData(
+                new ListenerHost
+                {
+                    ID = 1,
+                    AddedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    Host = "www.test.com",
+                    ListenerID = 1
+                },
+                new ListenerHost
+                {
+                    ID = 2,
+                    AddedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    Host = "www.hello.com",
+                    ListenerID = 1
                 }
             );
 
@@ -115,7 +132,7 @@ namespace TeamServer.Data
                     UUID = "123e4567-e89b-12d3-a456-426655440000",
                     Type = Trinity.Shared.Enums.AgentTypes.Peer,
                     CampaignID = 1,
-                    ListenerID = 1,
+                    ListenerID = 2,
                     PayloadID = 1,
                     Username = "Lucus",
                     ProcesseName = "bitwarden.exe",
@@ -130,7 +147,7 @@ namespace TeamServer.Data
                     UUID = "fc32619d-446b-4989-9fcf-2854aae816ac",
                     Type = Trinity.Shared.Enums.AgentTypes.Peer,
                     CampaignID = 1,
-                    ListenerID = 1,
+                    ListenerID = 2,
                     PayloadID = 1,
                     Username = "mark",
                     ProcesseName = "notepad.exe",
@@ -160,7 +177,7 @@ namespace TeamServer.Data
                     UUID = "fc32619d-446b-4989-9fcf-2854aae816ac",
                     Type = Trinity.Shared.Enums.AgentTypes.Peer,
                     CampaignID = 1,
-                    ListenerID = 1,
+                    ListenerID = 2,
                     PayloadID = 1,
                     Username = "lucus",
                     ProcesseName = "notepad.exe",
@@ -175,7 +192,7 @@ namespace TeamServer.Data
                     UUID = "123e4567-e89b-12d3-a456-426655440000",
                     Type = Trinity.Shared.Enums.AgentTypes.Egress,
                     CampaignID = 2,
-                    ListenerID = 2,
+                    ListenerID = 1,
                     PayloadID = 1,
                     Username = "admin",
                     ProcesseName = "explorer.exe",

@@ -22,7 +22,7 @@ namespace TeamServer.Migrations
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UUID = table.Column<string>(type: "text", nullable: false),
-                    CampaignID = table.Column<int>(type: "integer", nullable: true),
+                    CampaignID = table.Column<int>(type: "integer", nullable: false),
                     ListenerID = table.Column<int>(type: "integer", nullable: false),
                     PayloadID = table.Column<int>(type: "integer", nullable: false),
                     Username = table.Column<string>(type: "text", nullable: true),
@@ -229,11 +229,11 @@ namespace TeamServer.Migrations
                 columns: new[] { "ID", "CampaignID", "FirstSeen", "Integrity", "LastSeen", "ListenerID", "PayloadID", "ProcesseName", "Status", "Type", "UUID", "Username" },
                 values: new object[,]
                 {
-                    { 1, 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, 1, "bitwarden.exe", 1, 1, "123e4567-e89b-12d3-a456-426655440000", "Lucus" },
-                    { 2, 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, 1, "notepad.exe", 1, 1, "fc32619d-446b-4989-9fcf-2854aae816ac", "mark" },
+                    { 1, 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, 1, "bitwarden.exe", 1, 1, "123e4567-e89b-12d3-a456-426655440000", "Lucus" },
+                    { 2, 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, 1, "notepad.exe", 1, 1, "fc32619d-446b-4989-9fcf-2854aae816ac", "mark" },
                     { 3, 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, 1, "explorer.exe", 1, 0, "123e4567-e89b-12d3-a456-426655440000", "adminEmeris" },
-                    { 4, 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, 1, "notepad.exe", 1, 1, "fc32619d-446b-4989-9fcf-2854aae816ac", "lucus" },
-                    { 5, 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, 1, "explorer.exe", 1, 0, "123e4567-e89b-12d3-a456-426655440000", "admin" },
+                    { 4, 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, 1, "notepad.exe", 1, 1, "fc32619d-446b-4989-9fcf-2854aae816ac", "lucus" },
+                    { 5, 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 3, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, 1, "explorer.exe", 1, 0, "123e4567-e89b-12d3-a456-426655440000", "admin" },
                     { 6, 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, 1, "notepad.exe", 1, 1, "fc32619d-446b-4989-9fcf-2854aae816ac", "mark" }
                 });
 
@@ -244,6 +244,15 @@ namespace TeamServer.Migrations
                 {
                     { 1, "Emeris Campaign", 0 },
                     { 2, "Robocorp Campaign", 0 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ListenerHosts",
+                columns: new[] { "ID", "AddedAt", "Host", "HttpListenerID", "ListenerID" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "www.test.com", null, 1 },
+                    { 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "www.hello.com", null, 1 }
                 });
 
             migrationBuilder.InsertData(

@@ -1,19 +1,20 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
-using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace Trinity.Shared.Enums
 {
-    public class TcpListenerDTO
+    [DataContract]
+    public enum RotationStrategies
     {
-        public string ID { get; set; } = String.Empty;
-        public string Name { get; set; } = String.Empty;
-        public string Type { get; set; } = String.Empty;
-        public int Port { get; set; } = default;
-        public bool LocalHostOnly { get; set; } = default;
-        //public GuardRailsDTO? guardRails { get; set; }
+        [EnumMember(Value = "Round Robin")]
+        RoundRobin,
+        [EnumMember(Value = "Random")]
+        Random,
+        [EnumMember(Value = "Rotate on Failure")]
+        Failover
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

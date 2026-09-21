@@ -7,7 +7,7 @@ using System.Text.Json;
 using TeamServer.DTOs.Listeners;
 using TeamServer.Modules;
 using TeamServer.Services;
-using Trinity.Shared.DTOs.Command;
+using Trinity.Shared.DTOs.Listener;
 
 namespace TeamServer.Controllers
 {
@@ -40,20 +40,28 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("http")]
-        public IActionResult StartHttpListener([FromBody] HttpListenerDto httpListenerDto)
+        public async Task<IActionResult> StartHttpListener([FromBody] HttpListenerDTO httpListenerDTO)
         {
-            Stopwatch watch = Stopwatch.StartNew();
-            Console.WriteLine($"StartHttpListener current threadId: {Environment.CurrentManagedThreadId}");
-            HttpListenerDto result = _listenerService.StartHttpListener(httpListenerDto);
-            watch.Stop();
+            //Stopwatch watch = Stopwatch.StartNew();
+            //Console.WriteLine($"StartHttpListener current threadId: {Environment.CurrentManagedThreadId}");
+            //HttpListenerDto result = _listenerService.StartHttpListener(httpListenerDto);
+            //watch.Stop();
 
-            Console.WriteLine($"Total time: {watch.ElapsedMilliseconds}ms");
+            //Console.WriteLine($"Total time: {watch.ElapsedMilliseconds}ms");
+
+            //if (!String.IsNullOrEmpty(result.Error))
+            //{
+            //    return BadRequest(result);
+            //}
+            //Console.WriteLine($"StartHttpListener current threadId: {Environment.CurrentManagedThreadId}");
+
+            HttpListenerDTO result = await _listenerService.CreateHttpListener(httpListenerDTO);
 
             if (!String.IsNullOrEmpty(result.Error))
             {
                 return BadRequest(result);
             }
-            Console.WriteLine($"StartHttpListener current threadId: {Environment.CurrentManagedThreadId}");
+
             return Ok(result);
         }
 

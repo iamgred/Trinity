@@ -13,7 +13,7 @@ namespace TeamServer
             var builder = WebApplication.CreateBuilder(args);
 
             // Services 
-            builder.Services.AddSingleton<ListenerService>();
+            builder.Services.AddScoped<ListenerService>();
             builder.Services.AddScoped<CommandService>();
             builder.Services.AddScoped<TaskService>();
             builder.Services.AddSingleton<HttpListenerFactory>();

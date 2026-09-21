@@ -4,16 +4,19 @@ using System.Collections.Generic;
 using System.Text;
 using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace Trinity.Shared.Models
 {
-    public class TcpListenerDTO
+    public class Payload
     {
-        public string ID { get; set; } = String.Empty;
-        public string Name { get; set; } = String.Empty;
-        public string Type { get; set; } = String.Empty;
-        public int Port { get; set; } = default;
-        public bool LocalHostOnly { get; set; } = default;
-        //public GuardRailsDTO? guardRails { get; set; }
+        public int ID { get; set; }
+        public required int ListenerID { get; set; }
+        public required int ProfileID { get; set; }
+        public required string UUID { get; set; }
+        public required Platforms Platform { get; set; }
+        public required Architectures Architecture { get; set; }
+        public required PayloadTypes PayloadType { get; set; }
+        public required string FileName { get; set; }
+        public required DateTime CreatedAt { get; set; }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

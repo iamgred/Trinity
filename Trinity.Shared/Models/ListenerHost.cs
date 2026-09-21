@@ -2,18 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace Trinity.Shared.Models
 {
-    public class TcpListenerDTO
+    public class ListenerHost
     {
-        public string ID { get; set; } = String.Empty;
-        public string Name { get; set; } = String.Empty;
-        public string Type { get; set; } = String.Empty;
-        public int Port { get; set; } = default;
-        public bool LocalHostOnly { get; set; } = default;
-        //public GuardRailsDTO? guardRails { get; set; }
+        public int ID { get; set; }
+        public int ListenerID { get; set; }
+        public required string Host {  get; set; }
+        public required DateTime AddedAt { get; set; }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

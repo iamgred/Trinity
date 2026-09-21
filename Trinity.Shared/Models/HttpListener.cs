@@ -3,17 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Interfaces;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace Trinity.Shared.Models
 {
-    public class TcpListenerDTO
+    public class HttpListener : ListenerBase
     {
-        public string ID { get; set; } = String.Empty;
-        public string Name { get; set; } = String.Empty;
-        public string Type { get; set; } = String.Empty;
-        public int Port { get; set; } = default;
-        public bool LocalHostOnly { get; set; } = default;
-        //public GuardRailsDTO? guardRails { get; set; }
+        public required int C2Port { get; set; }
+        public required int BindPort { get; set; }
+        public string? UserAgent { get; set; }
+        public string? Header { get; set; }
+        public required List<ListenerHost> Hosts { get; set; }
+        public required RotationStrategies HostRotationStrategy { get; set; }
+        public required string MaxRetryStrategy { get; set; }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

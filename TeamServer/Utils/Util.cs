@@ -12,6 +12,20 @@ namespace TeamServer.Utils
             var attributes = memInfo[0].GetCustomAttributes(typeof(EnumMemberAttribute), false);
             return ((EnumMemberAttribute)attributes[0]).Value!;
         }
+
+        public static T GetEnumString<T>(string value) where T : Enum
+        {
+            var type = typeof(T);
+            foreach (var field in type.GetFields())
+            {
+                var attribute = Attribute.GetCustomAttribute(field, typeof(EnumMemberAttribute)) as EnumMemberAttribute;
+                if(attribute != null && attribute.Value!.Equals(value))
+                {
+                    return (T)field.GetValue(null);
+                }
+            }
+            throw new ArgumentException($"Unkown value: {value}");
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

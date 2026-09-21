@@ -5,12 +5,14 @@ using TeamServer.DTOs.Listeners;
 using TeamServer.Exceptions;
 using TeamServer.Modules;
 using TeamServer.Services.Factories;
+using Trinity.Shared.DTOs.Listener;
 
 namespace TeamServer.Services
 {
     public class ListenerService 
     {
         private ILogger _logger;
+        private DatabaseService _db;
         private ConcurrentDictionary<string, HttpCommModule> _httpCommModules;
         private HttpCommModuleFactory _httpModuleFactory;
 
@@ -20,11 +22,12 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, HttpCommModuleFactory httpFactory)
+        public ListenerService(ILogger<ListenerService> logger, HttpCommModuleFactory httpFactory, DatabaseService database)
         {
             _logger = logger;
             _httpCommModules = new();
             _httpModuleFactory = httpFactory;
+            _db = database;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -102,6 +105,22 @@ namespace TeamServer.Services
                 _logger.LogError(ex, "Module runtime startup failed: {Message}", ex.Message);
             }
             return false;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<HttpListenerDTO> CreateHttpListener(HttpListenerDTO httpListenerDTO)
+        {
+            try
+            {
+                int id = await _db.InsertHttpListenerAsync(httpListenerDTO);
+                httpListenerDTO.ID = id;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to insert HTTP Listener: {Message}", ex.Message);
+                httpListenerDTO.Error = ex.Message;
+            }
+            return httpListenerDTO;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

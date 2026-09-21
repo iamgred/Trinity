@@ -3,8 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Text.Json;
 using TeamServer.Data;
+using TeamServer.Utils;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Enums;
+using Trinity.Shared.DTOs.Listener;
+using Trinity.Shared.Models;
 
 namespace TeamServer.Services
 {
@@ -88,6 +91,42 @@ namespace TeamServer.Services
                 .ExecuteDeleteAsync();
 
             return result > 0;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<int> InsertHttpListenerAsync(HttpListenerDTO httplistenerDTO) 
+        {
+            List<ListenerHost> test = httplistenerDTO.Hosts
+                .Select(h => new ListenerHost
+                {
+                    AddedAt = DateTime.UtcNow,
+                    Host = h,
+                }).ToList();
+
+            HttpListener httpListener = new HttpListener
+            {
+                Name = httplistenerDTO.Name,
+                UserAgent = String.IsNullOrEmpty(httplistenerDTO.UserAgent) ? null : httplistenerDTO.UserAgent,
+                HostRotationStrategy = Util.GetEnumString<RotationStrategies>(httplistenerDTO.HostRotationStrategy),
+                MaxRetryStrategy = httplistenerDTO.MaxRetryStrategy,
+                BindPort = httplistenerDTO.HttpBindPort,
+                C2Port = httplistenerDTO.HttpC2BindPort,
+                Header = String.IsNullOrEmpty(httplistenerDTO.HttpHostHeader) ? null : httplistenerDTO.HttpHostHeader,
+                Hosts = test,
+
+            };
+            Listener listener = new Listener
+            {
+                Name = httplistenerDTO.Name,
+                Type = ListenerTypes.HTTP,
+                CreatedAt = DateTime.UtcNow,
+                Listeners = httpListener
+            };
+
+            var result = await _context.Listeners.AddAsync(listener);
+            await _context.SaveChangesAsync();
+
+            return result.Entity.ID;
         }
     }
 }

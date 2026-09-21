@@ -197,6 +197,20 @@ namespace TeamServer.Services
             List<Payload> result = await _context.Payloads.ToListAsync();
             return result;
         }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<Agent>> GetAgentsAsync() 
+        {
+            List<Agent> result = await _context.Agents.ToListAsync();
+            return result;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<Campaign>> GetCampaignsAsync()
+        {
+            List<Campaign> result = await _context.Campaigns.ToListAsync();
+            return result;
+        }
     }
 }
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { END OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //

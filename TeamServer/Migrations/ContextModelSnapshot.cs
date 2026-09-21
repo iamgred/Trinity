@@ -55,6 +55,9 @@ namespace TeamServer.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.Property<string>("UUID")
                         .IsRequired()
                         .HasColumnType("text");
@@ -65,6 +68,132 @@ namespace TeamServer.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Agents");
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 1,
+                            CampaignID = 1,
+                            FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Integrity = 3,
+                            LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ListenerID = 1,
+                            PayloadID = 1,
+                            ProcesseName = "bitwarden.exe",
+                            Status = 1,
+                            Type = 1,
+                            UUID = "123e4567-e89b-12d3-a456-426655440000",
+                            Username = "Lucus"
+                        },
+                        new
+                        {
+                            ID = 2,
+                            CampaignID = 1,
+                            FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Integrity = 2,
+                            LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ListenerID = 1,
+                            PayloadID = 1,
+                            ProcesseName = "notepad.exe",
+                            Status = 1,
+                            Type = 1,
+                            UUID = "fc32619d-446b-4989-9fcf-2854aae816ac",
+                            Username = "mark"
+                        },
+                        new
+                        {
+                            ID = 3,
+                            CampaignID = 1,
+                            FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Integrity = 3,
+                            LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ListenerID = 1,
+                            PayloadID = 1,
+                            ProcesseName = "explorer.exe",
+                            Status = 1,
+                            Type = 0,
+                            UUID = "123e4567-e89b-12d3-a456-426655440000",
+                            Username = "adminEmeris"
+                        },
+                        new
+                        {
+                            ID = 4,
+                            CampaignID = 1,
+                            FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Integrity = 2,
+                            LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ListenerID = 1,
+                            PayloadID = 1,
+                            ProcesseName = "notepad.exe",
+                            Status = 1,
+                            Type = 1,
+                            UUID = "fc32619d-446b-4989-9fcf-2854aae816ac",
+                            Username = "lucus"
+                        },
+                        new
+                        {
+                            ID = 5,
+                            CampaignID = 2,
+                            FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Integrity = 3,
+                            LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ListenerID = 2,
+                            PayloadID = 1,
+                            ProcesseName = "explorer.exe",
+                            Status = 1,
+                            Type = 0,
+                            UUID = "123e4567-e89b-12d3-a456-426655440000",
+                            Username = "admin"
+                        },
+                        new
+                        {
+                            ID = 6,
+                            CampaignID = 2,
+                            FirstSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Integrity = 2,
+                            LastSeen = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ListenerID = 2,
+                            PayloadID = 1,
+                            ProcesseName = "notepad.exe",
+                            Status = 1,
+                            Type = 1,
+                            UUID = "fc32619d-446b-4989-9fcf-2854aae816ac",
+                            Username = "mark"
+                        });
+                });
+
+            modelBuilder.Entity("Trinity.Shared.Models.Campaign", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Campaigns");
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 1,
+                            Name = "Emeris Campaign",
+                            Status = 0
+                        },
+                        new
+                        {
+                            ID = 2,
+                            Name = "Robocorp Campaign",
+                            Status = 0
+                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Header", b =>
@@ -112,6 +241,22 @@ namespace TeamServer.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Listeners", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "HTTP Listener",
+                            Type = 2
+                        },
+                        new
+                        {
+                            ID = 2,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "TCP Listener",
+                            Type = 1
+                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.ListenerBase", b =>
@@ -288,6 +433,20 @@ namespace TeamServer.Migrations
                         .HasColumnType("text");
 
                     b.ToTable("HttpListeners", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 1,
+                            ListenerID = 1,
+                            Name = "HTTP Listener",
+                            BindPort = 8888,
+                            C2Port = 8888,
+                            Header = "X-Agent",
+                            HostRotationStrategy = 0,
+                            MaxRetryStrategy = "HHH/MMM/SSSS",
+                            UserAgent = "User Agent"
+                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.TcpListener", b =>
@@ -301,6 +460,16 @@ namespace TeamServer.Migrations
                         .HasColumnType("integer");
 
                     b.ToTable("TcpListeners", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 2,
+                            ListenerID = 2,
+                            Name = "TCP Listener",
+                            LocalHostOnly = true,
+                            Port = 2000
+                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.ListenerBase", b =>

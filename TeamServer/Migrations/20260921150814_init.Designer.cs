@@ -13,7 +13,7 @@ using TeamServer.Data;
 namespace TeamServer.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20260921125207_init")]
+    [Migration("20260921150814_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -170,6 +170,45 @@ namespace TeamServer.Migrations
                     b.ToTable("ListenerHosts");
                 });
 
+            modelBuilder.Entity("Trinity.Shared.Models.Payload", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<int>("Architecture")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ListenerID")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PayloadType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Platform")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProfileID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UUID")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Payloads");
+                });
+
             modelBuilder.Entity("Trinity.Shared.Models.Task", b =>
                 {
                     b.Property<int>("ID")
@@ -257,6 +296,9 @@ namespace TeamServer.Migrations
             modelBuilder.Entity("Trinity.Shared.Models.TcpListener", b =>
                 {
                     b.HasBaseType("Trinity.Shared.Models.ListenerBase");
+
+                    b.Property<bool>("LocalHostOnly")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Port")
                         .HasColumnType("integer");

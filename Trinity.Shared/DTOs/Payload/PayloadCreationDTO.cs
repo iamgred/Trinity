@@ -3,17 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
-using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace Trinity.Shared.DTOs.Payload
 {
-    public class TcpListenerDTO
+    public class PayloadCreationDTO
     {
-        public string Name { get; set; } = String.Empty;
+        public int ListenerID { get; set; } = default;
+        public string Architecture { get; set; } = String.Empty;
         public string Type { get; set; } = String.Empty;
-        public int Port { get; set; } = default;
-        public bool LocalHostOnly { get; set; } = default;
-        //public GuardRailsDTO? guardRails { get; set; }
+        public string OutputFormat { get; set; } = String.Empty;
+        public bool isStageless { get; set; } = default;
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Error { get; set; }
     }

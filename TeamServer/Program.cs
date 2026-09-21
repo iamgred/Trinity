@@ -15,6 +15,7 @@ namespace TeamServer
             // Services 
             builder.Services.AddScoped<ListenerService>();
             builder.Services.AddScoped<CommandService>();
+            builder.Services.AddScoped<PayloadService>();
             builder.Services.AddScoped<TaskService>();
             builder.Services.AddSingleton<HttpListenerFactory>();
             builder.Services.AddSingleton<HttpCommModuleFactory>();

@@ -21,6 +21,9 @@ namespace TeamServer.Controllers
         {
             _listenerService = listenerService;
         }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// 
@@ -99,9 +102,24 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("tcp")]
-        public IActionResult StartTcpListener()
+        public async Task<IActionResult> StartTcpListener([FromBody] TcpListenerDTO tcpListenerDTO)
         {
-            return Ok();
+            var result = await _listenerService.StartTcpListener(tcpListenerDTO);
+
+            if (String.IsNullOrEmpty(result.Error))
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpGet("tcp")]
+        public async Task<IActionResult> GetTcpListeners()
+        {
+            var result = await _listenerService.GetTcpListenerDTOsAsync();
+            return Ok(result);
         }
     }
 }

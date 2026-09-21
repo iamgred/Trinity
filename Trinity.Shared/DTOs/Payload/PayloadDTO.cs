@@ -2,14 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.Interfaces;
 
-namespace Trinity.Shared.Models
+namespace Trinity.Shared.DTOs.Payload
 {
-    public class TcpListener : ListenerBase
+    public class PayloadDTO
     {
-        public required int Port { get; set; }
-        public required bool LocalHostOnly { get; set; }
+        public string Name { get; set; } = String.Empty;
+        public int Size { get; set; } = default;
+        public string Type { get; set; } = String.Empty;
+        public DateTime CreateTime { get; set; } = new();
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -11,6 +11,7 @@ namespace TeamServer.Data
         public DbSet<Trinity.Shared.Models.Task> Tasks { get; set; }
         public DbSet<TaskResult> TaskResult { get; set; }
         public DbSet<Agent> Agents { get; set; }
+        public DbSet<Payload> Payloads { get; set; }
         public DbSet<Listener> Listeners { get; set; }
         public DbSet<HttpListener> HttpListeners { get; set; }
         public DbSet<TcpListener> TcpListeners { get; set; }

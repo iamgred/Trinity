@@ -5,7 +5,9 @@ using TeamServer.DTOs.Listeners;
 using TeamServer.Exceptions;
 using TeamServer.Modules;
 using TeamServer.Services.Factories;
+using TeamServer.Utils;
 using Trinity.Shared.DTOs.Listener;
+using Trinity.Shared.Enums;
 
 namespace TeamServer.Services
 {
@@ -124,7 +126,32 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public void StartTcpListener() { }
+        public async Task<TcpListenerDTO> StartTcpListener(TcpListenerDTO tcpListenerDTO) 
+        {
+            try
+            {
+                int id = await _db.InsertTcpListenerAsync(tcpListenerDTO);
+            }
+            catch (Exception ex)
+            {
+                tcpListenerDTO.Error = ex.Message;
+            }
+            return tcpListenerDTO;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<TcpListenerDTO>> GetTcpListenerDTOsAsync()
+        {
+            var listeners = await _db.GetTcpListeners();
+            var result = listeners.Select(l => new TcpListenerDTO {
+                Name = l.Name, 
+                LocalHostOnly = l.LocalHostOnly, 
+                Port = l.Port, 
+                Type = Util.GetEnumValue<ListenerTypes>(ListenerTypes.TCP)
+            }).ToList();
+
+            return result;
+        }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>

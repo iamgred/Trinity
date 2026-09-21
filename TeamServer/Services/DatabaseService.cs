@@ -8,6 +8,7 @@ using Trinity.Shared.Interfaces;
 using Trinity.Shared.Enums;
 using Trinity.Shared.DTOs.Listener;
 using Trinity.Shared.Models;
+using Trinity.Shared.DTOs.Payload;
 
 namespace TeamServer.Services
 {
@@ -94,6 +95,16 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<Listener>> GetListenersAsync()
+        {
+            var listeners = await _context.Listeners
+                .Include(l => l.Listeners)
+                .ToListAsync();
+
+            return listeners;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<int> InsertHttpListenerAsync(HttpListenerDTO httplistenerDTO) 
         {
             List<ListenerHost> test = httplistenerDTO.Hosts
@@ -127,6 +138,64 @@ namespace TeamServer.Services
             await _context.SaveChangesAsync();
 
             return result.Entity.ID;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<int> InsertTcpListenerAsync(TcpListenerDTO tcplistenerDTO)
+        {
+            TcpListener tcpListener = new TcpListener
+            {
+                LocalHostOnly = tcplistenerDTO.LocalHostOnly,
+                Name = tcplistenerDTO.Name,
+                Port = tcplistenerDTO.Port
+            };
+
+            Listener listener = new Listener
+            {
+                Type = ListenerTypes.TCP,
+                CreatedAt = DateTime.UtcNow,
+                Name = tcplistenerDTO.Name,
+                Listeners = tcpListener
+            };
+
+            var result = await _context.Listeners.AddAsync(listener);
+            await _context.SaveChangesAsync();
+
+            return result.Entity.ID;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<TcpListener>> GetTcpListeners()
+        {
+            List<TcpListener> result = await _context.TcpListeners.ToListAsync();
+            return result;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<int> InsertPayloadAsync(PayloadCreationDTO payloadCreationDTO)
+        {
+            Payload payload = new Payload
+            {
+                ListenerID = payloadCreationDTO.ListenerID,
+                Architecture = Util.GetEnumString<Architectures>(payloadCreationDTO.Architecture),
+                FileName = "test",
+                CreatedAt = DateTime.UtcNow,
+                PayloadType = Util.GetEnumString<PayloadTypes>(payloadCreationDTO.Type),
+                Platform = Platforms.Windows,
+                ProfileID = 1,
+                UUID = "test"
+            };
+
+            var result = await _context.AddAsync(payload);
+            await _context.SaveChangesAsync();
+            return result.Entity.ID;
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<Payload>> GetPayloadsAsync()
+        {
+            List<Payload> result = await _context.Payloads.ToListAsync();
+            return result;
         }
     }
 }

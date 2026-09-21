@@ -66,6 +66,26 @@ namespace TeamServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Payloads",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ListenerID = table.Column<int>(type: "integer", nullable: false),
+                    ProfileID = table.Column<int>(type: "integer", nullable: false),
+                    UUID = table.Column<string>(type: "text", nullable: false),
+                    Platform = table.Column<int>(type: "integer", nullable: false),
+                    Architecture = table.Column<int>(type: "integer", nullable: false),
+                    PayloadType = table.Column<int>(type: "integer", nullable: false),
+                    FileName = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payloads", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Tasks",
                 columns: table => new
                 {
@@ -152,7 +172,8 @@ namespace TeamServer.Migrations
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "integer", nullable: false),
-                    Port = table.Column<int>(type: "integer", nullable: false)
+                    Port = table.Column<int>(type: "integer", nullable: false),
+                    LocalHostOnly = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -215,6 +236,9 @@ namespace TeamServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "ListenerHosts");
+
+            migrationBuilder.DropTable(
+                name: "Payloads");
 
             migrationBuilder.DropTable(
                 name: "TaskResult");

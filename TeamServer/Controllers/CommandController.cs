@@ -204,6 +204,62 @@ namespace TeamServer.Controllers
 
             return Ok(response);
         }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentId}/execute/spawnto")]
+        public async Task<IActionResult> QueueSpawnToCommand([FromRoute] int agentId, SpawnToDTO spawnToDTO)
+        {
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(spawnToDTO, CommandTypes.SpawnTo, agentId);
+
+            if (response.TaskID == null)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentId}/execute/updatehosts")]
+        public async Task<IActionResult> QueueUpdateHostsCommand([FromRoute] int agentId, UpdateHostsDTO updateHostsDTO)
+        {
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(updateHostsDTO, CommandTypes.UpdateHosts, agentId);
+
+            if (response.TaskID == null)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentId}/execute/setsleep")]
+        public async Task<IActionResult> QueueSetSleepCommand([FromRoute] int agentId, SetSleepDTO setSleepDTO)
+        {
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(setSleepDTO, CommandTypes.SetSleep, agentId);
+
+            if (response.TaskID == null)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentId}/execute/kill")]
+        public async Task<IActionResult> QueueKillAgentCommand([FromRoute] int agentId, KillAgentDTO killAgentDTO)
+        {
+            AsyncCommandResponseDTO response = await this._commandService.QueueTask(killAgentDTO, CommandTypes.KillAgent, agentId);
+
+            if (response.TaskID == null)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

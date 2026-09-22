@@ -34,7 +34,16 @@ namespace Trinity.Shared.Enums
         [EnumMember(Value = "RunU")]
         RunU,
         [EnumMember(Value = "Escalate")]
-        Escalate
+        Escalate,
+        [EnumMember(Value = "SpawnTo")]
+        SpawnTo,
+        [EnumMember(Value = "Update Hosts")]
+        UpdateHosts,
+        [EnumMember(Value = "Set Sleep")]
+        SetSleep,
+        [EnumMember(Value = "Kill Agent")]
+        KillAgent
+
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

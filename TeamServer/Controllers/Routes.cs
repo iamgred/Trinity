@@ -9,6 +9,7 @@ namespace TeamServer.Controllers
         public const string Tasks = "/api/v1/tasks";
         public const string Payloads = "/api/v1/payloads";
         public const string Agents = "/api/v1/agents";
+        public const string Auth = "/api/v1/auth";
     }
 }
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { END OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //

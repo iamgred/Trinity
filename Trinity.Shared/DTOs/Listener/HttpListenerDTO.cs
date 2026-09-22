@@ -19,6 +19,8 @@ namespace Trinity.Shared.DTOs.Listener
         public string HttpHostHeader { get; set; } = String.Empty; 
         public string HostRotationStrategy { get; set; } = String.Empty;
         public string MaxRetryStrategy { get; set; } = String.Empty;
+        // Number of agents currently connected through this listener (design-16 listener rows).
+        public int AgentCount { get; set; } = default;
         //public GuardRailsDTO? GuardRails { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Error { get; set; }

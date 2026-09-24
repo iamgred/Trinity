@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
+using Trinity.Shared.Configurations;
 
 namespace TeamServer
 {
@@ -29,6 +30,12 @@ namespace TeamServer
             builder.Services.AddDbContextPool<Context>(opt =>
                 opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
+            // Server configuration 
+            ServerNetworkSettings serverNetworkSettings = new ServerNetworkSettings()
+                .ResolveIpV4Address()
+                .ResolveIpV6Address();
+
+            builder.Services.AddSingleton(serverNetworkSettings);
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

@@ -1,11 +1,7 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
+using Trinity.Shared.Configurations;
 using Trinity.Shared.DTOs.TeamServer;
-using Trinity.Shared.Exceptions;
 
 namespace TeamServer.Controllers
 {
@@ -13,23 +9,21 @@ namespace TeamServer.Controllers
     [ApiController]
     public class ServerController : ControllerBase
     {
-        private readonly string _ipv4;
-        private readonly string _ipv6;
+        private readonly string _ipV4;
+        private readonly string _ipV6;
         private ILogger<ServerController> _logger;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
-        /// Fails immediately if host cannot be resolved.
         /// </summary>
-        /// <exception cref="IpResolutionException"></exception>
         /// <param name="logger"></param>
-        public ServerController(ILogger<ServerController> logger)
+        /// <param name="settings"></param>
+        public ServerController(ILogger<ServerController> logger, ServerNetworkSettings settings)
         {
-            IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName()) ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's host name.");
-            this._ipv4 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork))!.ToString() ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's IPv4 address.");
-            this._ipv6 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetworkV6))!.ToString() ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's IPv6 address.");
-            this._logger = logger;
+            _logger = logger;
+            _ipV4 = settings.GetIpV4Address();
+            _ipV6 = settings.GetIpV6Address();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -53,7 +47,7 @@ namespace TeamServer.Controllers
         [HttpGet("teamserverip")]
         public IActionResult GetServerIP()
         {
-            TeamServerIpResponse response = new TeamServerIpResponse(_ipv4.ToString(), _ipv6.ToString());
+            TeamServerIpResponse response = new TeamServerIpResponse(_ipV4, _ipV6);
             return Ok(response);
         }
     }

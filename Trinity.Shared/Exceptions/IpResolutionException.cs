@@ -13,7 +13,7 @@ namespace Trinity.Shared.Exceptions
         /// </summary>
         /// <remarks>Passes the specified message to the base Exception constructor.</remarks>
         /// <param name="message">The error message that describes the IP resolution failure.</param>
-        public IpResolutionException(string message) : base(message)
+        public IpResolutionException(string message, Exception inner) : base(message, inner)
         {
         }
     }

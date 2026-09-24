@@ -1,6 +1,7 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
+using TeamServer.ExceptionHandlers;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
 using Trinity.Shared.Configurations;
@@ -29,6 +30,11 @@ namespace TeamServer
             });
             builder.Services.AddDbContextPool<Context>(opt =>
                 opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+
+            // Exception handler
+            builder.Services.AddSingleton<GlobalExceptionHandler>();
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
 
             // Server configuration 
             ServerNetworkSettings serverNetworkSettings = new ServerNetworkSettings()
@@ -64,7 +70,7 @@ namespace TeamServer
                     throw;
                 }
             }
-
+            app.UseExceptionHandler();
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();

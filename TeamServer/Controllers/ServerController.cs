@@ -13,8 +13,8 @@ namespace TeamServer.Controllers
     [ApiController]
     public class ServerController : ControllerBase
     {
-        private readonly IPAddress _ipv4;
-        private readonly IPAddress _ipv6;
+        private readonly string _ipv4;
+        private readonly string _ipv6;
         private ILogger<ServerController> _logger;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -27,8 +27,8 @@ namespace TeamServer.Controllers
         public ServerController(ILogger<ServerController> logger)
         {
             IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName()) ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's host name.");
-            this._ipv4 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork)) ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's IPv4 address.");
-            this._ipv6 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork)) ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's IPv6 address.");
+            this._ipv4 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork))!.ToString() ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's IPv4 address.");
+            this._ipv6 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetworkV6))!.ToString() ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's IPv6 address.");
             this._logger = logger;
         }
 

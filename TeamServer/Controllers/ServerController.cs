@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using Trinity.Shared.DTOs.TeamServer;
+using Trinity.Shared.Exceptions;
 
 namespace TeamServer.Controllers
 {
@@ -12,34 +13,31 @@ namespace TeamServer.Controllers
     [ApiController]
     public class ServerController : ControllerBase
     {
-        private IPAddress _IPv4;
-        private IPAddress _IPv6;
+        private readonly IPAddress _ipv4;
+        private readonly IPAddress _ipv6;
         private ILogger<ServerController> _logger;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// Default constructor 
+        /// Default constructor.
+        /// Fails immediately if host cannot be resolved.
         /// </summary>
+        /// <exception cref="IpResolutionException"></exception>
         /// <param name="logger"></param>
         public ServerController(ILogger<ServerController> logger)
         {
-            IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress? ipV4 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork));
-            IPAddress? ipV6 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetworkV6));
-
-            if (ipV4 == null || ipV6 == null)
-            {
-                throw new InvalidOperationException("Could not determine TeamServer IP addresses!");
-            }
-            this._IPv4 = ipV4;
-            this._IPv6 = ipV6;
+            IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName()) ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's host name.");
+            this._ipv4 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork)) ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's IPv4 address.");
+            this._ipv6 = hostEntry.AddressList.FirstOrDefault(h => h.AddressFamily.Equals(AddressFamily.InterNetwork)) ?? throw new IpResolutionException("DNS resolution falied: Unable to resolve teamserver's IPv6 address.");
             this._logger = logger;
         }
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// 
+        /// Retrieves the server's current operational status for health checks.
         /// </summary>
-        /// <returns></returns>
+        /// <remarks>Exposed at GET /status. Suitable for simple liveness and readiness checks.</remarks>
+        /// <returns>An IActionResult that produces an HTTP 200 (OK) response.</returns>
         [HttpGet("status")]
         public IActionResult GetServerStatus()
         {
@@ -47,10 +45,15 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Gets the server's IPv4 and IPv6 addresses as a TeamServerIpResponse.
+        /// </summary>
+        /// <returns>An IActionResult that returns 200 OK with a TeamServerIpResponse containing the IPv4 and IPv6 address
+        /// strings.</returns>
         [HttpGet("teamserverip")]
         public IActionResult GetServerIP()
         {
-            TeamServerIpDTO response = new TeamServerIpDTO { IpV4 = _IPv4.ToString(), IpV6 =  _IPv6.ToString() };
+            TeamServerIpResponse response = new TeamServerIpResponse(_ipv4.ToString(), _ipv6.ToString());
             return Ok(response);
         }
     }

@@ -2,14 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.Enums;
 
 namespace Trinity.Shared.Models
 {
-    public class Campaign
+    public class Admin
     {
         public int ID { get; set; }
-        public required string Name { get; set; }
+        public required string Username { get; set; }
+        public required string Password { get; set; }
+        public DateTime LastLogin { get; set; }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

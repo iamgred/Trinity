@@ -2,14 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.Models
+namespace Trinity.Shared.Interfaces
 {
-    public class Campaign
+    public interface IRepository<T> where T : class
     {
-        public int ID { get; set; }
-        public required string Name { get; set; }
+        Task<T> GetByIdAsync(int id);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using TeamServer.ExceptionHandlers;
+using TeamServer.Repositories;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
 using Trinity.Shared.Configurations;
@@ -31,6 +32,10 @@ namespace TeamServer
             builder.Services.AddDbContextPool<Context>(opt =>
                 opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
+            // Repositories
+            builder.Services.AddScoped<ListenerRespository>();
+            builder.Services.AddScoped<ProtocolRespository>();
+
             // Exception handler
             builder.Services.AddSingleton<GlobalExceptionHandler>();
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -55,21 +60,6 @@ namespace TeamServer
                 });
             }
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
-
-                try
-                {
-                    var context = services.GetRequiredService<Context>();
-                    context.Database.Migrate();
-                }
-                catch (Exception ex)
-                {
-
-                    throw;
-                }
-            }
             app.UseExceptionHandler();
             app.UseHttpsRedirection();
             app.UseAuthorization();

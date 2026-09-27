@@ -2,14 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.Enums;
+using Trinity.Shared.DTOs.Listener;
+using Trinity.Shared.Models;
 
-namespace Trinity.Shared.Models
+namespace Trinity.Shared.Interfaces
 {
-    public class Campaign
+    public interface IListenerRepository
     {
-        public int ID { get; set; }
-        public required string Name { get; set; }
+        public Task<CreateHttpListenerResponse> AddListenerAsync(Listener listener);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

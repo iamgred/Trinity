@@ -8,8 +8,7 @@ namespace Trinity.Shared.Models
     {
         public int ID { get; set; }
         public required string Username { get; set; }
-        public required string PasswordHash { get; set; }
+        public required string Password { get; set; }
         public DateTime? LastLogin { get; set; }
-        public required DateTime CreatedAt { get; set; }
     }
 }

@@ -20,49 +20,15 @@ namespace TeamServer.Services
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<AgentsDashboardDTO> GetAgentsDashboard()
         {
-            var agents = await _db.GetAgentsAsync();
-            var agentDTOs = agents
-                .Select(a => new AgentDTO
-                {
-                    ID = a.ID,
-                    CampaignID = (int)a.CampaignID,
-                    IpV4 = GenerateRandomIPv4(),
-                    IsActive = true,
-                    OS = "Windows 11",
-                    LastCheckIn = DateTime.Now,
-                    Type = Util.GetEnumValue<AgentTypes>(a.Type)
-                }
-            ).ToList();
 
-            var campaigns = await _db.GetCampaignsAsync();
-            var campaignDTOs = campaigns
-                .Select(c =>
-                new CampaignDTO
-                {
-                    Name = c.Name,
-                    Status = Util.GetEnumValue<CampaignStatuses>(c.Status)
-                }
-            ).ToList();
 
-            return new AgentsDashboardDTO { Agents = agentDTOs, Campaigns = campaignDTOs };
+            return new();
         }
 
         public async Task<AgentDashboardDTO> GetAgentDashboard(int agentID) 
         {
-            var agent = await _db.GetAgentAsync(agentID);
 
-            var dto = new AgentDashboardDTO
-            {
-                ID = agent.Item1.ID,
-                Sleep = 60,
-                Status = Util.GetEnumValue<AgentStatuses>(agent.Item1.Status),
-                OS = "Windows 11",
-                Jitter = 15,
-                LastCheckIn = DateTime.UtcNow,
-                Campaign = agent.Item2
-            };
-
-            return dto;
+            return new();
         }
         private string GenerateRandomIPv4()
         {

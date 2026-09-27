@@ -23,10 +23,10 @@ namespace TeamServer.Controllers
             _listenerService = listenerService;
         }
 
-        [HttpGet("http")]
+        [HttpGet]
         public async Task<IActionResult> GetHttpListeners()
         {
-            var response = await _listenerService.GetHttpListeners();
+            var response = await _listenerService.GetListenersAsync();
             return Ok(response);
         }
 
@@ -36,29 +36,11 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("http")]
-        public async Task<IActionResult> StartHttpListener([FromBody] HttpListenerDTO httpListenerDTO)
+        public async Task<IActionResult> StartHttpListener([FromBody] CreateHttpListenerRequest request)
         {
-            //Stopwatch watch = Stopwatch.StartNew();
-            //Console.WriteLine($"StartHttpListener current threadId: {Environment.CurrentManagedThreadId}");
-            //HttpListenerDto result = _listenerService.StartHttpListener(httpListenerDto);
-            //watch.Stop();
+            var response = await _listenerService.CreateHttpListenerAsync(request);
 
-            //Console.WriteLine($"Total time: {watch.ElapsedMilliseconds}ms");
-
-            //if (!String.IsNullOrEmpty(result.Error))
-            //{
-            //    return BadRequest(result);
-            //}
-            //Console.WriteLine($"StartHttpListener current threadId: {Environment.CurrentManagedThreadId}");
-
-            HttpListenerDTO result = await _listenerService.CreateHttpListener(httpListenerDTO);
-
-            if (!String.IsNullOrEmpty(result.Error))
-            {
-                return BadRequest(result);
-            }
-
-            return Ok(result);
+            return Ok(response);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -97,22 +79,22 @@ namespace TeamServer.Controllers
         [HttpPost("tcp")]
         public async Task<IActionResult> StartTcpListener([FromBody] TcpListenerDTO tcpListenerDTO)
         {
-            var result = await _listenerService.StartTcpListener(tcpListenerDTO);
+            //var result = await _listenerService.StartTcpListener(tcpListenerDTO);
 
-            if (String.IsNullOrEmpty(result.Error))
-            {
-                return BadRequest(result);
-            }
+            //if (String.IsNullOrEmpty(result.Error))
+            //{
+            //    return BadRequest(result);
+            //}
 
-            return Ok(result);
+            return Ok();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpGet("tcp")]
         public async Task<IActionResult> GetTcpListeners()
         {
-            var result = await _listenerService.GetTcpListenerDTOsAsync();
-            return Ok(result);
+            //var result = await _listenerService.GetTcpListenerDTOsAsync();
+            return Ok();
         }
     }
 }

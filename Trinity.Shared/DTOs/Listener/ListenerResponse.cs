@@ -2,14 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.Models
+namespace Trinity.Shared.DTOs.Listener
 {
-    public class Campaign
-    {
-        public int ID { get; set; }
-        public required string Name { get; set; }
-    }
+    public record ListenerResponse(int ID, string name, string protocol);
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

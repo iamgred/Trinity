@@ -1,9 +1,11 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using System.Collections.Concurrent;
 using System.Net;
+using System.Text.Json;
 using TeamServer.DTOs.Listeners;
 using TeamServer.Exceptions;
 using TeamServer.Modules;
+using TeamServer.Repositories;
 using TeamServer.Services.Factories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Listener;
@@ -15,7 +17,8 @@ namespace TeamServer.Services
     public class ListenerService 
     {
         private ILogger _logger;
-        private DatabaseService _db;
+        private ListenerRespository _listenerRepo;
+        private ProtocolRespository _protocolRepo;
         private ConcurrentDictionary<string, HttpCommModule> _httpCommModules;
         private HttpCommModuleFactory _httpModuleFactory;
 
@@ -25,12 +28,13 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, HttpCommModuleFactory httpFactory, DatabaseService database)
+        public ListenerService(ILogger<ListenerService> logger, HttpCommModuleFactory httpFactory, ListenerRespository listenerRepo, ProtocolRespository protocolrepo)
         {
             _logger = logger;
             _httpCommModules = new();
             _httpModuleFactory = httpFactory;
-            _db = database;
+            _listenerRepo = listenerRepo;
+            _protocolRepo = protocolrepo;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -111,67 +115,29 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<HttpListenerDTO> CreateHttpListener(HttpListenerDTO httpListenerDTO)
+        public async Task<List<ListenerResponse>> GetListenersAsync()
         {
-            try
-            {
-                int id = await _db.InsertHttpListenerAsync(httpListenerDTO);
-                httpListenerDTO.ID = id;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to insert HTTP Listener: {Message}", ex.Message);
-                httpListenerDTO.Error = ex.Message;
-            }
-            return httpListenerDTO;
-        }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<TcpListenerDTO> StartTcpListener(TcpListenerDTO tcpListenerDTO) 
-        {
-            try
-            {
-                int id = await _db.InsertTcpListenerAsync(tcpListenerDTO);
-            }
-            catch (Exception ex)
-            {
-                tcpListenerDTO.Error = ex.Message;
-            }
-            return tcpListenerDTO;
+            return await _listenerRepo.GetListenersAsync();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<List<TcpListenerDTO>> GetTcpListenerDTOsAsync()
+        public async Task<CreateHttpListenerResponse> CreateHttpListenerAsync(CreateHttpListenerRequest request)
         {
-            var listeners = await _db.GetTcpListeners();
-            var result = listeners.Select(l => new TcpListenerDTO {
-                Name = l.Name, 
-                LocalHostOnly = l.LocalHostOnly, 
-                Port = l.Port, 
-                Type = Util.GetEnumValue<ListenerTypes>(ListenerTypes.TCP)
-            }).ToList();
-
-            return result;
+            var protocol = await _protocolRepo.GetByIdAsync(1);
+            var response = await _listenerRepo.AddListenerAsync(BasicHttpMapper(ref request, protocol.ID));
+            return response;
         }
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Retrieves the currently active C2 listeners. 
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<SimpleHttpDTO>> GetHttpListeners()
+        private Listener BasicHttpMapper(ref CreateHttpListenerRequest request, int protocolID)
         {
-            var result = await _db.GetHttpListeners();
-            var dto = result
-                .Select(l => 
-                new SimpleHttpDTO
-                {
-                    Name = l.Name,
-                    Host = "www.test.com",
-                    Type = Util.GetEnumValue<ListenerTypes>(ListenerTypes.HTTP)
-                }).ToList();
-            return dto;
+            return new Listener
+            {
+                Name = request.Name,
+                ProtocolID = protocolID,
+                Config = JsonDocument.Parse(JsonSerializer.Serialize(request))
+            };
         }
+
 
     }
 }

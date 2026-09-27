@@ -7,9 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Interfaces\**" />
     <Compile Remove="Models\**" />
+    <Content Remove="Interfaces\**" />
     <Content Remove="Models\**" />
+    <EmbeddedResource Remove="Interfaces\**" />
     <EmbeddedResource Remove="Models\**" />
+    <None Remove="Interfaces\**" />
     <None Remove="Models\**" />
   </ItemGroup>
 
@@ -27,7 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

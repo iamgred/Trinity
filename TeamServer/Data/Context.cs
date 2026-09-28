@@ -51,15 +51,6 @@ namespace TeamServer.Data
                 }
             );
 
-            modelBuilder.Entity<Listener>().HasData(
-                new Listener
-                {
-                    ID = 1,
-                    Name = "test",
-                    ProtocolID = 1
-                }
-
-            );
         }
     }
 }

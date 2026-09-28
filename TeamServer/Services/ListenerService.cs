@@ -136,7 +136,7 @@ namespace TeamServer.Services
             return response;
         }
 
-        public async Task<Result<GetHttpListenerDetailsResponse>> GetListener(int ID)
+        public async Task<Result<GetListenerDetailsResponse>> GetListener(int ID)
         {
             return await _listenerRepo.GetListenerAsync(ID);
         }

@@ -85,15 +85,8 @@ namespace Trinity.Shared.Results
             Error = error;
         }
 
-        public static Result Success()
-        {
-            return new(true, Error.None);
-        }
-
-        public static Result Failure(Error error)
-        {
-            return new(false, error);
-        }
+        public static Result Success() => new(true, Error.None);
+        public static implicit operator Result(Error error) => new(false, error);
 
     }
 }

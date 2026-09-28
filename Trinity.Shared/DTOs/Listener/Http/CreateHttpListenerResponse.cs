@@ -2,14 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.DTOs.Listener.Http;
-using Trinity.Shared.Models;
 
-namespace Trinity.Shared.Interfaces
+namespace Trinity.Shared.DTOs.Listener.Http
 {
-    public interface IListenerRepository
-    {
-        public Task<CreateHttpListenerResponse> AddListenerAsync(Listener listener);
-    }
+    public record CreateHttpListenerResponse(int id);
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

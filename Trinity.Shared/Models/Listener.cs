@@ -12,7 +12,7 @@ namespace Trinity.Shared.Models
         public int ID { get; set; }
         public required string Name { get; set; }
         public required int ProtocolID { get; set; }
-        public Protocol? Protocol { get; set; }
+        public Protocol Protocol { get; set; }
         public JsonDocument? Config { get; set; }
     }
 }

@@ -8,6 +8,7 @@ using TeamServer.DTOs.Listeners;
 using TeamServer.Modules;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Listener;
+using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers

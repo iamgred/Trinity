@@ -9,6 +9,7 @@ using TeamServer.Repositories;
 using TeamServer.Services.Factories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Listener;
+using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Models;
 
@@ -21,6 +22,7 @@ namespace TeamServer.Services
         private ProtocolRespository _protocolRepo;
         private ConcurrentDictionary<string, HttpCommModule> _httpCommModules;
         private HttpCommModuleFactory _httpModuleFactory;
+        private ListenerFactory _listenerFactory;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -28,13 +30,14 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, HttpCommModuleFactory httpFactory, ListenerRespository listenerRepo, ProtocolRespository protocolrepo)
+        public ListenerService(ILogger<ListenerService> logger, HttpCommModuleFactory httpFactory, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory)
         {
             _logger = logger;
             _httpCommModules = new();
             _httpModuleFactory = httpFactory;
             _listenerRepo = listenerRepo;
             _protocolRepo = protocolrepo;
+            _listenerFactory = factory;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -43,34 +46,34 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="httpListenerDto"></param>
         /// <returns></returns>
-        public HttpListenerDto StartHttpListener(HttpListenerDto httpListenerDto)
-        {
-            try
-            {
-                HttpCommModule module = (HttpCommModule)_httpModuleFactory.CreateModule(httpListenerDto.Name,
-                    httpListenerDto.C2Port, httpListenerDto.BindPort,
-                    httpListenerDto.Headers, httpListenerDto.Hosts, httpListenerDto.UserAgent);
+        //public HttpListenerDto StartHttpListener(HttpListenerDto httpListenerDto)
+        //{
+        //    try
+        //    {
+        //        HttpCommModule module = (HttpCommModule)_httpModuleFactory.CreateModule(httpListenerDto.Name,
+        //            httpListenerDto.C2Port, httpListenerDto.BindPort,
+        //            httpListenerDto.Headers, httpListenerDto.Hosts, httpListenerDto.UserAgent);
 
-                module.Start();
+        //        module.Start();
 
-                if (module.HttpListener.IsListening)
-                {
-                    _logger.LogInformation("HTTP listener started on {port}", httpListenerDto.BindPort);
-                    _httpCommModules.TryAdd(module.Id, module);
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogWarning(ex, "Module runtime startup failed: {Message}", ex.Message);
-                httpListenerDto.Error = $"Runtime error: {ex.Message}";
-            }
-            catch (Exception ex) when (ex is ListenerCreationException || ex is ModuleCreationException)
-            {
-                _logger.LogWarning(ex, "Module creation failed: {Message}", ex.Message);
-                httpListenerDto.Error = $"Creation error: {ex.Message}";
-            }
-            return httpListenerDto;
-        }
+        //        if (module.HttpListener.IsListening)
+        //        {
+        //            _logger.LogInformation("HTTP listener started on {port}", httpListenerDto.BindPort);
+        //            _httpCommModules.TryAdd(module.Id, module);
+        //        }
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        _logger.LogWarning(ex, "Module runtime startup failed: {Message}", ex.Message);
+        //        httpListenerDto.Error = $"Runtime error: {ex.Message}";
+        //    }
+        //    catch (Exception ex) when (ex is ListenerCreationException || ex is ModuleCreationException)
+        //    {
+        //        _logger.LogWarning(ex, "Module creation failed: {Message}", ex.Message);
+        //        httpListenerDto.Error = $"Creation error: {ex.Message}";
+        //    }
+        //    return httpListenerDto;
+        //}
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<HttpListenerDto> UpdateHttpListener(HttpListenerDto httpListenerDto)
@@ -123,22 +126,11 @@ namespace TeamServer.Services
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<CreateHttpListenerResponse> CreateHttpListenerAsync(CreateHttpListenerRequest request)
         {
-            var protocol = await _protocolRepo.GetByIdAsync(1);
-            var response = await _listenerRepo.AddListenerAsync(BasicHttpMapper(ref request, protocol.ID));
+            int protocolID = await _protocolRepo.GetProtocolIDAsync("HTTP");
+            Listener listener = _listenerFactory.CreateHttpListener(request, protocolID);
+            var response = await _listenerRepo.AddListenerAsync(listener);
             return response;
         }
-
-        private Listener BasicHttpMapper(ref CreateHttpListenerRequest request, int protocolID)
-        {
-            return new Listener
-            {
-                Name = request.Name,
-                ProtocolID = protocolID,
-                Config = JsonDocument.Parse(JsonSerializer.Serialize(request))
-            };
-        }
-
-
     }
 }
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { END OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //

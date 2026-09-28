@@ -2,14 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.DTOs.Listener.Http;
-using Trinity.Shared.Models;
 
-namespace Trinity.Shared.Interfaces
+namespace Trinity.Shared.DTOs.Listener.Smb
 {
-    public interface IListenerRepository
-    {
-        public Task<CreateHttpListenerResponse> AddListenerAsync(Listener listener);
-    }
+    public record CreateSmbRequest(string Name, SmbConfig Config);
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

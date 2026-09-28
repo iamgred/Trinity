@@ -6,6 +6,7 @@ using TeamServer.Repositories;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
 using Trinity.Shared.Configurations;
+using Trinity.Shared.Interfaces;
 
 namespace TeamServer
 {
@@ -21,7 +22,7 @@ namespace TeamServer
             builder.Services.AddScoped<PayloadService>();
             builder.Services.AddScoped<AgentService>();
             builder.Services.AddScoped<TaskService>();
-            builder.Services.AddSingleton<HttpListenerFactory>();
+            builder.Services.AddSingleton<IListenerFactory,ListenerFactory>();
             builder.Services.AddSingleton<HttpCommModuleFactory>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddControllers();

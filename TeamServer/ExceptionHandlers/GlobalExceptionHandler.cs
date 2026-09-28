@@ -33,6 +33,7 @@ namespace TeamServer.ExceptionHandlers
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
             _logger.LogError(exception, "Exception occured: {Message}", exception.Message);
+
             var problemDetails = new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,

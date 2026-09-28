@@ -3,19 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
+using Trinity.Shared.Interfaces;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace Trinity.Shared.DTOs.Listener.Http
 {
     public record CreateHttpListenerRequest
     {
         public string Name { get; init; }
-        public int BindPort { get; init; }
-        public int C2Port { get; init; }
-        public string UserAgent { get; init; }
-        public string Header { get; init; }
-        public List<string> Hosts { get; init; }
-        public string RotationStrategy { get; init; } 
-        public string MaxRetryStrategy { get; init; }
+        public HttpConfig Config { get; init; }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -32,16 +27,10 @@ namespace Trinity.Shared.DTOs.Listener
         /// <param name="rotation">Rotation strategy identifier.</param>
         /// <param name="maxRetry">Maximum-retry strategy identifier or value.</param>
         /// <exception cref="ArgumentException">Thrown if hosts contains no entries.</exception>
-        public CreateHttpListenerRequest(string name, int bindPort, int c2Port, string? userAgent, string? header, List<string> hosts, string rotationStrategy, string maxRetryStrategy)
+        public CreateHttpListenerRequest(string name, HttpConfig httpConfig)
         {
             Name = name;
-            BindPort = bindPort;
-            C2Port = c2Port;
-            UserAgent = userAgent ?? string.Empty;
-            Header = header ?? "Content-type: */*";
-            RotationStrategy = rotationStrategy;
-            MaxRetryStrategy = maxRetryStrategy;
-            Hosts = hosts;
+            Config = httpConfig;
         }
     }
 }

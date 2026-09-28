@@ -2,14 +2,20 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.DTOs.Listener.Http;
-using Trinity.Shared.Models;
 
-namespace Trinity.Shared.Interfaces
+namespace Trinity.Shared.DTOs.Listener.Tcp
 {
-    public interface IListenerRepository
+    public record TcpConfig
     {
-        public Task<CreateHttpListenerResponse> AddListenerAsync(Listener listener);
+        public int Port { get; init; }
+
+        public TcpConfig(int port)
+        {
+            if (port <= 0 || port > 65535)
+            {
+                throw new ArgumentException("Port falls outside of acceptable range!");
+            }
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

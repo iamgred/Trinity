@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using Trinity.Shared.DTOs.Listener;
+using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 

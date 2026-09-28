@@ -31,13 +31,13 @@ namespace TeamServer.Repositories
         /// <param name="listener">The listener entity to add to the database.</param>
         /// <returns>A task that resolves to a Result containing a CreateHttpListenerResponse with the created listener's ID,
         /// name, and protocol name.</returns>
-        public async Task<Result<CreateHttpListenerResponse>> AddListenerAsync(Listener listener)
+        public async Task<Result> AddListenerAsync(Listener listener)
         {
             var result = await _dbSet.AddAsync(listener);
             await _context.SaveChangesAsync();
             await _context.Entry(listener).Reference(l => l.Protocol).LoadAsync();
 
-            return new CreateHttpListenerResponse(result.Entity.ID, listener.Name, listener.Protocol.Name);
+            return Result.Success();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

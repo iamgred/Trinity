@@ -39,9 +39,22 @@ namespace TeamServer.Controllers
         [HttpPost("http")]
         public async Task<IActionResult> StartHttpListener([FromBody] CreateHttpListenerRequest request)
         {
-            var response = await _listenerService.CreateHttpListenerAsync(request);
+            var result = await _listenerService.CreateHttpListenerAsync(request);
 
-            return Ok(response);
+            if (result.IsSuccess)
+            {
+                return CreatedAtAction(nameof(GetListenerByIDAsync), new { ID = result.Response.ID }, result.Response );
+            }
+
+            return BadRequest();
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetListenerByIDAsync([FromRoute] int id)
+        {
+            var result = await _listenerService.GetListener(id);
+
+            return result.IsSuccess ? Ok(result.Response) : NotFound(result.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -89,6 +102,7 @@ namespace TeamServer.Controllers
 
             return Ok();
         }
+
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpGet("tcp")]

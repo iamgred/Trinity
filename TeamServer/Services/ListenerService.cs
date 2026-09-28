@@ -12,6 +12,7 @@ using Trinity.Shared.DTOs.Listener;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Models;
+using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
@@ -21,7 +22,6 @@ namespace TeamServer.Services
         private ListenerRespository _listenerRepo;
         private ProtocolRespository _protocolRepo;
         private ConcurrentDictionary<string, HttpCommModule> _httpCommModules;
-        private HttpCommModuleFactory _httpModuleFactory;
         private ListenerFactory _listenerFactory;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -30,11 +30,10 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, HttpCommModuleFactory httpFactory, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory)
+        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory)
         {
             _logger = logger;
             _httpCommModules = new();
-            _httpModuleFactory = httpFactory;
             _listenerRepo = listenerRepo;
             _protocolRepo = protocolrepo;
             _listenerFactory = factory;
@@ -118,18 +117,28 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<List<ListenerResponse>> GetListenersAsync()
+        public async Task<Result<List<ListenerResponse>>> GetListenersAsync()
         {
             return await _listenerRepo.GetListenersAsync();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<CreateHttpListenerResponse> CreateHttpListenerAsync(CreateHttpListenerRequest request)
+        public async Task<Result<CreateHttpListenerResponse>> CreateHttpListenerAsync(CreateHttpListenerRequest request)
         {
+            // Create Http comm module 
+            // Check if port binds 
+            // Yes => all is good dont worry => save to db =. return 200 with ID
+            // No => all hell breaks loose => return problem detail 
+
             int protocolID = await _protocolRepo.GetProtocolIDAsync("HTTP");
             Listener listener = _listenerFactory.CreateHttpListener(request, protocolID);
             var response = await _listenerRepo.AddListenerAsync(listener);
             return response;
+        }
+
+        public async Task<Result<GetHttpListenerDetailsResponse>> GetListener(int ID)
+        {
+            return await _listenerRepo.GetListenerAsync(ID);
         }
     }
 }

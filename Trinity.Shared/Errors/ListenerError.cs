@@ -2,15 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.DTOs.Listener.Http;
-using Trinity.Shared.Models;
-using Trinity.Shared.Results;
+using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.Interfaces
+namespace Trinity.Shared.Errors
 {
-    public interface IListenerRepository
+    public static class ListenerError
     {
-        public Task<Result<CreateHttpListenerResponse>> AddListenerAsync(Listener listener);
+        public static Error NotFound(int ID) => new Error("Listeners.CouldNotFind", $"The listener with Id '{ID}' was not found", ErrorType.NotFound);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

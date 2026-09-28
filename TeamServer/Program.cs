@@ -22,8 +22,7 @@ namespace TeamServer
             builder.Services.AddScoped<PayloadService>();
             builder.Services.AddScoped<AgentService>();
             builder.Services.AddScoped<TaskService>();
-            builder.Services.AddSingleton<IListenerFactory,ListenerFactory>();
-            builder.Services.AddSingleton<HttpCommModuleFactory>();
+            builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen(options =>

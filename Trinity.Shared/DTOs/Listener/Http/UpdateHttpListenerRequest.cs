@@ -5,6 +5,6 @@ using System.Text;
 
 namespace Trinity.Shared.DTOs.Listener.Http
 {
-    public record CreateHttpListenerResponse(int ID, string name, string type);
+    public record UpdateHttpListenerRequest(HttpConfig config);
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

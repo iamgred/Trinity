@@ -13,6 +13,6 @@ namespace Trinity.Shared.Models
         public required string Name { get; set; }
         public required int ProtocolID { get; set; }
         public Protocol Protocol { get; set; }
-        public JsonDocument? Config { get; set; }
+        public required JsonDocument Config { get; set; }
     }
 }

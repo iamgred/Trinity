@@ -27,10 +27,10 @@ namespace Trinity.Shared.DTOs.Listener.Http
         /// <param name="rotation">Rotation strategy identifier.</param>
         /// <param name="maxRetry">Maximum-retry strategy identifier or value.</param>
         /// <exception cref="ArgumentException">Thrown if hosts contains no entries.</exception>
-        public CreateHttpListenerRequest(string name, HttpConfig httpConfig)
+        public CreateHttpListenerRequest(string name, HttpConfig config)
         {
             Name = name;
-            Config = httpConfig;
+            Config = config;
         }
     }
 }

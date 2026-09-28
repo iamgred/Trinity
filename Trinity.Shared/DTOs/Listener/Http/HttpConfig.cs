@@ -6,7 +6,7 @@ using Trinity.Shared.Interfaces;
 
 namespace Trinity.Shared.DTOs.Listener.Http
 {
-    public record HttpConfig : IListenerConfig
+    public record HttpConfig
     {
         public int BindPort { get; init; }
         public int C2Port { get; init; }

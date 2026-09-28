@@ -6,6 +6,6 @@ using System.Text.Json;
 
 namespace Trinity.Shared.DTOs.Listener
 {
-    public record ListenerResponse(int ID, string name, string protocol);
+    public record GetListenerDetailsResponse(int ID, string name, JsonDocument config);
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

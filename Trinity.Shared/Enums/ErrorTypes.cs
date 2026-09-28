@@ -3,14 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Trinity.Shared.DTOs.Listener
+namespace Trinity.Shared.Enums
 {
-    public class GuardRailsDTO
+    public enum ErrorType
     {
-        public string IpAddress { get; set; } = String.Empty;
-        public string Username { get; set; } = String.Empty;
-        public string ServerName { get; set; } = String.Empty;
-        public string Domain { get; set; } = String.Empty;
+        Validation,
+        NotFound,
+        Conflict,
+        None
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

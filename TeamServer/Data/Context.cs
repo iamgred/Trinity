@@ -16,6 +16,9 @@ namespace TeamServer.Data
         public DbSet<Listener> Listeners { get; set; }
         public DbSet<Header> Headers { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
+        public DbSet<Operator> Operators { get; set; }
+        public DbSet<CampaignBridge> CampaignBridges { get; set; }
+        public DbSet<Admin> Admins { get; set; }
         public Context()
         {
         }
@@ -34,7 +37,7 @@ namespace TeamServer.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Protocol>().HasData(
-                new Protocol 
+                new Protocol
                 {
                     ID = 1,
                     Name = "HTTP"
@@ -50,6 +53,10 @@ namespace TeamServer.Data
                     Name = "TCP"
                 }
             );
+
+            modelBuilder.Entity<CampaignBridge>().HasOne<Campaign>().WithMany().HasForeignKey(cb => cb.CampaignID);
+
+            modelBuilder.Entity<CampaignBridge>().HasOne<Operator>().WithMany().HasForeignKey(cb => cb.OperatorID);
 
         }
     }

@@ -22,6 +22,9 @@ namespace TeamServer
             builder.Services.AddScoped<PayloadService>();
             builder.Services.AddScoped<AgentService>();
             builder.Services.AddScoped<TaskService>();
+            builder.Services.AddScoped<OperatorService>();
+            builder.Services.AddScoped<CampaignService>();
+            builder.Services.AddScoped<AdminService>();
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddControllers();
@@ -50,7 +53,7 @@ namespace TeamServer
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment()) 
+            if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI(options =>

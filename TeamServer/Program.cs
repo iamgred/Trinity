@@ -1,5 +1,6 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using TeamServer.Data;
 using TeamServer.ExceptionHandlers;
 using TeamServer.Repositories;
@@ -16,7 +17,7 @@ namespace TeamServer
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Services 
+            // Services
             builder.Services.AddScoped<ListenerService>();
             builder.Services.AddScoped<CommandService>();
             builder.Services.AddScoped<PayloadService>();
@@ -28,9 +29,14 @@ namespace TeamServer
             builder.Services.AddSwaggerGen(options =>
             {
                 options.EnableAnnotations();
+                options.CustomOperationIds(apiDesc =>
+                {
+                    return apiDesc.TryGetMethodInfo(out var methodInfo) ? methodInfo.Name : null;
+                });
             });
             builder.Services.AddDbContextPool<Context>(opt =>
-                opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+                opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"))
+            );
 
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();
@@ -50,7 +56,7 @@ namespace TeamServer
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment()) 
+            if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI(options =>

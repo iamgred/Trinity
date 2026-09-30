@@ -1,18 +1,10 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //    
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Text.Json;
-using TeamServer.DTOs.Listeners;
-using TeamServer.Modules;
 using TeamServer.Services;
-using Trinity.Shared.DTOs.Listener;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
-using Trinity.Shared.Models;
-using Trinity.Shared.Results;
+
 
 namespace TeamServer.Controllers
 {
@@ -42,14 +34,15 @@ namespace TeamServer.Controllers
         [HttpGet]
         public async Task<IActionResult> GetHttpListeners()
         {
-            var response = await _listenerService.GetListenersAsync();
-            return Ok(response);
+            var result = await _listenerService.GetListenersAsync();
+            return Ok(result.Response);
         }
 
         [HttpPost("http/restart/{ID}")]
         public async Task<IActionResult> RestartListenerAsync([FromRoute] int ID)
         {
-            return Ok();
+            var result = await _listenerService.RestartListenerAsync(ID);
+            return result.IsSuccess ? Ok() : BadRequest(result.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -138,7 +131,7 @@ namespace TeamServer.Controllers
         [HttpDelete("{ID}")]
         public async Task<IActionResult> DeleteListenerAsync([FromRoute] int ID) 
         {
-            var result = await _listenerService.DeleteListenerAsync(ID);
+            var result = await _listenerService.RemoveListenerAsync(ID);
             return result.IsSuccess ? Ok() : BadRequest(result.Error);
         }
     }

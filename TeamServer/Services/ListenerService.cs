@@ -23,6 +23,7 @@ namespace TeamServer.Services
         private ConcurrentDictionary<int, HttpModule> _httpCommModules;
         private readonly ListenerFactory _listenerFactory;
         private readonly HttpModuleFactory _moduleFactory;
+        private readonly HttpListenerManager _httpListenerManager;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -30,7 +31,7 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory, HttpModuleFactory moduleFactory)
+        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory, HttpModuleFactory moduleFactory, HttpListenerManager httpListenerManager)
         {
             _logger = logger;
             _httpCommModules = new();
@@ -38,6 +39,7 @@ namespace TeamServer.Services
             _protocolRepo = protocolrepo;
             _listenerFactory = factory;
             _moduleFactory = moduleFactory;
+            _httpListenerManager = httpListenerManager;
         }
 
 
@@ -67,12 +69,14 @@ namespace TeamServer.Services
             {
                 var module = _moduleFactory.Create(request.Config.BindPort);
                 _ = System.Threading.Tasks.Task.Run(async () => module.StartPolling());
-                _httpCommModules.TryAdd(1, module);
 
                 int protocolID = await _protocolRepo.GetProtocolIDAsync("HTTP");
                 Listener listener = _listenerFactory.CreateHttpListener(request, protocolID);
-                var response = await _listenerRepo.AddListenerAsync(listener);
-                return response;
+                await _listenerRepo.AddListenerAsync(listener);
+                await _listenerRepo.CommitAsync();
+
+                _httpListenerManager.AddModule(listener.ID, module);
+                return Result.Success();
             }
             catch (HttpListenerException ex)
             {
@@ -94,10 +98,12 @@ namespace TeamServer.Services
         {
             int protocolID = await _protocolRepo.GetProtocolIDAsync("TCP");
             Listener listener = _listenerFactory.CreateTcpListener(request, protocolID);
-            var response = await _listenerRepo.AddListenerAsync(listener);
-            return response;
-        }
+            await _listenerRepo.AddListenerAsync(listener);
 
+            await _listenerRepo.CommitAsync();
+            return Result.Success();
+        }
+            
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Creates an SMB listener from the specified request, resolves the TCP protocol identifier, and adds the
@@ -111,8 +117,10 @@ namespace TeamServer.Services
         {
             int protocolID = await _protocolRepo.GetProtocolIDAsync("TCP");
             Listener listener = _listenerFactory.CreateSmbListener(request, protocolID);
-            var response = await _listenerRepo.AddListenerAsync(listener);
-            return response;
+            await _listenerRepo.AddListenerAsync(listener);
+
+            await _listenerRepo.CommitAsync();
+            return Result.Success();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -124,7 +132,8 @@ namespace TeamServer.Services
         /// error result on failure.</returns>
         public async Task<Result<GetListenerDetailsResponse>> GetListener(int ID)
         {
-            return await _listenerRepo.GetListenerAsync(ID);
+            var listener = await _listenerRepo.GetListenerAsync(ID);
+            return listener == null ? ListenerError.NotFound(ID) : new GetListenerDetailsResponse(listener.ID, listener.Name, listener.Config);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -136,14 +145,16 @@ namespace TeamServer.Services
         /// of the delete operation.</returns>
         public async Task<Result> DeleteListenerAsync(int ID)
         {
-            var result = await _listenerRepo.IsListenerHttp(ID);
+            var listener = await _listenerRepo.GetListenerAsync(ID);
 
-            if (result.IsSuccess)
+            if (listener == null)
             {
-                // Stop the listener then process with delete.
+                return ListenerError.NotFound(ID);
             }
 
-            return result.IsSuccess ? await _listenerRepo.DeleteListenerAsync(ID) : result;
+            _listenerRepo.DeleteListener(listener);
+            await _listenerRepo.CommitAsync();
+            return Result.Success();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -158,27 +169,59 @@ namespace TeamServer.Services
         /// <returns>A Result indicating the outcome of the update operation.</returns>
         public async Task<Result> UpdateHttpListenerAsync(int ID, HttpConfig config)
         {
-            return await _listenerRepo.UpdateListenerAsync(ID, JsonDocument.Parse(JsonSerializer.Serialize(config)));
+            var listener = await _listenerRepo.GetListenerAsync(ID);
+            if (listener == null)
+            {
+                return ListenerError.NotFound(ID);
+            }
+            listener.Config = JsonDocument.Parse(JsonSerializer.Serialize(config));
+            await _listenerRepo.CommitAsync();
+
+            return Result.Success();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Restarts the listener identified by the specified ID and returns a Result indicating success or failure.
+        /// </summary>
+        /// <param name="ID">The identifier of the listener to restart.</param>
+        /// <returns>A Result representing the operation outcome. Returns Success if the listener was restarted; returns NotFound
+        /// if no listener exists with the given ID.</returns>
         public async Task<Result> RestartListenerAsync(int ID)
         {
-            var result = await _listenerRepo.IsListenerHttp(ID);
+            var module = _httpListenerManager.GetModuleByID(ID);
 
-            if (!result.IsSuccess)
+            if (module == null)
             {
-                return result;
-            }
-            HttpModule module;
-            var moduleExists = _httpCommModules.TryGetValue(ID, out module);
-
-            if (moduleExists)
-            {
-                await module.Restart();
+                return ListenerError.NotFound(ID);
             }
 
-            return moduleExists ? Result.Success() : result;
+            await module.RestartAsync();
+            return Result.Success();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        ///
+        public async Task<Result> RemoveListenerAsync(int ID)
+        {
+            var listener = await _listenerRepo.GetListenerAsync(ID);
+
+            if (listener == null)
+            {
+                return ListenerError.NotFound(ID);
+            }
+
+            _listenerRepo.DeleteListener(listener);
+            await _listenerRepo.CommitAsync();
+
+            var module = _httpListenerManager.GetModuleByID(ID);
+
+            if (module != null)
+            {
+                await module.ShutdownAsync();
+                _httpListenerManager.RemoveModule(ID);
+            }
+            return Result.Success();
         }
     }
 }

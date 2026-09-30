@@ -8,9 +8,8 @@ namespace Trinity.Shared.Modules
 {
     public class HttpModule
     {
-        public HttpListener HttpListener { get; set; }
+        private HttpListener _httpListener { get; set; }
         private CancellationTokenSource _cts;
-        private bool _isDisposed;
         private ILogger<HttpModule> _logger;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -21,22 +20,26 @@ namespace Trinity.Shared.Modules
         /// <param name="httpListener"></param>
         public HttpModule(ILogger<HttpModule> logger, HttpListener httpListener)
         {
-            HttpListener = httpListener;
+            _httpListener = httpListener;
             _cts = new CancellationTokenSource();
             _logger = logger;
-            _isDisposed = false;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// 
+        /// Starts an asynchronous loop that accepts incoming HTTP requests and dispatches each request to a background
+        /// task for processing until cancellation is requested.
         /// </summary>
-        /// <returns></returns>
+        /// <remarks>Requires HttpListener to be started. Each incoming request is handled concurrently
+        /// via Task.Run; exceptions thrown by request handlers are not observed here. Use the associated
+        /// CancellationTokenSource to stop polling.</remarks>
+        /// <returns>A task representing the asynchronous operation; completes when polling stops (for example, when cancellation
+        /// is requested).</returns>
         public async Task StartPolling()
         {
             while (!_cts.Token.IsCancellationRequested)
             {
-                HttpListenerContext context = await HttpListener.GetContextAsync();
+                HttpListenerContext context = await _httpListener.GetContextAsync();
                 _ = Task.Run(() => ProcessRequest(context), _cts.Token);
             }
         }
@@ -87,11 +90,11 @@ namespace Trinity.Shared.Modules
             try
             {
                 await _cts.CancelAsync();
-                HttpListener.Stop();
-                HttpListener.Prefixes.Clear();
+                _httpListener.Stop();
+                _httpListener.Prefixes.Clear();
 
-                HttpListener.Prefixes.Add(CreateURI(bindport));
-                await Restart();
+                _httpListener.Prefixes.Add(CreateURI(bindport));
+                await RestartAsync();
 
                 return Result.Success();
             }
@@ -123,11 +126,27 @@ namespace Trinity.Shared.Modules
         /// may cause unexpected behavior; callers should avoid invoking Restart concurrently and handle any exceptions
         /// thrown by the listener operations.</remarks>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public async Task Restart()
+        public async Task RestartAsync()
         {
-            HttpListener.Stop();
-            HttpListener.Start();
-            await StartPolling();
+            _httpListener.Stop();
+            _httpListener.Start();
+            await _cts.CancelAsync();
+            _cts = new CancellationTokenSource();
+            _ = Task.Run(async() => StartPolling());
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Stop the HTTP listener and asynchronously cancel ongoing operations.
+        /// </summary>
+        /// <remarks>HttpListener is stopped synchronously; cancellation of pending work is performed
+        /// asynchronously via the cancellation token source. Await the returned task to ensure cancellation handlers
+        /// and cleanup have completed; pending requests may be aborted or canceled.</remarks>
+        /// <returns>A task that represents the asynchronous shutdown operation.</returns>
+        public async Task ShutdownAsync()
+        {
+            _httpListener.Stop();
+            await _cts.CancelAsync();
         }
     }
 }

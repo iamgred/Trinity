@@ -24,6 +24,7 @@ namespace TeamServer
             builder.Services.AddScoped<TaskService>();
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
+            builder.Services.AddSingleton<HttpListenerManager>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen(options =>

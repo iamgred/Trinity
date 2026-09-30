@@ -10,7 +10,7 @@ namespace Trinity.Shared.Interfaces
 {
     public interface IListenerRepository
     {
-        public Task<Result> AddListenerAsync(Listener listener);
+        public System.Threading.Tasks.Task AddListenerAsync(Listener listener);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -23,6 +23,21 @@ namespace TeamServer.Repositories
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<Result> IsListenerHttp(int ID)
+        {
+            var listener = await _dbSet
+                .Include(l => l.Protocol)
+                .SingleOrDefaultAsync(l => l.ID.Equals(ID) && l.Protocol.Name.Equals("HTTP"));
+
+            if (listener == null)
+            {
+                return ListenerError.NotFound(ID);
+            }
+
+            return Result.Success();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Adds the specified listener to the database and returns information about the created listener.
         /// </summary>

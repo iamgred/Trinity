@@ -2,19 +2,16 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json;
-using TeamServer.DTOs.Listeners;
-using TeamServer.Exceptions;
-using TeamServer.Modules;
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;
-using TeamServer.Utils;
 using Trinity.Shared.DTOs.Listener;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
-using Trinity.Shared.Enums;
+using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
+using Trinity.Shared.Modules;
 
 namespace TeamServer.Services
 {
@@ -23,8 +20,9 @@ namespace TeamServer.Services
         private ILogger _logger;
         private ListenerRespository _listenerRepo;
         private ProtocolRespository _protocolRepo;
-        private ConcurrentDictionary<string, HttpCommModule> _httpCommModules;
-        private ListenerFactory _listenerFactory;
+        private ConcurrentDictionary<int, HttpModule> _httpCommModules;
+        private readonly ListenerFactory _listenerFactory;
+        private readonly HttpModuleFactory _moduleFactory;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -32,91 +30,16 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory)
+        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory, HttpModuleFactory moduleFactory)
         {
             _logger = logger;
             _httpCommModules = new();
             _listenerRepo = listenerRepo;
             _protocolRepo = protocolrepo;
             _listenerFactory = factory;
+            _moduleFactory = moduleFactory;
         }
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Creates a HttpCommModule and starts its respective listener.
-        /// </summary>
-        /// <param name="httpListenerDto"></param>
-        /// <returns></returns>
-        //public HttpListenerDto StartHttpListener(HttpListenerDto httpListenerDto)
-        //{
-        //    try
-        //    {
-        //        HttpCommModule module = (HttpCommModule)_httpModuleFactory.CreateModule(httpListenerDto.Name,
-        //            httpListenerDto.C2Port, httpListenerDto.BindPort,
-        //            httpListenerDto.Headers, httpListenerDto.Hosts, httpListenerDto.UserAgent);
-
-        //        module.Start();
-
-        //        if (module.HttpListener.IsListening)
-        //        {
-        //            _logger.LogInformation("HTTP listener started on {port}", httpListenerDto.BindPort);
-        //            _httpCommModules.TryAdd(module.Id, module);
-        //        }
-        //    }
-        //    catch (InvalidOperationException ex)
-        //    {
-        //        _logger.LogWarning(ex, "Module runtime startup failed: {Message}", ex.Message);
-        //        httpListenerDto.Error = $"Runtime error: {ex.Message}";
-        //    }
-        //    catch (Exception ex) when (ex is ListenerCreationException || ex is ModuleCreationException)
-        //    {
-        //        _logger.LogWarning(ex, "Module creation failed: {Message}", ex.Message);
-        //        httpListenerDto.Error = $"Creation error: {ex.Message}";
-        //    }
-        //    return httpListenerDto;
-        //}
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<HttpListenerDto> UpdateHttpListener(HttpListenerDto httpListenerDto)
-        {
-            try
-            {
-                HttpCommModule module = _httpCommModules[httpListenerDto.Id];
-                await module.Update(httpListenerDto.Hosts, httpListenerDto.Headers, String.Empty, httpListenerDto.C2Port, httpListenerDto.BindPort);
-                return httpListenerDto;
-            }
-            catch (Exception ex) when (ex is InvalidOperationException)
-            {
-                _logger.LogWarning(ex, "Module update failed: {Message}", ex.Message);
-                httpListenerDto.Error = ex.Message;
-            }
-            return httpListenerDto;
-        }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Stops a module's HTTP listener and removes the respective module.
-        /// </summary>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        public bool StopHttpListener(string moduleId)
-        {
-            try
-            {
-                if (_httpCommModules.ContainsKey(moduleId))
-                {
-                    HttpCommModule module;
-                    bool result = _httpCommModules.Remove(moduleId, out module!);
-                    module.Stop();
-                    return result;
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogError(ex, "Module runtime startup failed: {Message}", ex.Message);
-            }
-            return false;
-        }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -130,17 +53,32 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Creates and registers an HTTP listener using the supplied request configuration.
+        /// </summary>
+        /// <remarks>Obtains the HTTP protocol ID, constructs the listener, and adds it to the repository.
+        /// Logs binding failures and returns a port-occupied error when an HttpListenerException is thrown.</remarks>
+        /// <param name="request">Request containing listener configuration, including the bind port and other settings.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a Result indicating success or
+        /// failure; returns a port-occupied error if the requested port cannot be bound.</returns>
         public async Task<Result> CreateHttpListenerAsync(CreateHttpListenerRequest request)
         {
-            // Create Http comm module 
-            // Check if port binds 
-            // Yes => all is good dont worry => save to db =. return 200 with ID
-            // No => all hell breaks loose => return problem detail 
+            try
+            {
+                var module = _moduleFactory.Create(request.Config.BindPort);
+                _ = System.Threading.Tasks.Task.Run(async () => module.StartPolling());
+                _httpCommModules.TryAdd(1, module);
 
-            int protocolID = await _protocolRepo.GetProtocolIDAsync("HTTP");
-            Listener listener = _listenerFactory.CreateHttpListener(request, protocolID);
-            var response = await _listenerRepo.AddListenerAsync(listener);
-            return response;
+                int protocolID = await _protocolRepo.GetProtocolIDAsync("HTTP");
+                Listener listener = _listenerFactory.CreateHttpListener(request, protocolID);
+                var response = await _listenerRepo.AddListenerAsync(listener);
+                return response;
+            }
+            catch (HttpListenerException ex)
+            {
+                _logger.LogError(ex, "Could not bind HTTP listener to port '{port}'", request.Config.BindPort);
+                return ListenerError.PortOccupied(request.Config.BindPort);
+            }
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -198,8 +136,14 @@ namespace TeamServer.Services
         /// of the delete operation.</returns>
         public async Task<Result> DeleteListenerAsync(int ID)
         {
-            // NEED TO CHECK IF LISTENER IS HTTP => STOP AND REMOVE IT FROM THE DICTIONARY
-            return await _listenerRepo.DeleteListenerAsync(ID);
+            var result = await _listenerRepo.IsListenerHttp(ID);
+
+            if (result.IsSuccess)
+            {
+                // Stop the listener then process with delete.
+            }
+
+            return result.IsSuccess ? await _listenerRepo.DeleteListenerAsync(ID) : result;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -215,6 +159,26 @@ namespace TeamServer.Services
         public async Task<Result> UpdateHttpListenerAsync(int ID, HttpConfig config)
         {
             return await _listenerRepo.UpdateListenerAsync(ID, JsonDocument.Parse(JsonSerializer.Serialize(config)));
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<Result> RestartListenerAsync(int ID)
+        {
+            var result = await _listenerRepo.IsListenerHttp(ID);
+
+            if (!result.IsSuccess)
+            {
+                return result;
+            }
+            HttpModule module;
+            var moduleExists = _httpCommModules.TryGetValue(ID, out module);
+
+            if (moduleExists)
+            {
+                await module.Restart();
+            }
+
+            return moduleExists ? Result.Success() : result;
         }
     }
 }

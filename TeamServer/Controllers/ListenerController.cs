@@ -46,6 +46,12 @@ namespace TeamServer.Controllers
             return Ok(response);
         }
 
+        [HttpPost("http/restart/{ID}")]
+        public async Task<IActionResult> RestartListenerAsync([FromRoute] int ID)
+        {
+            return Ok();
+        }
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Creates and starts an HTTP listener using the specified request.

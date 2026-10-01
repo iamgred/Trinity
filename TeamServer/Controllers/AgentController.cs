@@ -10,18 +10,29 @@ namespace TeamServer.Controllers
     public class AgentController : ControllerBase
     {
         private AgentService _agentService;
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Initializes a new instance of the AgentController class with the specified AgentService.
+        /// </summary>
+        /// <param name="agentService">The service that provides agent-related operations.</param>
         public AgentController(AgentService agentService)
         {
             this._agentService = agentService;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpGet("dashboard")]
-        public async Task<IActionResult> GetAgentsDashboard()
+        /// <summary>
+        /// Retrieves all agents and returns an HTTP response containing the agents on success or a bad request on
+        /// failure.
+        /// </summary>
+        /// <remarks>Performs an asynchronous call to the agent service to obtain the agents.</remarks>
+        /// <returns>An OkObjectResult containing the agents when the operation succeeds; otherwise a BadRequestResult.</returns>
+        [HttpGet()]
+        public async Task<IActionResult> GetAgents()
         {
-            //var response = await _agentService.GetAgentsDashboard();
-            return Ok();
+            var result = await _agentService.GetAgentsAsync();
+            return result.IsSuccess ? Ok(result.Response) : BadRequest();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -29,6 +40,14 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> GetAgentDashboard([FromRoute] int agentID)
         {
             //var response = await _agentService.GetAgentDashboard(agentID);
+            return Ok();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("checkin")]
+        public async Task<IActionResult> Checkin([FromBody] string blob)
+        {
+             _agentService.Checkin(blob);
             return Ok();
         }
 

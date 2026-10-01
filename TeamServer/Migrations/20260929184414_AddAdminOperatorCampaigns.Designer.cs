@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeamServer.Data;
@@ -12,9 +13,11 @@ using TeamServer.Data;
 namespace TeamServer.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20260929184414_AddAdminOperatorCampaigns")]
+    partial class AddAdminOperatorCampaigns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,27 +120,6 @@ namespace TeamServer.Migrations
                     b.HasIndex("PayloadID");
 
                     b.ToTable("Agents");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            AES256Key = "testKey",
-                            Architecure = "x86",
-                            CampaignID = 1,
-                            CheckInUUID = "test",
-                            ExternalIP = "dsfdsf",
-                            Integrity = "stes",
-                            InternalIP = "dsf",
-                            Jitter = 10,
-                            LastCheckIn = new DateTime(2021, 2, 15, 2, 2, 2, 0, DateTimeKind.Utc),
-                            ListenerID = 1,
-                            PayloadID = 1,
-                            ProcessPID = 2000,
-                            ProcesseName = "test",
-                            Sleep = 5000,
-                            Username = "admin"
-                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Campaign", b =>
@@ -155,14 +137,8 @@ namespace TeamServer.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Campaigns");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            Name = "test"
-                        });
                 });
+
             modelBuilder.Entity("Trinity.Shared.Models.CampaignBridge", b =>
                 {
                     b.Property<int>("ID")
@@ -237,15 +213,6 @@ namespace TeamServer.Migrations
                     b.HasIndex("ProtocolID");
 
                     b.ToTable("Listeners");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            Name = "test_http",
-                            ProtocolID = 1
-                        });
-
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Operator", b =>
@@ -309,20 +276,6 @@ namespace TeamServer.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Payloads");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            Architecture = 0,
-                            CreatedAt = new DateTime(2021, 2, 15, 2, 2, 2, 0, DateTimeKind.Utc),
-                            FileName = "test",
-                            ListenerID = 1,
-                            PayloadType = 0,
-                            Platform = 2,
-                            ProfileID = 1,
-                            UUID = "test"
-                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Protocol", b =>
@@ -374,18 +327,19 @@ namespace TeamServer.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.Property<byte>("CommandType")
-                        .HasColumnType("smallint");
+                    b.Property<int>("CommandType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("StatusID")
+                    b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("StatusID");
 
                     b.ToTable("Tasks");
                 });
@@ -414,50 +368,6 @@ namespace TeamServer.Migrations
                         .IsUnique();
 
                     b.ToTable("TaskResult");
-                });
-
-            modelBuilder.Entity("Trinity.Shared.Models.TaskStatus", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("TaskStatus");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            Name = "Queued"
-                        },
-                        new
-                        {
-                            ID = 2,
-                            Name = "Pending"
-                        },
-                        new
-                        {
-                            ID = 3,
-                            Name = "Running"
-                        },
-                        new
-                        {
-                            ID = 4,
-                            Name = "Successful"
-                        },
-                        new
-                        {
-                            ID = 5,
-                            Name = "Failure"
-                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Agent", b =>
@@ -513,17 +423,6 @@ namespace TeamServer.Migrations
                     b.Navigation("Protocol");
                 });
 
-            modelBuilder.Entity("Trinity.Shared.Models.Task", b =>
-                {
-                    b.HasOne("Trinity.Shared.Models.TaskStatus", "Status")
-                        .WithMany("Tasks")
-                        .HasForeignKey("StatusID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Status");
-                });
-
             modelBuilder.Entity("Trinity.Shared.Models.TaskResult", b =>
                 {
                     b.HasOne("Trinity.Shared.Models.Task", null)
@@ -540,13 +439,7 @@ namespace TeamServer.Migrations
 
             modelBuilder.Entity("Trinity.Shared.Models.Task", b =>
                 {
-                    b.Navigation("Result")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Trinity.Shared.Models.TaskStatus", b =>
-                {
-                    b.Navigation("Tasks");
+                    b.Navigation("Result");
                 });
 #pragma warning restore 612, 618
         }

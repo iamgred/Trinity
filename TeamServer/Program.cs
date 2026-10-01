@@ -39,12 +39,15 @@ namespace TeamServer
                 opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
             // Repositories
-            builder.Services.AddScoped<ListenerRespository>();
-            builder.Services.AddScoped<ProtocolRespository>();
+            builder.Services.AddScoped<ListenerRepository>();
+            builder.Services.AddScoped<ProtocolRepository>();
             builder.Services.AddScoped<TaskStatusRepository>();
             builder.Services.AddScoped<CommandRepository>();
             builder.Services.AddScoped<AgentRepository>();
             builder.Services.AddScoped<TaskRepository>();
+            builder.Services.AddScoped<AdminRepository>();
+            builder.Services.AddScoped<CampaignBridgeRepository>();
+            builder.Services.AddScoped<OperatorRepository>();
 
             // Exception handler
             builder.Services.AddSingleton<GlobalExceptionHandler>();

@@ -24,7 +24,7 @@ namespace TeamServer.Controllers
         {
             var result = await _payloadService.GeneratePayloadAsync(payloadCreationDTO);
 
-            if (String.IsNullOrEmpty(result.Error))
+            if (!String.IsNullOrEmpty(result.Error))
             {
                 return BadRequest(result);
             }

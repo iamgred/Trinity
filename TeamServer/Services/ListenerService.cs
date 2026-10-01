@@ -15,11 +15,11 @@ using Trinity.Shared.Modules;
 
 namespace TeamServer.Services
 {
-    public class ListenerService 
+    public class ListenerService
     {
         private ILogger _logger;
-        private ListenerRespository _listenerRepo;
-        private ProtocolRespository _protocolRepo;
+        private ListenerRepository _listenerRepo;
+        private ProtocolRepository _protocolRepo;
         private ConcurrentDictionary<int, HttpModule> _httpCommModules;
         private readonly ListenerFactory _listenerFactory;
         private readonly HttpModuleFactory _moduleFactory;
@@ -31,7 +31,7 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory, HttpModuleFactory moduleFactory, HttpListenerManager httpListenerManager)
+        public ListenerService(ILogger<ListenerService> logger, ListenerRepository listenerRepo, ProtocolRepository protocolrepo, ListenerFactory factory, HttpModuleFactory moduleFactory, HttpListenerManager httpListenerManager)
         {
             _logger = logger;
             _httpCommModules = new();
@@ -103,7 +103,7 @@ namespace TeamServer.Services
             await _listenerRepo.CommitAsync();
             return Result.Success();
         }
-            
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Creates an SMB listener from the specified request, resolves the TCP protocol identifier, and adds the

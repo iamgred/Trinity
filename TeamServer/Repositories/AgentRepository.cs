@@ -1,6 +1,7 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using TeamServer.Data;
 using Trinity.Shared.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace TeamServer.Repositories
 {
@@ -27,6 +28,23 @@ namespace TeamServer.Repositories
         public async Task<Agent?> GetAgentByIDAsync(int ID)
         {
             return await _dbSet.FindAsync(ID);
+        }
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Asynchronously retrieves all Agent entities from the context.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<Agent>> GetAgentsAsync()
+        {
+            List<Agent> result = await _context.Agents.ToListAsync();
+            return result;
+        }
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<(Agent, string)> GetAgentAsync(int agentID)
+        {
+            Agent result = await _context.Agents.FirstOrDefaultAsync(a => a.ID.Equals(agentID)) ?? throw new InvalidOperationException("Agent not found");
+            Campaign campaign = await _context.Campaigns.FirstOrDefaultAsync(c => c.ID.Equals(result.CampaignID)) ?? throw new InvalidOperationException("Campaign not found");
+            return (result, campaign.Name);
         }
     }
 }

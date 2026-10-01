@@ -106,9 +106,9 @@ namespace TeamServer.Controllers
         /// <param name="operatorID"></param>
         /// <returns></returns>
         [HttpPost("{campaignID}/operators/{operatorID}")]
-        public async Task<IActionResult> AssignOperatorToCampaignAsync(int campaignID, int operatorID)
+        public async Task<IActionResult> AssignOperatorToCampaignAsync(int operatorID, int campaignID)
         {
-            var result = await _campaignService.AssignOperatorToCampaignAsync(campaignID, operatorID);
+            var result = await _campaignService.AssignOperatorToCampaignAsync(operatorID, campaignID);
             if (!result)
             {
                 return NotFound();
@@ -122,9 +122,9 @@ namespace TeamServer.Controllers
         /// <param name="operatorID"></param>
         /// <returns></returns>
         [HttpDelete("{campaignID}/operators/{operatorID}")]
-        public async Task<IActionResult> UnassignOperatorFromCampaignAsync(int campaignID, int operatorID)
+        public async Task<IActionResult> UnassignOperatorFromCampaignAsync(int operatorID, int campaignID)
         {
-            var result = await _campaignService.RemoveOperatorFromCampaignAsync(campaignID, operatorID);
+            var result = await _campaignService.RemoveOperatorFromCampaignAsync(operatorID, campaignID);
             if (!result)
             {
                 return NotFound();

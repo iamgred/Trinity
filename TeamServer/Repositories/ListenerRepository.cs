@@ -10,14 +10,14 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Repositories
 {
-    public class ListenerRespository : RepositoryBase<Listener>, IListenerRepository
+    public class ListenerRepository : RepositoryBase<Listener>, IListenerRepository
     {
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="context"></param>
-        public ListenerRespository(Context context) : base(context)
+        public ListenerRepository(Context context) : base(context)
         {
         }
 

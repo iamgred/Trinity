@@ -1,4 +1,5 @@
 // =============================================================== { START OF FILE } =============================================================== //
+using TeamServer.Repositories;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Services
@@ -8,9 +9,9 @@ namespace TeamServer.Services
     /// </summary>
     public class AdminService
     {
-        private readonly DatabaseService _db;
+        private readonly AdminRepository _db;
 
-        public AdminService(DatabaseService db)
+        public AdminService(AdminRepository db)
         {
             _db = db;
         }

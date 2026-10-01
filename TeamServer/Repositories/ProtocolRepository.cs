@@ -6,9 +6,9 @@ using Trinity.Shared.Models;
 
 namespace TeamServer.Repositories
 {
-    public class ProtocolRespository : RepositoryBase<Protocol>, IProtocolRepository
+    public class ProtocolRepository : RepositoryBase<Protocol>, IProtocolRepository
     {
-        public ProtocolRespository(Context context) : base(context)
+        public ProtocolRepository(Context context) : base(context)
         {
         }
 

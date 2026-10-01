@@ -1,4 +1,5 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
+using TeamServer.Repositories;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Services
@@ -9,9 +10,9 @@ namespace TeamServer.Services
      */
     public class OperatorService
     {
-        private readonly DatabaseService _db;
+        private readonly OperatorRepository _db;
 
-        public OperatorService(DatabaseService db)
+        public OperatorService(OperatorRepository db)
         {
             _db = db;
         }

@@ -2,17 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
 using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.DTOs.Tasks
+namespace Trinity.Shared.Errors
 {
-    public class TaskDTO
+    public static class TaskError
     {
-        public string Command { get; set; } = String.Empty;
-        public DateTime Created { get; set; } = new();
-        public string Status { get; set; } = String.Empty;
-
+        public static Error NotFound(int ID) => new Error("Tasks.NotFound", $"The task with Id '{ID}' was not found", ErrorType.NotFound);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -1,7 +1,7 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
 using TeamServer.Services;
-using Trinity.Shared.DTOs.Tasks;
+
 
 namespace TeamServer.Controllers
 {
@@ -9,39 +9,54 @@ namespace TeamServer.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        private TaskService _taskService;
+        private readonly TaskService _taskService;
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Default constructor.
-        /// </summary>
         public TaskController(TaskService taskService)
         {
-            this._taskService = taskService;
+            _taskService = taskService;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// Retrieves all tasks.
+        ///     
         /// </summary>
         /// <returns></returns>
         [HttpGet("tasks")]
         public async Task<IActionResult> GetTasks() 
         {
-            //List<TaskDTO> response = await _taskService.GetTasksAsync();
-            return Ok();
+            var result = await _taskService.GetAllAgentTasks();
+            return Ok(result.Response);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// Retrieves tasks associated to a specified agent.
+        /// Gets the details of the task with the specified identifier.
         /// </summary>
-        /// <param name="agentID"></param>
-        /// <returns></returns>
+        /// <remarks>Handles HTTP GET requests at 'tasks/{ID}'.</remarks>
+        /// <param name="ID">The identifier of the task to retrieve.</param>
+        /// <returns>An IActionResult that returns 200 (OK) with the task details when found, or 404 (NotFound) when no task
+        /// exists with the specified ID.</returns>
+        [HttpGet("tasks/{ID}")]
+        public async Task<IActionResult> GetTaskDetailsByID([FromRoute] int ID)
+        {
+            var result = await _taskService.GetTaskDetailsByIDAsync(ID);
+            return result.IsSuccess ? Ok(result.Response) : NotFound(result.Error);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Retrieves queued tasks for the specified agent.
+        /// </summary>
+        /// <remarks>Asynchronously calls the task service to obtain the agent's queued tasks.</remarks>
+        /// <param name="agentID">Identifier of the agent whose queued tasks are retrieved.</param>
+        /// <returns>An IActionResult that returns 200 (OK) with the queued tasks on success, or 400 (BadRequest) with error
+        /// details on failure.</returns>
         [HttpGet("{agentID}")]
         public async Task<IActionResult> GetTasksByAgentID([FromRoute] int agentID)
         {
-            //List<TaskDTO> response = await _taskService.GetTasksByAgentAsync(agentID);
-            return Ok();
+            var result = await _taskService.GetQueuedTasksByAgentID(agentID);
+            return result.IsSuccess ? Ok(result.Response) : NotFound(result.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -58,32 +73,31 @@ namespace TeamServer.Controllers
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// De-queues a task with a pending state.
+        /// Stops the task with the specified identifier.
         /// </summary>
-        /// <param name="taskID"></param>
-        /// <returns></returns>
-        [HttpGet("/{taskID}/stop")]
+        /// <remarks>Mapped to HTTP GET /{taskID}/stop. Invokes the task service asynchronously to remove
+        /// the task.</remarks>
+        /// <param name="taskID">The identifier of the task to stop.</param>
+        /// <returns>200 (OK) when the task was removed; 404 (NotFound) with an error if no task with the specified ID exists.</returns>
+        [HttpDelete("/{taskID}/stop")]
         public async Task<IActionResult> StopTask([FromRoute] int taskID)
         {
-            return Ok();
+            var result = await _taskService.RemoveTaskByIDAsync(taskID);
+            return result.IsSuccess ? Ok() : NotFound(result.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// De-queues all tasks in the agent queue. 
+        /// Clears all queued tasks for the agent identified by agentID.
         /// </summary>
-        /// <param name="taskID"></param>
-        /// <returns></returns>
+        /// <remarks>Accessible via HTTP DELETE at /{agentID}/clearQueue.</remarks>
+        /// <param name="agentID">Identifier of the agent whose queued tasks to clear.</param>
+        /// <returns>An IActionResult: 200 (OK) when the queue is cleared; 400 (Bad Request) with an error on failure.</returns>
         [HttpDelete("/{agentID}/clearQueue")]
         public async Task<IActionResult> ClearQueue([FromRoute] int agentID) 
         {
             var result = await _taskService.ClearAgentTasksAsync(agentID);
-            if (!result)
-            {
-                return BadRequest();    
-            }
-
-            return Ok();
+            return result.IsSuccess ? Ok() : BadRequest(result.Error);
         }
     }
 }

@@ -41,6 +41,7 @@ namespace TeamServer
             builder.Services.AddScoped<TaskStatusRepository>();
             builder.Services.AddScoped<CommandRepository>();
             builder.Services.AddScoped<AgentRepository>();
+            builder.Services.AddScoped<TaskRepository>();
 
             // Exception handler
             builder.Services.AddSingleton<GlobalExceptionHandler>();

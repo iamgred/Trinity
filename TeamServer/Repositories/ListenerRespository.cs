@@ -76,18 +76,6 @@ namespace TeamServer.Repositories
         {
             _dbSet.Remove(listener);
         }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Saves all changes in the current DbContext to the underlying database asynchronously.
-        /// </summary>
-        /// <remarks>Calls DbContext.SaveChangesAsync; exceptions from the database provider (for example,
-        /// DbUpdateException) propagate to the caller.</remarks>
-        /// <returns>A task that represents the asynchronous save operation.</returns>
-        public async System.Threading.Tasks.Task CommitAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

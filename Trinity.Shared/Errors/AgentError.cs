@@ -2,14 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Trinity.Shared.Interfaces;
+using Trinity.Shared.Enums;
 
-namespace Trinity.Shared.Models
+namespace Trinity.Shared.Errors
 {
-    public class TcpListener : ListenerBase
+    public static class AgentError
     {
-        public required int Port { get; set; }
-        public required bool LocalHostOnly { get; set; }
+        public static Error NotFound(int ID) => new Error("Agents.NotFound", $"The agent with Id '{ID}' was not found", ErrorType.NotFound);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

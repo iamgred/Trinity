@@ -31,28 +31,28 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public async Task<int> InsertAgentTask(ICommand command, CommandTypes type, int agentID)
-        {
-            bool agentExists = await _context.Agents.AnyAsync(a => a.ID.Equals(agentID));
+        //public async Task<int> InsertAgentTask(ICommand command, CommandTypes type, int agentID)
+        //{
+        //    bool agentExists = await _context.Agents.AnyAsync(a => a.ID.Equals(agentID));
 
-            if (!agentExists)
-            {
-                throw new InvalidOperationException("Invalid: Operator does not exist!");
-            }
+        //    if (!agentExists)
+        //    {
+        //        throw new InvalidOperationException("Invalid: Operator does not exist!");
+        //    }
 
-            Trinity.Shared.Models.Task task = new Trinity.Shared.Models.Task
-            {
-                AgentID = agentID,
-                CreatedAt = DateTime.UtcNow,
-                Status = Trinity.Shared.Enums.TaskStatuses.Queued,
-                CommandType = type,
-                Command = JsonDocument.Parse(JsonSerializer.Serialize(command, command.GetType())),
-            };
-            var result = await _context.Tasks.AddAsync(task);
-            await _context.SaveChangesAsync();
+        //    Trinity.Shared.Models.Task task = new Trinity.Shared.Models.Task
+        //    {
+        //        AgentID = agentID,
+        //        CreatedAt = DateTime.UtcNow,
+        //        Status = Trinity.Shared.Enums.TaskStatuses.Queued,
+        //        CommandType = type,
+        //        Command = JsonDocument.Parse(JsonSerializer.Serialize(command, command.GetType())),
+        //    };
+        //    var result = await _context.Tasks.AddAsync(task);
+        //    await _context.SaveChangesAsync();
 
-            return result.Entity.ID;
-        }
+        //    return result.Entity.ID;
+        //}
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>

@@ -1,35 +1,63 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Trinity.Shared.DTOs.Command;
+using TeamServer.Repositories;
+using TeamServer.Services.Factories;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Errors;
 using Trinity.Shared.Interfaces;
+using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
     public class CommandService
     {
-        private DatabaseService _db;
+        private readonly CommandFactory _commandFactory;
+        private readonly CommandRepository _commandRepo;
+        private readonly TaskStatusRepository _statusRepo;
+        private readonly AgentRepository _agentRepo;
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public CommandService(DatabaseService database)
+        /// <summary>
+        /// Initializes a new instance of CommandService with the specified dependencies.
+        /// </summary>
+        /// <remarks>Dependencies are required for command creation, persistence, and agent/task status
+        /// management.</remarks>
+        /// <param name="database">Provides database access and persistence operations.</param>
+        /// <param name="commandFactory">Factory for creating Command instances.</param>
+        /// <param name="commandRepository">Persists and retrieves Command entities.</param>
+        /// <param name="taskStatusRepository">Manages persistence and retrieval of task status information.</param>
+        /// <param name="agentRepository">Accesses and manages agent data.</param>
+        public CommandService(DatabaseService database, CommandFactory commandFactory, CommandRepository commandRepository, TaskStatusRepository taskStatusRepository, AgentRepository agentRepository)
         {
-            this._db = database;
+            _commandFactory = commandFactory;
+            _commandRepo = commandRepository;
+            _statusRepo = taskStatusRepository;
+            _agentRepo = agentRepository;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<AsyncCommandResponseDTO> QueueTask(ICommand commandDTO, CommandTypes type, int agentID)
+        /// <summary>
+        /// Asynchronously queue a command as a task for the specified agent and persist the created task.
+        /// </summary>
+        /// <remarks>Assigns the task status to 'Queued', creates the task via the command factory,
+        /// enqueues it through the repository, and commits changes.</remarks>
+        /// <param name="command">Command to enqueue as a task.</param>
+        /// <param name="type">Type of command used to create the task.</param>
+        /// <param name="agentID">Identifier of the agent that will own the queued task.</param>
+        /// <returns>A Result indicating success, or an error result when the specified agent is not found.</returns>
+        public async Task<Result> QueueTaskAsync(ICommand command, CommandTypes type, int agentID)
         {
-            AsyncCommandResponseDTO response = new AsyncCommandResponseDTO();
-            try
+            var agent = await _agentRepo.GetAgentByIDAsync(agentID);
+            if (agent == null)
             {
-                int taskID = await this._db.InsertAgentTask(commandDTO, type, agentID);
-                response.TaskID = taskID;
-            }
-            catch (Exception ex) when (ex is InvalidOperationException)
-            {
-                response.Message = ex.Message;
+                return AgentError.NotFound(agentID);
             }
 
-            return response;
+            var statusID = await _statusRepo.GetTaskStatusID("Queued");
+            var task = _commandFactory.Create(agentID, type, command, statusID);
+            await _commandRepo.QueueAsync(task);
+            await _commandRepo.CommitAsync();
+
+            return Result.Success();
         }
     }
 }

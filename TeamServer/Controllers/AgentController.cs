@@ -20,16 +20,16 @@ namespace TeamServer.Controllers
         [HttpGet("dashboard")]
         public async Task<IActionResult> GetAgentsDashboard()
         {
-            var response = await _agentService.GetAgentsDashboard();
-            return Ok(response);
+            //var response = await _agentService.GetAgentsDashboard();
+            return Ok();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpGet("{agentID}")]
         public async Task<IActionResult> GetAgentDashboard([FromRoute] int agentID)
         {
-            var response = await _agentService.GetAgentDashboard(agentID);
-            return Ok(response);
+            //var response = await _agentService.GetAgentDashboard(agentID);
+            return Ok();
         }
 
     }

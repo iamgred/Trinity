@@ -24,6 +24,7 @@ namespace TeamServer
             builder.Services.AddScoped<TaskService>();
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
+            builder.Services.AddSingleton<CommandFactory>();
             builder.Services.AddSingleton<HttpListenerManager>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddControllers();
@@ -37,6 +38,9 @@ namespace TeamServer
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();
             builder.Services.AddScoped<ProtocolRespository>();
+            builder.Services.AddScoped<TaskStatusRepository>();
+            builder.Services.AddScoped<CommandRepository>();
+            builder.Services.AddScoped<AgentRepository>();
 
             // Exception handler
             builder.Services.AddSingleton<GlobalExceptionHandler>();

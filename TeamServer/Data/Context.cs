@@ -1,5 +1,6 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 using System.Text.Json;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
@@ -14,7 +15,6 @@ namespace TeamServer.Data
         public DbSet<Payload> Payloads { get; set; }
         public DbSet<Protocol> Protocols { get; set; }
         public DbSet<Listener> Listeners { get; set; }
-        public DbSet<Header> Headers { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
         public Context()
         {
@@ -51,6 +51,33 @@ namespace TeamServer.Data
                 }
             );
 
+            modelBuilder.Entity<Trinity.Shared.Models.TaskStatus>().HasData(
+                new Trinity.Shared.Models.TaskStatus 
+                { 
+                    ID = 1,
+                    Name = "Queued",
+                },
+                new Trinity.Shared.Models.TaskStatus
+                {
+                    ID = 2,
+                    Name = "Pending",
+                },
+                new Trinity.Shared.Models.TaskStatus
+                {
+                    ID = 3,
+                    Name = "Running",
+                },
+                new Trinity.Shared.Models.TaskStatus
+                {
+                    ID = 4,
+                    Name = "Successful",
+                },
+                new Trinity.Shared.Models.TaskStatus
+                {
+                    ID = 5,
+                    Name = "Failure",
+                }
+            );
         }
     }
 }

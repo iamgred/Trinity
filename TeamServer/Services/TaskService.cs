@@ -17,38 +17,38 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<List<TaskDTO>> GetTasksAsync()
-        {
-            var tasks = await this._db.GetTasksAsync();
+        //public async Task<List<TaskDTO>> GetTasksAsync()
+        //{
+        //    var tasks = await this._db.GetTasksAsync();
 
-            var result = tasks.AsQueryable()
-                .Select(t => new TaskDTO
-                {
-                    Status = Util.GetEnumValue(t.Status),
-                    Command = Util.GetEnumValue(t.CommandType),
-                    Created = t.CreatedAt
-                })
-                .ToList();
+        //    var result = tasks.AsQueryable()
+        //        .Select(t => new TaskDTO
+        //        {
+        //            Status = Util.GetEnumValue(t.Status),
+        //            Command = Util.GetEnumValue(t.CommandType),
+        //            Created = t.CreatedAt
+        //        })
+        //        .ToList();
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<List<TaskDTO>> GetTasksByAgentAsync(int agentID)
-        {
-            var tasks = await this._db.GetTasksByAgentAsync(agentID);
+        ////^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        //public async Task<List<TaskDTO>> GetTasksByAgentAsync(int agentID)
+        //{
+        //    var tasks = await this._db.GetTasksByAgentAsync(agentID);
 
-            var result = tasks.AsQueryable()
-                .Select(t => new TaskDTO
-                {
-                    Status = Util.GetEnumValue(t.Status),
-                    Command = Util.GetEnumValue(t.CommandType),
-                    Created = t.CreatedAt
-                })
-                .ToList();
+        //    var result = tasks.AsQueryable()
+        //        .Select(t => new TaskDTO
+        //        {
+        //            Status = Util.GetEnumValue(t.Status),
+        //            Command = Util.GetEnumValue(t.CommandType),
+        //            Created = t.CreatedAt
+        //        })
+        //        .ToList();
 
-            return result;
-        }
+        //    return result;
+        //}
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<bool> ClearAgentTasksAsync(int agentID)

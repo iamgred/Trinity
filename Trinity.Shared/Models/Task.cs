@@ -15,10 +15,10 @@ namespace Trinity.Shared.Models
         public required int AgentID { get; set; }
         public required CommandTypes CommandType { get; set; }
         public required JsonDocument Command { get; set; }
-        public required TaskStatuses Status { get; set; } = default;
+        public required int StatusID { get; set; }
+        public TaskStatus Status { get; set; }
         public required DateTime CreatedAt { get; set; }
-        public DateTime? CompletedAt { get; set; }
-        public TaskResult? Result { get; set; }
+        public TaskResult Result { get; set; }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -29,21 +29,6 @@ namespace TeamServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Headers",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ListenerID = table.Column<int>(type: "integer", nullable: false),
-                    Key = table.Column<string>(type: "text", nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Headers", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Payloads",
                 columns: table => new
                 {
@@ -77,21 +62,16 @@ namespace TeamServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tasks",
+                name: "TaskStatus",
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    AgentID = table.Column<int>(type: "integer", nullable: false),
-                    CommandType = table.Column<int>(type: "integer", nullable: false),
-                    Command = table.Column<JsonDocument>(type: "jsonb", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tasks", x => x.ID);
+                    table.PrimaryKey("PK_TaskStatus", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(
@@ -116,22 +96,24 @@ namespace TeamServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TaskResult",
+                name: "Tasks",
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TaskID = table.Column<int>(type: "integer", nullable: false),
-                    isSuccess = table.Column<bool>(type: "boolean", nullable: false),
-                    Response = table.Column<JsonDocument>(type: "jsonb", nullable: false)
+                    AgentID = table.Column<int>(type: "integer", nullable: false),
+                    CommandType = table.Column<byte>(type: "smallint", nullable: false),
+                    Command = table.Column<JsonDocument>(type: "jsonb", nullable: false),
+                    StatusID = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TaskResult", x => x.ID);
+                    table.PrimaryKey("PK_Tasks", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_TaskResult_Tasks_TaskID",
-                        column: x => x.TaskID,
-                        principalTable: "Tasks",
+                        name: "FK_Tasks_TaskStatus_StatusID",
+                        column: x => x.StatusID,
+                        principalTable: "TaskStatus",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -181,6 +163,37 @@ namespace TeamServer.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "TaskResult",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TaskID = table.Column<int>(type: "integer", nullable: false),
+                    isSuccess = table.Column<bool>(type: "boolean", nullable: false),
+                    Response = table.Column<JsonDocument>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaskResult", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_TaskResult_Tasks_TaskID",
+                        column: x => x.TaskID,
+                        principalTable: "Tasks",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Campaigns",
+                columns: new[] { "ID", "Name" },
+                values: new object[] { 1, "test" });
+
+            migrationBuilder.InsertData(
+                table: "Payloads",
+                columns: new[] { "ID", "Architecture", "CreatedAt", "FileName", "ListenerID", "PayloadType", "Platform", "ProfileID", "UUID" },
+                values: new object[] { 1, 0, new DateTime(2021, 2, 15, 2, 2, 2, 0, DateTimeKind.Utc), "test", 1, 0, 2, 1, "test" });
+
             migrationBuilder.InsertData(
                 table: "Protocols",
                 columns: new[] { "ID", "Name" },
@@ -192,9 +205,26 @@ namespace TeamServer.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "TaskStatus",
+                columns: new[] { "ID", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Queued" },
+                    { 2, "Pending" },
+                    { 3, "Running" },
+                    { 4, "Successful" },
+                    { 5, "Failure" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Listeners",
                 columns: new[] { "ID", "Config", "Name", "ProtocolID" },
-                values: new object[] { 1, null, "test", 1 });
+                values: new object[] { 1, null, "test_http", 1 });
+
+            migrationBuilder.InsertData(
+                table: "Agents",
+                columns: new[] { "ID", "AES256Key", "Architecure", "CampaignID", "CheckInUUID", "ExternalIP", "Integrity", "InternalIP", "Jitter", "LastCheckIn", "ListenerID", "PayloadID", "ProcessPID", "ProcesseName", "Sleep", "Username" },
+                values: new object[] { 1, "testKey", "x86", 1, "test", "dsfdsf", "stes", "dsf", 10, new DateTime(2021, 2, 15, 2, 2, 2, 0, DateTimeKind.Utc), 1, 1, 2000, "test", 5000, "admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Agents_CampaignID",
@@ -221,6 +251,11 @@ namespace TeamServer.Migrations
                 table: "TaskResult",
                 column: "TaskID",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_StatusID",
+                table: "Tasks",
+                column: "StatusID");
         }
 
         /// <inheritdoc />
@@ -228,9 +263,6 @@ namespace TeamServer.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Agents");
-
-            migrationBuilder.DropTable(
-                name: "Headers");
 
             migrationBuilder.DropTable(
                 name: "TaskResult");
@@ -249,6 +281,9 @@ namespace TeamServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "Protocols");
+
+            migrationBuilder.DropTable(
+                name: "TaskStatus");
         }
     }
 }

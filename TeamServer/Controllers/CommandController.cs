@@ -35,14 +35,8 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/powershell")]
         public async Task<IActionResult> QueuePowerShellCommand([FromRoute] int agentId, PowerShellDTO powershellDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(powershellDTO, CommandTypes.Powershell, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(powershellDTO, CommandTypes.Powershell, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -55,210 +49,120 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/shell")]
         public async Task<IActionResult> QueueShellCommand([FromRoute] int agentId, ShellDTO shellDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(shellDTO, CommandTypes.Shell, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(shellDTO, CommandTypes.Shell, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/spawn/runas")]
         public async Task<IActionResult> QueueRunAsCommand([FromRoute] int agentId, RunAsDTO runAsDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runAsDTO, CommandTypes.RunAs, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(runAsDTO, CommandTypes.RunAs, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/spawn/run")]
         public async Task<IActionResult> QueueRunCommand([FromRoute] int agentId, RunDTO runDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runDTO, CommandTypes.Run, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(runDTO, CommandTypes.Run, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/spawn/runu")]
         public async Task<IActionResult> QueueRunUCommand([FromRoute] int agentId, RunUDTO runUDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(runUDTO, CommandTypes.RunU, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(runUDTO, CommandTypes.RunU, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/spawn/killprocess")]
         public async Task<IActionResult> QueueKillCommand([FromRoute] int agentId, KillProcessDTO killProcessDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(killProcessDTO, CommandTypes.Kill, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(killProcessDTO, CommandTypes.Kill, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/spawn/escalate")]
         public async Task<IActionResult> QueueEscalateCommand([FromRoute] int agentId, EscalateDTO escalateDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(escalateDTO, CommandTypes.Escalate, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(escalateDTO, CommandTypes.Escalate, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/spawn/dotnetassembly")]
         public async Task<IActionResult> QueueDotNetAsmCommand([FromRoute] int agentId, DotNetAsmDTO dotNetAsmDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(dotNetAsmDTO, CommandTypes.ExecuteAssembly, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(dotNetAsmDTO, CommandTypes.ExecuteAssembly, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/bof")]
         public async Task<IActionResult> QueueBofCommand([FromRoute] int agentId, BofDTO bofDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(bofDTO, CommandTypes.BOF, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(bofDTO, CommandTypes.BOF, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/filedownload")]
         public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentId, DownloadDTO downloadDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(downloadDTO, CommandTypes.Download, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(downloadDTO, CommandTypes.Download, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/cancelFileDownload")]
         public async Task<IActionResult> QueueCancelFileDownloadCommand([FromRoute] int agentId, CancelDownloadDTO cancelDownloadDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(cancelDownloadDTO, CommandTypes.CancelDownload, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(cancelDownloadDTO, CommandTypes.CancelDownload, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/upload")]
         public async Task<IActionResult> QueueUploadCommand([FromRoute] int agentId, UploadDTO uploadDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(uploadDTO, CommandTypes.Upload, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(uploadDTO, CommandTypes.Upload, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/spawnto")]
         public async Task<IActionResult> QueueSpawnToCommand([FromRoute] int agentId, SpawnToDTO spawnToDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(spawnToDTO, CommandTypes.SpawnTo, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(spawnToDTO, CommandTypes.SpawnTo, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/updatehosts")]
         public async Task<IActionResult> QueueUpdateHostsCommand([FromRoute] int agentId, UpdateHostsDTO updateHostsDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(updateHostsDTO, CommandTypes.UpdateHosts, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(updateHostsDTO, CommandTypes.UpdateHosts, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/setsleep")]
         public async Task<IActionResult> QueueSetSleepCommand([FromRoute] int agentId, SetSleepDTO setSleepDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(setSleepDTO, CommandTypes.SetSleep, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(setSleepDTO, CommandTypes.SetSleep, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentId}/execute/kill")]
         public async Task<IActionResult> QueueKillAgentCommand([FromRoute] int agentId, KillAgentDTO killAgentDTO)
         {
-            AsyncCommandResponseDTO response = await this._commandService.QueueTask(killAgentDTO, CommandTypes.KillAgent, agentId);
-
-            if (response.TaskID == null)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
+            var response = await this._commandService.QueueTaskAsync(killAgentDTO, CommandTypes.KillAgent, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
     }
 }

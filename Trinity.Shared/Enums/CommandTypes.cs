@@ -7,42 +7,42 @@ using System.Text;
 namespace Trinity.Shared.Enums
 {
     [DataContract]
-    public enum CommandTypes
+    public enum CommandTypes : byte
     {
         [EnumMember(Value = "PowerShell")]
-        Powershell,
+        Powershell = 0x0001,
         [EnumMember(Value = "Shell")]
-        Shell,
+        Shell = 0x0002,
         [EnumMember(Value = "Download")]
-        Download,
+        Download = 0x0003,
         [EnumMember(Value = "Cancel Download")]
-        CancelDownload,
+        CancelDownload = 0x0004,
         [EnumMember(Value = "Upload")]
-        Upload,
+        Upload = 0x0005,
         [EnumMember(Value = "Kill Process")]
-        Kill,
+        Kill = 0x0006,
         [EnumMember(Value = "Execute Assembly")]
-        ExecuteAssembly,
+        ExecuteAssembly = 0x0006,
         [EnumMember(Value = "Execute Beacon Object File (BOF)")]
-        BOF,
+        BOF = 0x0007,
         [EnumMember(Value = "Execute")]
-        Execute,
+        Execute = 0x0008,
         [EnumMember(Value = "Run")]
-        Run,
+        Run = 0x0009,
         [EnumMember(Value = "RunAs")]
-        RunAs,
+        RunAs = 0x0010,
         [EnumMember(Value = "RunU")]
-        RunU,
+        RunU = 0x0011,
         [EnumMember(Value = "Escalate")]
-        Escalate,
+        Escalate = 0x0012,
         [EnumMember(Value = "SpawnTo")]
-        SpawnTo,
+        SpawnTo = 0x0013,
         [EnumMember(Value = "Update Hosts")]
-        UpdateHosts,
+        UpdateHosts = 0x0014,
         [EnumMember(Value = "Set Sleep")]
-        SetSleep,
+        SetSleep = 0x0015,
         [EnumMember(Value = "Kill Agent")]
-        KillAgent
+        KillAgent = 0x0016
 
     }
 }

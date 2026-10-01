@@ -27,8 +27,8 @@ namespace TeamServer.Controllers
         [HttpGet("tasks")]
         public async Task<IActionResult> GetTasks() 
         {
-            List<TaskDTO> response = await _taskService.GetTasksAsync();
-            return Ok(response);
+            //List<TaskDTO> response = await _taskService.GetTasksAsync();
+            return Ok();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -40,8 +40,8 @@ namespace TeamServer.Controllers
         [HttpGet("{agentID}")]
         public async Task<IActionResult> GetTasksByAgentID([FromRoute] int agentID)
         {
-            List<TaskDTO> response = await _taskService.GetTasksByAgentAsync(agentID);
-            return Ok(response);
+            //List<TaskDTO> response = await _taskService.GetTasksByAgentAsync(agentID);
+            return Ok();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

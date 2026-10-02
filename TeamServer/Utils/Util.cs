@@ -33,6 +33,17 @@ namespace TeamServer.Utils
         {
             return System.Convert.FromBase64String(blob);
         }
+
+        public static string GenerateAES256Key()
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.KeySize = 256;
+                aes.GenerateKey();
+                return Convert.ToBase64String(aes.Key);
+                
+            }
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

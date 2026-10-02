@@ -1,7 +1,10 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Buffers;
+using System.Text.Json;
 using TeamServer.Services;
+using Trinity.Shared.DTOs.Checkin;
 
 namespace TeamServer.Controllers
 {
@@ -47,8 +50,26 @@ namespace TeamServer.Controllers
         [HttpPost("checkin")]
         public async Task<IActionResult> Checkin([FromBody] string blob)
         {
-             _agentService.Checkin(blob);
-            return Ok();
+            var result = await _agentService.Checkin(blob);
+            return result.IsSuccess ? Ok(result.Response) : BadRequest();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("base64")]
+        public IActionResult GetBase64([FromBody] IntialCheckInRequest request)
+        {
+            var bufferWriter = new ArrayBufferWriter<byte>();
+            string uuid = "d36a1b06-9a88-4e60-b059-6a5e9fc5bbff";
+            Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
+            int bytesWritten = System.Text.Encoding.UTF8.GetBytes(uuid, uuidSpan);
+            bufferWriter.Advance(bytesWritten);
+
+            using (var jsonWriter = new Utf8JsonWriter(bufferWriter))
+            {
+                JsonSerializer.Serialize(jsonWriter, request);
+            }
+
+            return Ok(Convert.ToBase64String(bufferWriter.WrittenSpan));
         }
 
     }

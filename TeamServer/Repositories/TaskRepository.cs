@@ -113,6 +113,23 @@ namespace TeamServer.Repositories
                 .Where(t => t.AgentID.Equals(agentID) && t.Status.Name.Equals("Queued"))
                 .ExecuteDeleteAsync();
         }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Asynchronously retrieves the first queued task for the specified agent, or null if none exists.
+        /// </summary>
+        /// <remarks>Includes the Status navigation property and filters tasks where Status.Name equals
+        /// "Queued".</remarks>
+        /// <param name="agentID">Identifier of the agent to find the queued task for.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains the first queued Task for the
+        /// specified agent, or null if none is found.</returns>
+        public async Task<Trinity.Shared.Models.Task?> GetTaskFromQueueAsync(int agentID) 
+        {
+            return await _dbSet
+                .Include(t => t.Status)
+                .Where(t => t.AgentID.Equals(agentID) && t.Status.Name.Equals("Queued"))
+                .FirstOrDefaultAsync();
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

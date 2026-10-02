@@ -8,6 +8,7 @@ namespace Trinity.Shared.Models
     public class Host
     {
         public int ID { get; set; }
+        public required int AgentID { get; set; }
         public required string HostName { get; set; }
         public required string OS { get; set; }
         public required string Motherboard { get; set; }

@@ -55,11 +55,27 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("base64")]
-        public IActionResult GetBase64([FromBody] IntialCheckInRequest request)
+        [HttpPost("base64/initial/checkin")]
+        public IActionResult GetIntialBase64([FromBody] IntialCheckInRequest request, [FromQuery] string uuid)
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
-            string uuid = "d36a1b06-9a88-4e60-b059-6a5e9fc5bbff";
+            Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
+            int bytesWritten = System.Text.Encoding.UTF8.GetBytes(uuid, uuidSpan);
+            bufferWriter.Advance(bytesWritten);
+
+            using (var jsonWriter = new Utf8JsonWriter(bufferWriter))
+            {
+                JsonSerializer.Serialize(jsonWriter, request);
+            }
+
+            return Ok(Convert.ToBase64String(bufferWriter.WrittenSpan));
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("base64/full/checkin")]
+        public IActionResult GetFullBase64([FromBody] ResultRequest request, [FromQuery] string uuid)
+        {
+            var bufferWriter = new ArrayBufferWriter<byte>();
             Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
             int bytesWritten = System.Text.Encoding.UTF8.GetBytes(uuid, uuidSpan);
             bufferWriter.Advance(bytesWritten);

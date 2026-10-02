@@ -45,10 +45,10 @@ namespace TeamServer.Services
 
             var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO);
 
-            if (!buildResult.IsSuccess)
-            {
-                return PayloadError.GenerationFailed();
-            }
+            //if (!buildResult.IsSuccess)
+            //{
+            //    return PayloadError.GenerationFailed();
+            //}
 
             var payload = new Payload
             {

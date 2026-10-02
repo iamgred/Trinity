@@ -23,6 +23,30 @@ namespace TeamServer.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Trinity.Shared.Models.Admin", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("LastLogin")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Admins");
+                });
+
             modelBuilder.Entity("Trinity.Shared.Models.Agent", b =>
                 {
                     b.Property<int>("ID")
@@ -93,27 +117,6 @@ namespace TeamServer.Migrations
                     b.HasIndex("PayloadID");
 
                     b.ToTable("Agents");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            AES256Key = "testKey",
-                            Architecure = "x86",
-                            CampaignID = 1,
-                            CheckInUUID = "test",
-                            ExternalIP = "dsfdsf",
-                            Integrity = "stes",
-                            InternalIP = "dsf",
-                            Jitter = 10,
-                            LastCheckIn = new DateTime(2021, 2, 15, 2, 2, 2, 0, DateTimeKind.Utc),
-                            ListenerID = 1,
-                            PayloadID = 1,
-                            ProcessPID = 2000,
-                            ProcesseName = "test",
-                            Sleep = 5000,
-                            Username = "admin"
-                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Campaign", b =>
@@ -131,13 +134,75 @@ namespace TeamServer.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Campaigns");
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            Name = "test"
-                        });
+            modelBuilder.Entity("Trinity.Shared.Models.CampaignBridge", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CampaignID")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OperatorID")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CampaignID", "OperatorID")
+                        .IsUnique();
+
+                    b.ToTable("CampaignBridges");
+                });
+
+            modelBuilder.Entity("Trinity.Shared.Models.Host", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<int>("AgentID")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CPUCount")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("DiskSize")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("FreeDisk")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("HostName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MACAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Motherboard")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OS")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RAM")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Hosts");
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Listener", b =>
@@ -149,6 +214,7 @@ namespace TeamServer.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<JsonDocument>("Config")
+                        .IsRequired()
                         .HasColumnType("jsonb");
 
                     b.Property<string>("Name")
@@ -163,14 +229,30 @@ namespace TeamServer.Migrations
                     b.HasIndex("ProtocolID");
 
                     b.ToTable("Listeners");
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            Name = "test_http",
-                            ProtocolID = 1
-                        });
+            modelBuilder.Entity("Trinity.Shared.Models.Operator", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime?>("LastLogin")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Operators");
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Payload", b =>
@@ -181,11 +263,21 @@ namespace TeamServer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
+                    b.Property<string>("AES256KEY")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("Architecture")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CampaignID")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CreatedByOperatorID")
+                        .HasColumnType("integer");
 
                     b.Property<string>("FileName")
                         .IsRequired()
@@ -197,33 +289,17 @@ namespace TeamServer.Migrations
                     b.Property<int>("PayloadType")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Platform")
-                        .HasColumnType("integer");
+                    b.Property<string>("PayloadUUID")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("ProfileID")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UUID")
+                    b.Property<string>("RetryStrategy")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("ID");
 
                     b.ToTable("Payloads");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            Architecture = 0,
-                            CreatedAt = new DateTime(2021, 2, 15, 2, 2, 2, 0, DateTimeKind.Utc),
-                            FileName = "test",
-                            ListenerID = 1,
-                            PayloadType = 0,
-                            Platform = 2,
-                            ProfileID = 1,
-                            UUID = "test"
-                        });
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Protocol", b =>

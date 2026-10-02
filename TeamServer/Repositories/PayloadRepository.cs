@@ -24,6 +24,14 @@ namespace TeamServer.Repositories
         {
             return await _dbSet.ToListAsync();
         }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<Payload?> GetPayloadByUUIDAsync(string uuid)
+        {
+            return await _dbSet
+                .Where(p => p.PayloadUUID.Equals(uuid))
+                .FirstOrDefaultAsync();
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

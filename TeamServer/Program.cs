@@ -30,8 +30,6 @@ namespace TeamServer
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
             builder.Services.AddSingleton<CommandFactory>();
-            builder.Services.AddSingleton<AgentFactory>();
-            builder.Services.AddSingleton<TaskResultFactory>();
             builder.Services.AddSingleton<HttpListenerManager>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddControllers();

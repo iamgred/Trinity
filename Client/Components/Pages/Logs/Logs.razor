@@ -1,0 +1,267 @@
+@page "/logs"
+@layout TrinityLayout
+@inject NavigationManager Navigation
+
+<PageTitle>Trinity · Logs</PageTitle>
+
+<div class="logs-page">
+
+    <div class="mock-banner">Mock data — for UI shell only (in-memory, not persisted)</div>
+
+    <section class="header">
+        <h1>Logs</h1>
+        <p class="subtitle">View and analyse all system and user activity logs</p>
+    </section>
+
+    <section class="stats-row">
+        @foreach (var stat in BuildStats())
+        {
+            <div class="stat-card t-card">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        @((MarkupString)stat.Icon)
+                    </svg>
+                </div>
+                <div class="stat-body">
+                    <div class="label">@stat.Label</div>
+                    <div class="value">@stat.Value</div>
+                    <div class="trend @(stat.Up ? "up" : "down")">@(stat.Up ? "↗" : "↘") @stat.Trend</div>
+                </div>
+            </div>
+        }
+    </section>
+
+    <div class="logs-grid">
+
+        <div class="col-main">
+
+            <section class="table-section t-card">
+                <div class="table-toolbar">
+                    <h2>All Logs</h2>
+                    <div class="toolbar-controls">
+                        <div class="search-field">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                            <input type="text" placeholder="Search..." @bind="_search" @bind:event="oninput" @bind:after="ResetPage" />
+                        </div>
+                        <select class="filter-select" @bind="_levelFilter" @bind:after="ResetPage">
+                            <option>All Levels</option>
+                            <option>INFO</option>
+                            <option>WARN</option>
+                            <option>ERROR</option>
+                            <option>CRITICAL</option>
+                        </select>
+                        <select class="filter-select" @bind="_sourceFilter" @bind:after="ResetPage">
+                            <option>All Sources</option>
+                            @foreach (var s in Sources)
+                            {
+                                <option>@s</option>
+                            }
+                        </select>
+                        <button type="button" class="export-btn" @onclick="ExportLogs">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Type</th>
+                            <th>Source</th>
+                            <th>Event</th>
+                            <th>Client/User</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!PageItems.Any())
+                        {
+                            <tr><td colspan="6" class="empty-row">No logs match your filters.</td></tr>
+                        }
+                        @foreach (var row in PageItems)
+                        {
+                            <tr class="@(row == _selected ? "selected" : null)" @onclick="() => SelectRow(row)">
+                                <td class="ts-cell">@row.Timestamp</td>
+                                <td>
+                                    <span class="level-badge level-@LevelColor(row.Level)">@row.Level</span>
+                                </td>
+                                <td>@row.Source</td>
+                                <td>@row.Event</td>
+                                <td>@row.User</td>
+                                <td class="ip-cell">@row.Ip</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="table-footer">
+                    <span class="showing">@ShowingText</span>
+                    <div class="pagination">
+                        <button type="button" class="page-btn" disabled="@(CurrentPage <= 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
+                        @for (var p = 1; p <= TotalPages; p++)
+                        {
+                            var pg = p;
+                            <button type="button" class="page-btn @(pg == CurrentPage ? "active" : null)" @onclick="() => GoToPage(pg)">@pg</button>
+                        }
+                        <button type="button" class="page-btn" disabled="@(CurrentPage >= TotalPages)" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                    </div>
+                </div>
+            </section>
+
+            <div class="bottom-row">
+                <section class="top-clients-section t-card">
+                    <h2>Top Clients by Log Count</h2>
+                    <table class="top-clients-table">
+                        <thead>
+                            <tr>
+                                <th>Client Name</th>
+                                <th>Log Count</th>
+                                <th class="pct-head">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in _topClients)
+                            {
+                                <tr>
+                                    <td>@c.Name</td>
+                                    <td>@c.Count.ToString("N0")</td>
+                                    <td class="pct-cell">
+                                        <div class="pct-track">
+                                            <div class="pct-fill" style="width:@(c.Percent)%"></div>
+                                        </div>
+                                        <span class="pct-text">@c.Percent.ToString("0.#")%</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <a class="view-all-link" href="/clients">View All Clients →</a>
+                </section>
+
+                <section class="panel-actions t-card">
+                    <div class="panel-head">
+                        <h2>Quick Actions</h2>
+                    </div>
+                    <div class="actions-grid">
+                        @foreach (var a in Actions)
+                        {
+                            <button type="button" class="action-btn" @onclick="a.OnClick">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    @((MarkupString)a.Icon)
+                                </svg>
+                                <span>@a.Label</span>
+                            </button>
+                        }
+                    </div>
+                </section>
+            </div>
+
+        </div>
+
+        <div class="col-side">
+
+            <section class="panel-donut t-card">
+                <div class="panel-head">
+                    <h2>Log Level Distribution</h2>
+                </div>
+                <div class="donut-body">
+                    <div class="donut">
+                        <div class="donut-ring" style="background: conic-gradient(@Gradient(_levelBreakdown));"></div>
+                        <div class="donut-center">
+                            <span class="donut-num">@TotalLevelLogs.ToString("N0")</span>
+                            <span class="donut-label">Total</span>
+                        </div>
+                    </div>
+                    <ul class="donut-legend">
+                        @foreach (var s in _levelBreakdown)
+                        {
+                            <li>
+                                <span class="legend-dot status-@s.Color"></span>
+                                <span class="legend-label">@s.Name</span>
+                                <span class="legend-value">@s.Count.ToString("N0") (@s.Percent%)</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </section>
+
+            <section class="panel-donut t-card">
+                <div class="panel-head">
+                    <h2>Log Sources</h2>
+                </div>
+                <div class="donut-body">
+                    <div class="donut">
+                        <div class="donut-ring" style="background: conic-gradient(@Gradient(_sourceBreakdown));"></div>
+                        <div class="donut-center">
+                            <span class="donut-num">@TotalSourceLogs.ToString("N0")</span>
+                            <span class="donut-label">Total</span>
+                        </div>
+                    </div>
+                    <ul class="donut-legend">
+                        @foreach (var s in _sourceBreakdown)
+                        {
+                            <li>
+                                <span class="legend-dot status-@s.Color"></span>
+                                <span class="legend-label">@s.Name</span>
+                                <span class="legend-value">@s.Count.ToString("N0") (@s.Percent%)</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </section>
+
+            <section class="critical-section t-card">
+                <div class="panel-head">
+                    <h2>Recent Critical Logs</h2>
+                </div>
+                <ul class="critical-list">
+                    @foreach (var c in _criticalLogs)
+                    {
+                        <li>
+                            <span class="crit-ico">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="1" fill="currentColor" /></svg>
+                            </span>
+                            <div class="crit-text">
+                                <span class="crit-msg">@c.Message</span>
+                                <span class="crit-source">@c.Source</span>
+                            </div>
+                            <span class="crit-time">@c.Ago</span>
+                        </li>
+                    }
+                </ul>
+                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all critical logs (mock)"))">View all critical logs →</a>
+            </section>
+
+        </div>
+
+    </div>
+</div>
+
+@if (_toast is not null)
+{
+    <div class="toast">@_toast</div>
+}
+
+@if (_showAlert)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <h3>Create Log Alert</h3>
+            <label class="modal-label">Alert Name</label>
+            <input class="modal-input" @bind="_alertName" placeholder="e.g. Repeated failed logins" />
+            <label class="modal-label">Trigger Level</label>
+            <select class="modal-input" @bind="_alertLevel">
+                <option>INFO</option>
+                <option>WARN</option>
+                <option>ERROR</option>
+                <option>CRITICAL</option>
+            </select>
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="btn-primary" @onclick="CreateAlert">Create Alert</button>
+            </div>
+        </div>
+    </div>
+}

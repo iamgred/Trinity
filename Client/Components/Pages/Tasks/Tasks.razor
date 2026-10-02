@@ -1,0 +1,298 @@
+@page "/tasks"
+@layout TrinityLayout
+
+<PageTitle>Trinity · Tasks</PageTitle>
+
+<div class="tasks-page">
+
+    <div class="mock-banner">Mock data — for UI shell only (in-memory, not persisted)</div>
+
+    <section class="header">
+        <h1>Tasks</h1>
+        <p class="subtitle">Manage and Track all of your Tasks</p>
+    </section>
+
+    <section class="stats-row">
+        @foreach (var stat in BuildStats())
+        {
+            <div class="stat-card t-card">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        @((MarkupString)stat.Icon)
+                    </svg>
+                </div>
+                <div class="stat-body">
+                    <div class="label">@stat.Label</div>
+                    <div class="value">@stat.Value</div>
+                    <div class="trend @(stat.Up ? "up" : "down")">@(stat.Up ? "↗" : "↘") @stat.Trend</div>
+                </div>
+            </div>
+        }
+    </section>
+
+    <div class="tasks-grid">
+
+        <div class="col-main">
+
+            <section class="table-section t-card">
+                <div class="table-toolbar">
+                    <h2>All Tasks</h2>
+                    <div class="toolbar-controls">
+                        <div class="search-field">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                            <input type="text" placeholder="Search..." @bind="_search" @bind:event="oninput" @bind:after="ResetPage" />
+                        </div>
+                        <select class="filter-select" @bind="_statusFilter" @bind:after="ResetPage">
+                            <option>All Status</option>
+                            <option>Completed</option>
+                            <option>In Progress</option>
+                            <option>Pending</option>
+                        </select>
+                        <select class="filter-select" @bind="_priorityFilter" @bind:after="ResetPage">
+                            <option>All Priority</option>
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                        </select>
+                        <select class="filter-select" @bind="_assigneeFilter" @bind:after="ResetPage">
+                            <option>All Assignees</option>
+                            @foreach (var a in Assignees)
+                            {
+                                <option>@a</option>
+                            }
+                        </select>
+                        <button type="button" class="export-btn" @onclick="ExportTasks">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Client</th>
+                            <th>Campaign</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Assignee</th>
+                            <th>Due Date</th>
+                            <th class="progress-col">Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!PageItems.Any())
+                        {
+                            <tr><td colspan="8" class="empty-row">No tasks match your filters.</td></tr>
+                        }
+                        @foreach (var row in PageItems)
+                        {
+                            <tr class="@(row == _selected ? "selected" : null)" @onclick="() => SelectRow(row)">
+                                <td>@row.Name</td>
+                                <td>@row.Client</td>
+                                <td>@row.Campaign</td>
+                                <td>
+                                    <span class="status-dot status-@PriorityColor(row.Priority)"></span>
+                                    @row.Priority
+                                </td>
+                                <td>
+                                    <span class="status-dot status-@StatusColor(row.Status)"></span>
+                                    @row.Status
+                                </td>
+                                <td>@row.Assignee</td>
+                                <td>@row.DueDate</td>
+                                <td class="progress-col">
+                                    <div class="progress-cell">
+                                        <div class="progress-track">
+                                            <div class="progress-fill fill-@StatusColor(row.Status)" style="width:@(row.Progress)%"></div>
+                                        </div>
+                                        <span class="progress-pct">@(row.Progress)%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="table-footer">
+                    <span class="showing">@ShowingText</span>
+                    <div class="pagination">
+                        <button type="button" class="page-btn" disabled="@(CurrentPage <= 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
+                        @for (var p = 1; p <= TotalPages; p++)
+                        {
+                            var pg = p;
+                            <button type="button" class="page-btn @(pg == CurrentPage ? "active" : null)" @onclick="() => GoToPage(pg)">@pg</button>
+                        }
+                        <button type="button" class="page-btn" disabled="@(CurrentPage >= TotalPages)" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="upcoming-section t-card">
+                <h2>Upcoming Tasks</h2>
+                <table class="upcoming-table">
+                    <tbody>
+                        @foreach (var u in _upcoming)
+                        {
+                            <tr>
+                                <td class="up-priority">
+                                    <span class="status-dot status-@PriorityColor(u.Priority)"></span>
+                                    @u.Priority
+                                </td>
+                                <td class="up-name">@u.Name</td>
+                                <td>@u.Client</td>
+                                <td>@u.Campaign</td>
+                                <td>@u.Assignee</td>
+                                <td>@u.DueDate</td>
+                                <td class="up-badge-cell">
+                                    <span class="due-badge due-@u.BadgeColor">@u.Badge</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="ClearFilters">View All Tasks →</a>
+            </section>
+
+        </div>
+
+        <div class="col-side">
+
+            <section class="panel-donut t-card">
+                <div class="panel-head">
+                    <h2>Tasks by Priority</h2>
+                </div>
+                <div class="donut-body">
+                    <div class="donut">
+                        <div class="donut-ring" style="background: conic-gradient(@Gradient(BuildPriorityBreakdown()));"></div>
+                        <div class="donut-center">
+                            <span class="donut-num">@_tasks.Count</span>
+                            <span class="donut-label">Total</span>
+                        </div>
+                    </div>
+                    <ul class="donut-legend">
+                        @foreach (var s in BuildPriorityBreakdown())
+                        {
+                            <li>
+                                <span class="legend-dot status-@s.Color"></span>
+                                <span class="legend-label">@s.Name</span>
+                                <span class="legend-value">@s.Count (@s.Percent%)</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </section>
+
+            <section class="panel-donut t-card">
+                <div class="panel-head">
+                    <h2>Task Overview</h2>
+                </div>
+                <div class="donut-body">
+                    <div class="donut">
+                        <div class="donut-ring" style="background: conic-gradient(@Gradient(BuildOverviewBreakdown()));"></div>
+                        <div class="donut-center">
+                            <span class="donut-num">@_tasks.Count</span>
+                            <span class="donut-label">Total</span>
+                        </div>
+                    </div>
+                    <ul class="donut-legend">
+                        @foreach (var s in BuildOverviewBreakdown())
+                        {
+                            <li>
+                                <span class="legend-dot status-@s.Color"></span>
+                                <span class="legend-label">@s.Name</span>
+                                <span class="legend-value">@s.Count (@s.Percent%)</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </section>
+
+            <section class="panel-actions t-card">
+                <div class="panel-head">
+                    <h2>Quick Actions</h2>
+                </div>
+                <div class="actions-grid">
+                    @foreach (var a in Actions)
+                    {
+                        <button type="button" class="action-btn" @onclick="a.OnClick">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                @((MarkupString)a.Icon)
+                            </svg>
+                            <span>@a.Label</span>
+                        </button>
+                    }
+                </div>
+            </section>
+
+        </div>
+
+    </div>
+</div>
+
+@if (_toast is not null)
+{
+    <div class="toast">@_toast</div>
+}
+
+@if (_showCreate)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <h3>Create New Task</h3>
+            <label class="modal-label">Task Name</label>
+            <input class="modal-input" @bind="_form.Name" placeholder="e.g. Network Recon" />
+            <label class="modal-label">Client</label>
+            <input class="modal-input" @bind="_form.Client" placeholder="CLIENT-001" />
+            <label class="modal-label">Campaign</label>
+            <input class="modal-input" @bind="_form.Campaign" placeholder="Security Assessment" />
+            <label class="modal-label">Priority</label>
+            <select class="modal-input" @bind="_form.Priority">
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+            </select>
+            <label class="modal-label">Assignee</label>
+            <input class="modal-input" @bind="_form.Assignee" placeholder="Jane Doe" />
+            <label class="modal-label">Due Date</label>
+            <input class="modal-input" @bind="_form.DueDate" placeholder="31/01/2026" />
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="btn-primary" @onclick="CreateTask">Create Task</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showAssign)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <h3>Assign Task</h3>
+            <label class="modal-label">Task: <strong>@(_selected?.Name ?? "none selected")</strong></label>
+            <label class="modal-label">Assign to</label>
+            <input class="modal-input" @bind="_assignName" placeholder="Operator name" />
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="btn-primary" @onclick="AssignTask">Assign</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showSchedule)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <h3>Schedule Task</h3>
+            <label class="modal-label">Task: <strong>@(_selected?.Name ?? "none selected")</strong></label>
+            <label class="modal-label">Run on</label>
+            <input class="modal-input" @bind="_scheduleDate" placeholder="31/01/2026 09:00" />
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="btn-primary" @onclick="ScheduleTask">Schedule</button>
+            </div>
+        </div>
+    </div>
+}

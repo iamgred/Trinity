@@ -28,14 +28,10 @@ namespace TeamServer.Utils
             throw new ArgumentException($"Unkown value: {value}");
         }
 
-        public static string GenerateAES256Key()
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public static byte[] Base64Decode(string blob)
         {
-            using (var aes = Aes.Create())
-            {
-                aes.KeySize = 256;
-                aes.GenerateKey();
-                return Convert.ToBase64String(aes.Key);
-            }
+            return System.Convert.FromBase64String(blob);
         }
     }
 }

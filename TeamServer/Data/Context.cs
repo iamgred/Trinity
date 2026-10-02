@@ -16,6 +16,9 @@ namespace TeamServer.Data
         public DbSet<Protocol> Protocols { get; set; }
         public DbSet<Listener> Listeners { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
+        public DbSet<Admin> Admins { get; set; }
+        public DbSet<Operator> Operators { get; set; }
+        public DbSet<CampaignBridge> CampaignBridges { get; set; }
         public Context()
         {
         }
@@ -34,7 +37,7 @@ namespace TeamServer.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Protocol>().HasData(
-                new Protocol 
+                new Protocol
                 {
                     ID = 1,
                     Name = "HTTP"
@@ -52,8 +55,8 @@ namespace TeamServer.Data
             );
 
             modelBuilder.Entity<Trinity.Shared.Models.TaskStatus>().HasData(
-                new Trinity.Shared.Models.TaskStatus 
-                { 
+                new Trinity.Shared.Models.TaskStatus
+                {
                     ID = 1,
                     Name = "Queued",
                 },
@@ -78,6 +81,10 @@ namespace TeamServer.Data
                     Name = "Failure",
                 }
             );
+
+            modelBuilder.Entity<CampaignBridge>()
+                .HasIndex(cb => new { cb.CampaignID, cb.OperatorID })
+                .IsUnique();
         }
     }
 }

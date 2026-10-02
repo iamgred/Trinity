@@ -59,7 +59,7 @@ namespace TeamServer.Services
         /// Retrieves all the tasks.
         /// </summary>
         /// <returns></returns>
-        public async Task<List<Trinity.Shared.Models.Task>> GetTasksAsync() 
+        public async Task<List<Trinity.Shared.Models.Task>> GetTasksAsync()
         {
             List<Trinity.Shared.Models.Task> tasks = await _context.Tasks.ToListAsync();
 
@@ -95,24 +95,24 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<int> InsertPayloadAsync(PayloadCreationDTO payloadCreationDTO)
-        {
-            Payload payload = new Payload
-            {
-                ListenerID = payloadCreationDTO.ListenerID,
-                Architecture = Util.GetEnumString<Architectures>(payloadCreationDTO.Architecture),
-                FileName = payloadCreationDTO.Name,
-                CreatedAt = DateTime.UtcNow,
-                PayloadType = Util.GetEnumString<PayloadTypes>(payloadCreationDTO.Type),
-                Platform = Platforms.Windows,
-                ProfileID = 1,
-                UUID = "test"
-            };
+        // public async Task<int> InsertPayloadAsync(PayloadCreationDTO payloadCreationDTO)
+        // {
+        //     Payload payload = new Payload
+        //     {
+        //         ListenerID = payloadCreationDTO.ListenerID,
+        //         Architecture = Util.GetEnumString<Architectures>(payloadCreationDTO.Architecture),
+        //         FileName = payloadCreationDTO.Name,
+        //         CreatedAt = DateTime.UtcNow,
+        //         PayloadType = Util.GetEnumString<PayloadTypes>(payloadCreationDTO.Type),
+        //         Platform = Platforms.Windows,
+        //         ProfileID = 1,
+        //         UUID = "test"
+        //     };
 
-            var result = await _context.AddAsync(payload);
-            await _context.SaveChangesAsync();
-            return result.Entity.ID;
-        }
+        //     var result = await _context.AddAsync(payload);
+        //     await _context.SaveChangesAsync();
+        //     return result.Entity.ID;
+        // }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<List<Payload>> GetPayloadsAsync()
@@ -122,7 +122,7 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<List<Agent>> GetAgentsAsync() 
+        public async Task<List<Agent>> GetAgentsAsync()
         {
             List<Agent> result = await _context.Agents.ToListAsync();
             return result;

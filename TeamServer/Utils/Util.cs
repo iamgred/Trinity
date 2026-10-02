@@ -1,5 +1,6 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Runtime.Serialization;
+using System.Security.Cryptography;
 
 namespace TeamServer.Utils
 {
@@ -19,7 +20,7 @@ namespace TeamServer.Utils
             foreach (var field in type.GetFields())
             {
                 var attribute = Attribute.GetCustomAttribute(field, typeof(EnumMemberAttribute)) as EnumMemberAttribute;
-                if(attribute != null && attribute.Value!.Equals(value))
+                if (attribute != null && attribute.Value!.Equals(value))
                 {
                     return (T)field.GetValue(null);
                 }

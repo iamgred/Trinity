@@ -50,6 +50,7 @@ namespace TeamServer
             builder.Services.AddScoped<AgentRepository>();
             builder.Services.AddScoped<TaskRepository>();
             builder.Services.AddScoped<TaskStatusRepository>();
+            builder.Services.AddScoped<TaskResultRepository>();
             builder.Services.AddScoped<PayloadRepository>();
             builder.Services.AddScoped<CampaignRepository>();
             builder.Services.AddScoped<OperatorRepository>();

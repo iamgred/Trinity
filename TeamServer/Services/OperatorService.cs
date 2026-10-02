@@ -1,6 +1,8 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using TeamServer.Repositories;
+using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
+using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
@@ -16,25 +18,32 @@ namespace TeamServer.Services
         {
             _db = db;
         }
-        public async Task<List<Operator>> GetOperatorsAsync()
+        public async Task<Result<List<Operator>>> GetOperatorsAsync()
         {
             return await _db.GetOperatorsAsync();
         }
-        public async Task<Operator?> GetOperatorByIdAsync(int operatorID)
+        public async Task<Result<Operator>> GetOperatorByIdAsync(int operatorID)
         {
-            return await _db.GetOperatorByIdAsync(operatorID);
+            var operatorEntity = await _db.GetOperatorByIdAsync(operatorID);
+
+            return operatorEntity == null
+                ? OperatorError.NotFound(operatorID)
+                : operatorEntity;
         }
-        public async Task<int> CreateOperatorAsync(Operator newOperator)
+        public async Task<Result> CreateOperatorAsync(Operator newOperator)
         {
-            return await _db.InsertOperatorAsync(newOperator);
+            await _db.InsertOperatorAsync(newOperator);
+            return Result.Success();
         }
-        public async Task<bool> UpdateOperatorAsync(Operator updatedOperator)
+        public async Task<Result> UpdateOperatorAsync(Operator updatedOperator)
         {
-            return await _db.UpdateOperatorAsync(updatedOperator);
+            bool isUpdated = await _db.UpdateOperatorAsync(updatedOperator);
+            return isUpdated ? Result.Success() : OperatorError.NotFound(updatedOperator.ID);
         }
-        public async Task<bool> DeleteOperatorAsync(int operatorID)
+        public async Task<Result> DeleteOperatorAsync(int operatorID)
         {
-            return await _db.DeleteOperatorAsync(operatorID);
+            bool isDeleted = await _db.DeleteOperatorAsync(operatorID);
+            return isDeleted ? Result.Success() : OperatorError.NotFound(operatorID);
         }
     }
 }

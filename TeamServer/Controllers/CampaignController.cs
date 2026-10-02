@@ -24,7 +24,12 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> GetCampaignsAsync()
         {
             var result = await _campaignService.GetCampaignsAsync();
-            return Ok(result);
+
+            if (!result.IsSuccess)
+            {
+                return NotFound(result.Error);
+            }
+            return Ok(result.Response);
         }
         /// <summary>
         /// Get a campaign by ID
@@ -35,11 +40,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> GetCampaignByIdAsync(int campaignID)
         {
             var result = await _campaignService.GetCampaignByIdAsync(campaignID);
-            if (result == null)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok(result.Response);
         }
         /// <summary>
         /// Create a new campaign
@@ -50,7 +55,12 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> CreateCampaignAsync([FromBody] Campaign campaign)
         {
             var result = await _campaignService.CreateCampaignAsync(campaign);
-            return CreatedAtAction(nameof(GetCampaignByIdAsync), new { campaignID = result }, result);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+            return Ok();
         }
         /// <summary>
         /// Update an existing campaign
@@ -63,11 +73,11 @@ namespace TeamServer.Controllers
         {
             campaign.ID = campaignID; // Ensure the campaign ID is set correctly
             var result = await _campaignService.UpdateCampaignAsync(campaign);
-            if (!result)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok();
         }
         /// <summary>
         /// Delete a campaign by ID
@@ -78,11 +88,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> DeleteCampaignAsync(int campaignID)
         {
             var result = await _campaignService.DeleteCampaignAsync(campaignID);
-            if (!result)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok();
         }
         /// <summary>
         /// Get operators associated with a specific campaign by ID
@@ -93,11 +103,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> GetOperatorsByCampaignIdAsync(int campaignID)
         {
             var result = await _campaignService.GetOperatorsByCampaignIdAsync(campaignID);
-            if (result == null)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok(result.Response);
         }
         /// <summary>
         /// Assign an operator to a specific campaign by ID
@@ -109,11 +119,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> AssignOperatorToCampaignAsync(int operatorID, int campaignID)
         {
             var result = await _campaignService.AssignOperatorToCampaignAsync(operatorID, campaignID);
-            if (!result)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok();
         }
         /// <summary>
         /// Unassign an operator from a specific campaign by ID
@@ -125,11 +135,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> UnassignOperatorFromCampaignAsync(int operatorID, int campaignID)
         {
             var result = await _campaignService.RemoveOperatorFromCampaignAsync(operatorID, campaignID);
-            if (!result)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok();
         }
     }
 }

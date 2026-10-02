@@ -23,7 +23,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> GetAdminsAsync()
         {
             var result = await _adminService.GetAdminsAsync();
-            return Ok(result);
+            if (!result.IsSuccess)
+            {
+                return NotFound();
+            }
+            return Ok(result.Response);
         }
         /// <summary>
         /// Retrieves a specific Admin entity by its ID from the database.
@@ -34,11 +38,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> GetAdminByIdAsync(int adminID)
         {
             var result = await _adminService.GetAdminByIdAsync(adminID);
-            if (result == null)
+            if (!result.IsSuccess)
             {
                 return NotFound();
             }
-            return Ok(result);
+            return Ok(result.Response);
         }
         /// <summary>
         /// Creates a new Admin entity in the database.
@@ -49,7 +53,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> CreateAdminAsync([FromBody] Admin admin)
         {
             var result = await _adminService.CreateAdminAsync(admin);
-            return CreatedAtAction(nameof(GetAdminByIdAsync), new { adminID = result }, result);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+            return Ok();
         }
         /// <summary>
         /// Updates an existing Admin entity in the database by its ID.
@@ -62,11 +70,11 @@ namespace TeamServer.Controllers
         {
             admin.ID = adminID; // Ensure the ID is set correctly
             var result = await _adminService.UpdateAdminAsync(admin);
-            if (!result)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok();
         }
         /// <summary>
         /// Deletes an existing Admin entity from the database by its ID.
@@ -77,11 +85,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> DeleteAdminAsync(int adminID)
         {
             var result = await _adminService.DeleteAdminAsync(adminID);
-            if (!result)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok();
         }
     }
 }

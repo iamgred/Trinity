@@ -1,6 +1,8 @@
 //========================================================= {START OF FILE} =========================================================//
 using TeamServer.Repositories;
+using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
+using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
@@ -20,42 +22,65 @@ namespace TeamServer.Services
             _campaignRepository = campaignRepository;
         }
 
-        public async Task<List<Campaign>> GetCampaignsAsync()
+        public async Task<Result<List<Campaign>>> GetCampaignsAsync()
         {
             return await _campaignRepository.GetCampaignsAsync();
         }
 
-        public async Task<Campaign?> GetCampaignByIdAsync(int campaignID)
+        public async Task<Result<Campaign>> GetCampaignByIdAsync(int campaignID)
         {
-            return await _campaignRepository.GetCampaignByIdAsync(campaignID);
+            var campaign = await _campaignRepository.GetCampaignByIdAsync(campaignID);
+            return campaign == null
+                ? CampaignError.NotFound(campaignID)
+                : campaign;
         }
 
-        public async Task<int> CreateCampaignAsync(Campaign newCampaign)
+        public async Task<Result> CreateCampaignAsync(Campaign newCampaign)
         {
-            return await _campaignRepository.InsertCampaignAsync(newCampaign);
+            await _campaignRepository.InsertCampaignAsync(newCampaign);
+            return Result.Success();
         }
 
-        public async Task<bool> UpdateCampaignAsync(Campaign updatedCampaign)
+        public async Task<Result> UpdateCampaignAsync(Campaign updatedCampaign)
         {
-            return await _campaignRepository.UpdateCampaignAsync(updatedCampaign);
+            bool updateResult = await _campaignRepository.UpdateCampaignAsync(updatedCampaign);
+            return updateResult
+                ? Result.Success()
+                : CampaignError.NotFound(updatedCampaign.ID);
         }
 
-        public async Task<bool> DeleteCampaignAsync(int campaignID)
+        public async Task<Result> DeleteCampaignAsync(int campaignID)
         {
-            return await _campaignRepository.DeleteCampaignAsync(campaignID);
+            bool deleteResult = await _campaignRepository.DeleteCampaignAsync(campaignID);
+            return deleteResult
+                ? Result.Success()
+                : CampaignError.NotFound(campaignID);
         }
 
-        public async Task<List<Operator>> GetOperatorsByCampaignIdAsync(int campaignID)
+        public async Task<Result<List<Operator>>> GetOperatorsByCampaignIdAsync(int campaignID)
         {
+            var campaign = await _campaignRepository.GetCampaignByIdAsync(campaignID);
+
+            if (campaign == null)
+            {
+                return CampaignError.NotFound(campaignID);
+            }
+
             return await _campaignBridgeRepository.GetOperatorsByCampaignIdAsync(campaignID);
         }
-        public async Task<bool> AssignOperatorToCampaignAsync(int operatorID, int campaignID)
+        public async Task<Result> AssignOperatorToCampaignAsync(int operatorID, int campaignID)
         {
-            return await _campaignBridgeRepository.AssignOperatorToCampaignAsync(operatorID, campaignID);
+            bool assigned = await _campaignBridgeRepository.AssignOperatorToCampaignAsync(operatorID, campaignID);
+            return assigned
+                ? Result.Success()
+                : CampaignError.NotFound(campaignID);
         }
-        public async Task<bool> RemoveOperatorFromCampaignAsync(int operatorID, int campaignID)
+        public async Task<Result> RemoveOperatorFromCampaignAsync(int operatorID, int campaignID)
         {
-            return await _campaignBridgeRepository.RemoveOperatorFromCampaignAsync(operatorID, campaignID);
+            bool removed = await _campaignBridgeRepository.RemoveOperatorFromCampaignAsync(operatorID, campaignID);
+            return removed
+                ? Result.Success()
+                : CampaignError.NotFound(campaignID);
         }
     }
 }

@@ -26,7 +26,12 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> GetOperatorsAsync()
         {
             var result = await _operatorService.GetOperatorsAsync();
-            return Ok(result);
+
+            if (!result.IsSuccess)
+            {
+                return NotFound(result.Error);
+            }
+            return Ok(result.Response);
         }
         /// <summary>
         /// Gets an operator by its ID.
@@ -37,11 +42,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> GetOperatorByIdAsync(int operatorID)
         {
             var result = await _operatorService.GetOperatorByIdAsync(operatorID);
-            if (result == null)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok(result.Response);
         }
         /// <summary>
         /// Creates a new operator.
@@ -52,7 +57,13 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> CreateOperatorAsync([FromBody] Operator newOperator)
         {
             var result = await _operatorService.CreateOperatorAsync(newOperator);
-            return CreatedAtAction(nameof(GetOperatorByIdAsync), new { operatorID = result }, newOperator);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok();
         }
         /// <summary>
         /// Updates an existing operator by its ID.
@@ -69,11 +80,11 @@ namespace TeamServer.Controllers
             }
             updatedOperator.ID = operatorID; // Ensure the ID is set correctly
             var result = await _operatorService.UpdateOperatorAsync(updatedOperator);
-            if (!result)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok();
         }
         /// <summary>
         /// Deletes an operator by its ID.
@@ -84,11 +95,11 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> DeleteOperatorAsync(int operatorID)
         {
             var result = await _operatorService.DeleteOperatorAsync(operatorID);
-            if (!result)
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return NotFound(result.Error);
             }
-            return Ok(result);
+            return Ok();
         }
     }
 }

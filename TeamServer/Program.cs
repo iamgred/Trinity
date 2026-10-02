@@ -24,6 +24,9 @@ namespace TeamServer
             builder.Services.AddScoped<IPayloadBuilder, CMakePayloadBuilder>();
             builder.Services.AddScoped<AgentService>();
             builder.Services.AddScoped<TaskService>();
+            builder.Services.AddScoped<OperatorService>();
+            builder.Services.AddScoped<CampaignService>();
+            builder.Services.AddScoped<AdminService>();
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
             builder.Services.AddSingleton<CommandFactory>();
@@ -46,6 +49,10 @@ namespace TeamServer
             builder.Services.AddScoped<TaskRepository>();
             builder.Services.AddScoped<TaskStatusRepository>();
             builder.Services.AddScoped<PayloadRepository>();
+            builder.Services.AddScoped<CampaignRepository>();
+            builder.Services.AddScoped<OperatorRepository>();
+            builder.Services.AddScoped<CampaignBridgeRepository>();
+            builder.Services.AddScoped<AdminRepository>();
 
             // Exception handler
             builder.Services.AddSingleton<GlobalExceptionHandler>();

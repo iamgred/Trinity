@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../Trinity.Shared/Trinity.Shared.csproj" Id="11968603-789e-49f7-a5ff-991552c04738" />
   <Project Path="TeamServer.csproj" />
 </Solution>

@@ -24,7 +24,7 @@ namespace TeamServer.Controllers
         {
             var result = await _payloadService.GeneratePayloadAsync(payloadCreationDTO);
 
-            if (String.IsNullOrEmpty(result.Error))
+            if (!result.IsSuccess)
             {
                 return BadRequest(result);
             }
@@ -38,19 +38,14 @@ namespace TeamServer.Controllers
         {
             var result = await _payloadService.GetPayloadsAsync();
 
-            return Ok(result);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result.Response);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpGet("download")]
-        public IActionResult GetPayloadFile([FromQuery] int payloadID)
-        {
-            string fileContent = "This is a dummy file...";
-            byte[] fileBytes = Encoding.UTF8.GetBytes(fileContent);
-            string contentType = "text/plain";
-            string downloadName = "dummypayload";
-
-            return File(fileBytes, contentType, downloadName);
-        }
     }
 }

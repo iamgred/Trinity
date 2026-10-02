@@ -1,40 +1,73 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
+using TeamServer.Interface;
+using TeamServer.Repositories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Payload;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Errors;
+using Trinity.Shared.Models;
+using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
     public class PayloadService
     {
-        private DatabaseService _db;
+        private readonly PayloadRepository _payloadRepository;
+        private readonly ListenerRespository _listenerRepository;
+        private IPayloadBuilder _payloadBuilder;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public PayloadService(DatabaseService database)
+        public PayloadService(PayloadRepository payloadRepository, ListenerRespository listenerRepository, IPayloadBuilder payloadBuilder)
         {
-            this._db = database;
+            this._payloadRepository = payloadRepository;
+            this._listenerRepository = listenerRepository;
+            this._payloadBuilder = payloadBuilder;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<PayloadCreationDTO> GeneratePayloadAsync(PayloadCreationDTO payloadCreationDTO)
+        public async Task<Result> GeneratePayloadAsync(PayloadCreationDTO payloadCreationDTO)
         {
-            try
+            var listener = await _listenerRepository.GetListenerAsync(payloadCreationDTO.ListenerID);
+
+            if (listener == null)
             {
-                var result = await _db.InsertPayloadAsync(payloadCreationDTO);
+                return ListenerError.NotFound(payloadCreationDTO.ListenerID);
             }
-            catch (Exception ex)
+
+            var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO);
+
+            if (!buildResult.IsSuccess)
             {
-                payloadCreationDTO.Error = ex.Message;
+                return PayloadError.GenerationFailed();
             }
-            return payloadCreationDTO;
+
+            var payload = new Payload
+            {
+                PayloadUUID = Guid.NewGuid().ToString(),
+                ListenerID = payloadCreationDTO.ListenerID,
+                CampaignID = payloadCreationDTO.CampaignID,
+                // TODO: Replace with autheticated operator ID
+                CreatedByOperatorID = 1,
+                FileName = payloadCreationDTO.Name,
+                Architecture = Util.GetEnumString<Architectures>(payloadCreationDTO.Architecture),
+                RetryStrategy = payloadCreationDTO.RetryStrategy,
+                PayloadType = Util.GetEnumString<PayloadTypes>(payloadCreationDTO.Type),
+                AES256KEY = Util.GenerateAES256Key(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _payloadRepository.InsertPayloadAsync(payload);
+            await _payloadRepository.CommitAsync();
+
+            return Result.Success();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<List<PayloadDTO>> GetPayloadsAsync()
+        public async Task<Result<List<PayloadDTO>>> GetPayloadsAsync()
         {
-            var result = await _db.GetPayloadsAsync();
+            var result = await _payloadRepository.GetPayloadsAsync();
             List<PayloadDTO> payloadDTOs = result
                 .Select(p => new PayloadDTO
                 {

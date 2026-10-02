@@ -11,6 +11,7 @@ using TeamServer.Utils;
 using Trinity.Shared.DTOs.Agent;
 using Trinity.Shared.DTOs.Checkin;
 using Trinity.Shared.DTOs.Task;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -27,16 +28,20 @@ namespace TeamServer.Services
         private readonly TaskRepository _taskRepo;
         private readonly TaskResultRepository _taskResultRepo;
         private readonly TaskResultFactory _taskResultFactory;
+        private readonly HostRepository _hostRepo;
+        private readonly PayloadRepository _payloadRepo;
 
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public AgentService(AgentRepository agentRepository, TaskRepository taskRepository, AgentFactory agentFactory, TaskResultRepository taskResultRepository, TaskResultFactory taskResultFactory)
+        public AgentService(AgentRepository agentRepository, TaskRepository taskRepository, AgentFactory agentFactory, TaskResultRepository taskResultRepository, TaskResultFactory taskResultFactory, HostRepository hostRepository, PayloadRepository payloadRepository)
         {
             _agentRepo = agentRepository;
             _agentFactory = agentFactory;
             _taskRepo = taskRepository;
             _taskResultFactory = taskResultFactory;
             _taskResultRepo = taskResultRepository;
+            _hostRepo = hostRepository;
+            _payloadRepo = payloadRepository;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -47,29 +52,59 @@ namespace TeamServer.Services
             var decodedBytes = Util.Base64Decode(blob);
             // Get the UUID
             var blobSpan = new ReadOnlyMemory<byte>(decodedBytes);
+
             var uuid = System.Text.Encoding.UTF8.GetString(blobSpan.Slice(RequestStartIndex, UUIDOffset).Span);
-            var payload = blobSpan.Slice(36, blobSpan.Length - 36);
+            var request = blobSpan.Slice(36, blobSpan.Length - 36);
 
             var agent = await _agentRepo.GetAgentByCheckInUUID(uuid);
             if (agent == null)
             {
-                var output = JsonSerializer.Deserialize<IntialCheckInRequest>(payload.Span);
-                var agentModel = _agentFactory.Create(output);
+                var output = JsonSerializer.Deserialize<IntialCheckInRequest>(request.Span);
+                var payload = await _payloadRepo.GetPayloadByUUIDAsync(uuid);
+
+                var agentModel = _agentFactory.Create(output, payload.AES256KEY, 5000, 10, Util.GetEnumValue<Architectures>(payload.Architecture), payload.ID);
                 await _agentRepo.CreateAgentAsync(agentModel);
                 await _agentRepo.CommitAsync();
+
+                var host = new Trinity.Shared.Models.Host 
+                { 
+                    AgentID = agentModel.ID, 
+                    CPUCount = output.CPUCount, 
+                    DiskSize = output.DiskSize, 
+                    FreeDisk = output.FreeDisk,
+                    OS = output.OS,
+                    HostName = output.user,
+                    MACAddress = output.macAddress,
+                    Motherboard = output.motherboard,
+                    RAM = output.RAM
+                };
+                await _hostRepo.AddHostAsync(host);
+                await _hostRepo.CommitAsync();
 
                 return CreateBase64Blob(agentModel.CheckInUUID);
             }
 
+            if (blobSpan.Length.Equals(36))
+            {
+                goto Get_Task;
+            }
 
-            var resultRequest = JsonSerializer.Deserialize<ResultRequest>(payload.Span);
+            var resultRequest = JsonSerializer.Deserialize<ResultRequest>(request.Span);
             var result = _taskResultFactory.Create(resultRequest);
-
             await _taskResultRepo.AddTaskResultAsync(result);
+
+            var taskU = await _taskRepo.GetByIdAsync(result.TaskID);
+            taskU.StatusID = StatusCacheService.GetStatusID(resultRequest.status);
+            await _taskRepo.CommitAsync();
+
+        Get_Task:
             var task = await _taskRepo.GetTaskFromQueueAsync(agent.ID);
 
-            return CreateResponseBlob(agent.CheckInUUID, new CheckinResponse(task.ID,"test",task.Command, task.CreatedAt));
-
+            if (task == null)
+            {
+                return string.Empty;
+            }
+            return CreateResponseBlob(agent.CheckInUUID, new CheckinResponse(task.ID, (int)task.CommandType, task.Command, task.CreatedAt));
         }
 
         private string CreateBase64Blob(string uuid)
@@ -92,6 +127,7 @@ namespace TeamServer.Services
 
             return System.Convert.ToBase64String(bufferWriter.WrittenSpan);
         }
+
 
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

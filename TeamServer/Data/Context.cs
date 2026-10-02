@@ -12,6 +12,7 @@ namespace TeamServer.Data
         public DbSet<Trinity.Shared.Models.Task> Tasks { get; set; }
         public DbSet<TaskResult> TaskResult { get; set; }
         public DbSet<Agent> Agents { get; set; }
+        public DbSet<Trinity.Shared.Models.Host> Hosts { get; set; }
         public DbSet<Payload> Payloads { get; set; }
         public DbSet<Protocol> Protocols { get; set; }
         public DbSet<Listener> Listeners { get; set; }
@@ -19,6 +20,7 @@ namespace TeamServer.Data
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Operator> Operators { get; set; }
         public DbSet<CampaignBridge> CampaignBridges { get; set; }
+        public DbSet<Trinity.Shared.Models.TaskStatus> TaskStatus { get; set; }
         public Context()
         {
         }

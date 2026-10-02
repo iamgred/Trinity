@@ -9,7 +9,7 @@ namespace Trinity.Shared.Interfaces
 {
     public interface IAgentFactory
     {
-        public Agent Create(IntialCheckInRequest request);
+        public Agent Create(IntialCheckInRequest request, string AESKey, int sleep, int jitter, string arch, int payloadID);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

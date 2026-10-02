@@ -16,6 +16,36 @@ namespace TeamServer.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Admins",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    Password = table.Column<string>(type: "text", nullable: false),
+                    LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Admins", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CampaignBridges",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CampaignID = table.Column<int>(type: "integer", nullable: false),
+                    OperatorID = table.Column<int>(type: "integer", nullable: false),
+                    AssignedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CampaignBridges", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Campaigns",
                 columns: table => new
                 {
@@ -29,18 +59,56 @@ namespace TeamServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Hosts",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    AgentID = table.Column<int>(type: "integer", nullable: false),
+                    HostName = table.Column<string>(type: "text", nullable: false),
+                    OS = table.Column<string>(type: "text", nullable: false),
+                    Motherboard = table.Column<string>(type: "text", nullable: false),
+                    RAM = table.Column<int>(type: "integer", nullable: false),
+                    DiskSize = table.Column<double>(type: "double precision", nullable: false),
+                    FreeDisk = table.Column<double>(type: "double precision", nullable: false),
+                    CPUCount = table.Column<int>(type: "integer", nullable: false),
+                    MACAddress = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Hosts", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Operators",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    Password = table.Column<string>(type: "text", nullable: false),
+                    LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Operators", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Payloads",
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PayloadUUID = table.Column<string>(type: "text", nullable: false),
                     ListenerID = table.Column<int>(type: "integer", nullable: false),
-                    ProfileID = table.Column<int>(type: "integer", nullable: false),
-                    UUID = table.Column<string>(type: "text", nullable: false),
-                    Platform = table.Column<int>(type: "integer", nullable: false),
-                    Architecture = table.Column<int>(type: "integer", nullable: false),
-                    PayloadType = table.Column<int>(type: "integer", nullable: false),
+                    CampaignID = table.Column<int>(type: "integer", nullable: false),
+                    CreatedByOperatorID = table.Column<int>(type: "integer", nullable: false),
                     FileName = table.Column<string>(type: "text", nullable: false),
+                    Architecture = table.Column<int>(type: "integer", nullable: false),
+                    RetryStrategy = table.Column<string>(type: "text", nullable: false),
+                    PayloadType = table.Column<int>(type: "integer", nullable: false),
+                    AES256KEY = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -82,7 +150,7 @@ namespace TeamServer.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     ProtocolID = table.Column<int>(type: "integer", nullable: false),
-                    Config = table.Column<JsonDocument>(type: "jsonb", nullable: true)
+                    Config = table.Column<JsonDocument>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -185,16 +253,6 @@ namespace TeamServer.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Campaigns",
-                columns: new[] { "ID", "Name" },
-                values: new object[] { 1, "test" });
-
-            migrationBuilder.InsertData(
-                table: "Payloads",
-                columns: new[] { "ID", "Architecture", "CreatedAt", "FileName", "ListenerID", "PayloadType", "Platform", "ProfileID", "UUID" },
-                values: new object[] { 1, 0, new DateTime(2021, 2, 15, 2, 2, 2, 0, DateTimeKind.Utc), "test", 1, 0, 2, 1, "test" });
-
-            migrationBuilder.InsertData(
                 table: "Protocols",
                 columns: new[] { "ID", "Name" },
                 values: new object[,]
@@ -216,16 +274,6 @@ namespace TeamServer.Migrations
                     { 5, "Failure" }
                 });
 
-            migrationBuilder.InsertData(
-                table: "Listeners",
-                columns: new[] { "ID", "Config", "Name", "ProtocolID" },
-                values: new object[] { 1, null, "test_http", 1 });
-
-            migrationBuilder.InsertData(
-                table: "Agents",
-                columns: new[] { "ID", "AES256Key", "Architecure", "CampaignID", "CheckInUUID", "ExternalIP", "Integrity", "InternalIP", "Jitter", "LastCheckIn", "ListenerID", "PayloadID", "ProcessPID", "ProcesseName", "Sleep", "Username" },
-                values: new object[] { 1, "testKey", "x86", 1, "test", "dsfdsf", "stes", "dsf", 10, new DateTime(2021, 2, 15, 2, 2, 2, 0, DateTimeKind.Utc), 1, 1, 2000, "test", 5000, "admin" });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Agents_CampaignID",
                 table: "Agents",
@@ -240,6 +288,12 @@ namespace TeamServer.Migrations
                 name: "IX_Agents_PayloadID",
                 table: "Agents",
                 column: "PayloadID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CampaignBridges_CampaignID_OperatorID",
+                table: "CampaignBridges",
+                columns: new[] { "CampaignID", "OperatorID" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Listeners_ProtocolID",
@@ -262,7 +316,19 @@ namespace TeamServer.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Admins");
+
+            migrationBuilder.DropTable(
                 name: "Agents");
+
+            migrationBuilder.DropTable(
+                name: "CampaignBridges");
+
+            migrationBuilder.DropTable(
+                name: "Hosts");
+
+            migrationBuilder.DropTable(
+                name: "Operators");
 
             migrationBuilder.DropTable(
                 name: "TaskResult");

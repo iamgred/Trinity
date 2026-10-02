@@ -56,6 +56,7 @@ namespace TeamServer
             builder.Services.AddScoped<OperatorRepository>();
             builder.Services.AddScoped<CampaignBridgeRepository>();
             builder.Services.AddScoped<AdminRepository>();
+            builder.Services.AddScoped<HostRepository>();
 
             // Exception handler
             builder.Services.AddSingleton<GlobalExceptionHandler>();
@@ -69,6 +70,12 @@ namespace TeamServer
 
             builder.Services.AddSingleton(serverNetworkSettings);
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<Context>();
+                StatusCacheService.Intialise(context);
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

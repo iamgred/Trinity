@@ -1,5 +1,6 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Runtime.Serialization;
+using System.Security.Cryptography;
 
 namespace TeamServer.Utils
 {
@@ -19,12 +20,29 @@ namespace TeamServer.Utils
             foreach (var field in type.GetFields())
             {
                 var attribute = Attribute.GetCustomAttribute(field, typeof(EnumMemberAttribute)) as EnumMemberAttribute;
-                if(attribute != null && attribute.Value!.Equals(value))
+                if (attribute != null && attribute.Value!.Equals(value))
                 {
                     return (T)field.GetValue(null);
                 }
             }
             throw new ArgumentException($"Unkown value: {value}");
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public static byte[] Base64Decode(string blob)
+        {
+            return System.Convert.FromBase64String(blob);
+        }
+
+        public static string GenerateAES256Key()
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.KeySize = 256;
+                aes.GenerateKey();
+                return Convert.ToBase64String(aes.Key);
+                
+            }
         }
     }
 }

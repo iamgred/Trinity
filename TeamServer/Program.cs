@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using TeamServer.ExceptionHandlers;
+using TeamServer.Interface;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
@@ -20,11 +21,17 @@ namespace TeamServer
             builder.Services.AddScoped<ListenerService>();
             builder.Services.AddScoped<CommandService>();
             builder.Services.AddScoped<PayloadService>();
+            builder.Services.AddScoped<IPayloadBuilder, CMakePayloadBuilder>();
             builder.Services.AddScoped<AgentService>();
             builder.Services.AddScoped<TaskService>();
+            builder.Services.AddScoped<OperatorService>();
+            builder.Services.AddScoped<CampaignService>();
+            builder.Services.AddScoped<AdminService>();
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
             builder.Services.AddSingleton<CommandFactory>();
+            builder.Services.AddSingleton<AgentFactory>();
+            builder.Services.AddSingleton<TaskResultFactory>();
             builder.Services.AddSingleton<HttpListenerManager>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddControllers();
@@ -42,6 +49,13 @@ namespace TeamServer
             builder.Services.AddScoped<CommandRepository>();
             builder.Services.AddScoped<AgentRepository>();
             builder.Services.AddScoped<TaskRepository>();
+            builder.Services.AddScoped<TaskStatusRepository>();
+            builder.Services.AddScoped<TaskResultRepository>();
+            builder.Services.AddScoped<PayloadRepository>();
+            builder.Services.AddScoped<CampaignRepository>();
+            builder.Services.AddScoped<OperatorRepository>();
+            builder.Services.AddScoped<CampaignBridgeRepository>();
+            builder.Services.AddScoped<AdminRepository>();
 
             // Exception handler
             builder.Services.AddSingleton<GlobalExceptionHandler>();
@@ -57,13 +71,13 @@ namespace TeamServer
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment()) 
+            if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                    options.RoutePrefix = String.Empty;
+                    options.RoutePrefix = string.Empty;
                 });
             }
 

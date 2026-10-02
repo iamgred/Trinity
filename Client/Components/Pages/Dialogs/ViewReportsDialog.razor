@@ -1,0 +1,31 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">View Reports</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <!-- Empty until populated by backend -->
+        @foreach (var report in _reports)
+        {
+            <div class="d-flex justify-space-between align-center" style="padding:12px 0; border-bottom:1px solid #333;">
+                <MudText Style="color:white;">@report</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Style="min-width:64px;">View</MudButton>
+            </div>
+        }
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+        </DialogActions>
+        </MudDialog>
+
+        @code
+{
+    [CascadingParameter] private IMudDialogInstance MudDialog {get; set; } = default!;
+    //Empty until populated by backend
+    private readonly List<string> _reports = new();
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

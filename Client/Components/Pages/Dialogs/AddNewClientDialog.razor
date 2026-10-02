@@ -1,0 +1,43 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<!-- Opened by the Add New Client button -->
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Add New Client</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudTextField @bind-Value="_name" Label="Client Name" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Class="mb-4" />
+        <MudTextField @bind-Value="_desc" Label="Client Description" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Class="mb-4" />
+        <MudSelect @bind-Value="_beacon" Label="Set Beacon" Variant="Variant.Outlined"
+                   Margin="Margin.Dense" FullWidth="true" Class="mb-4">
+                <MudSelectItem Value="@("Beacon")">Beacon</MudSelectItem>
+                <MudSelectItem Value="@("HTTP")">HTTP</MudSelectItem>
+                <MudSelectItem Value="@("HTTPS")">HTTPS</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_group" Label="Assign Agent Group" Variant="Variant.Outlined"
+                   Margin="Margin.Dense" FullWidth="true" Class="mb-2">
+                 <MudSelectItem Value="@("Agent Grouping")">Agent Grouping</MudSelectItem>
+                 <MudSelectItem Value="@("Group A")">Group A</MudSelectItem>
+                 <MudSelectItem Value="@("Group B")">Group B</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code
+{
+    [CascadingParameter] private IMudDialogInstance MudDialog {get; set; } = default!;
+
+    private string _name = string.Empty;
+    private string _desc = string.Empty;
+    private string _beacon = "Beacon";
+    private string _group = "Agent Grouping";
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

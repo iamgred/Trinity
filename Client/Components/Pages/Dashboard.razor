@@ -1,0 +1,345 @@
+@page "/"
+@rendermode InteractiveServer
+@inject IDialogService DialogService
+
+<style>
+    .card { background-color:#242424; border:1px solid #333; }
+    .card-p { background-color:#242424; border:1px solid #333; padding:16px;}
+    .muted { color:#AAAAAA !important; }
+    .white { color:white; }
+    .lnk { color:#E87722; text-decoration:none; font-size:0.875rem; }
+    .dot { width:8px; height:8px; border-radius:50%; margin-right:6px; }
+    .dot-lg { width:10px; height:10px; border-radius:50%; margin-right:6px; }
+    .qa-btn { text-transform:none !important; justify-content:flex-start !important; }
+</style>
+
+<!-- Page Title -->
+<div class="mb-4">
+    <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Dashboard</MudText>
+</div>
+
+<!-- Stat Crads (Values will be set once backend is linked -->
+<MudGrid Spacing="3" Class="mb-4">
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="card" Style="padding:20px;">
+            <div class="d-flex align-center">
+                <MudIcon Icon="@Icons.Material.Outlined.Computer"
+                         Style="color:#888; font-size:2.8rem; margin-right:14px;" />
+                <div>
+                    <MudText Typo="Typo.caption" Class="muted">Online Clients</MudText>
+                    <MudText Typo="Typo.h4" Style="color:white; font-weight:700;">@_onlineClients</MudText>
+                </div>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+<MudItem xs="12" sm="6" md="3">
+    <MudPaper Class="card" Style="padding:20px;">
+        <div class="d-flex align-center">
+            <MudIcon Icon="@Icons.Material.Outlined.Work"
+                     Style="color:#888; font-size:2.8rem; margin-right:14px;" />
+            <div>
+                <MudText Typo="Typo.caption" Class="muted">Active Campaigns</MudText>
+                <MudText Typo="Typo.h4" Style="color:white; font-weight:700;">@_activeCampaigns</MudText>
+            </div>
+        </div>
+    </MudPaper>
+</MudItem>
+
+<MudItem xs="12" sm="6" md="3">
+    <MudPaper Class="card" Style="padding:20px;">
+        <div class="d-flex align-center">
+            <MudIcon Icon="@Icons.Material.Outlined.ContentPaste"
+                     Style="color:#888; font-size:2.8rem; margin-right:14px;" />
+            <div>
+                <MudText Typo="Typo.caption" Class="muted">Pending Tasks</MudText>
+                <MudText Typo="Typo.h4" Style="color:white; font-weight:700;">@_pendingTasks</MudText>
+            </div>
+        </div>
+    </MudPaper>
+</MudItem>
+
+<MudItem xs="12" sm="6" md="3">
+    <MudPaper Class="card" Style="padding:20px;">
+        <div class="d-flex align-center">
+            <MudIcon Icon="@Icons.Material.Outlined.Description"
+                     Style="color:#888; font-size:2.8rem; margin-right:14px;" />
+            <div>
+                <MudText Typo="Typo.caption" Class="muted">Stored Files</MudText>
+                <MudText Typo="Typo.h4" Style="color:white; font-weight:700;">@_storedFiles</MudText>
+            </div>
+        </div>
+    </MudPaper>
+</MudItem>
+
+</MudGrid>
+
+<!-- Main Grid -->
+<MudGrid Spacing="3">
+
+    <!-- Left Tables -->
+    <MudItem xs="12" md="7">
+
+        <!-- Recent Clients Table -->
+        <MudPaper Class="card" Style="margin-bottom:16px;" Elevation="0">
+            <div style="padding:16px 16px 0;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">Recent Clients</MudText>
+            </div>
+            <MudTable T="ClientRow" Items="@_clients" Dense="true" Hover="true"
+                      Elevation="0" Style="background-color:transparent;">
+                 <HeaderContent>
+                     <MudTh Class="muted">Client Name</MudTh>
+                     <MudTh Class="muted">IP Address</MudTh>
+                     <MudTh Class="muted">OS</MudTh>
+                     <MudTh Class="muted">Status</MudTh>
+                     <MudTh Class="muted">Last Seen</MudTh>
+                     <MudTh Class="muted">Actions</MudTh>
+                 </HeaderContent>
+                 <RowTemplate>
+                     <MudTd Class="white">@context.Name</MudTd>
+                     <MudTd Class="white">@context.IpAddress</MudTd>
+                     <MudTd Class="white">@context.OS</MudTd>
+                     <MudTd>
+                         <div class="d-flex align-center">
+                             <div class="dot" style="background-color:@ClientColour(context.Status);"></div>
+                             <span class="white">@context.Status</span>
+                         </div>
+                    </MudTd>
+                    <MudTd Class="white">@context.LastSeen</MudTd>
+                    <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Outlined.Settings"
+                                           Size="Size.Small" Color="Color.Default" />
+                            <MudIconButton Icon="@Icons.Material.Outlined.MoreVert"
+                                           Size="Size.Small" Color="Color.Default" />
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="muted" Style="text-align:center; padding:20px;">No Clients To Disaplay</MudText>
+                </NoRecordsContent>
+            </MudTable>
+            <div style="padding:10px 16px;">
+                <a href="/clients" class="lnk">View all clients -></a>
+            </div>
+        </MudPaper>
+
+        <!-- Recent Cmpaigns Table -->
+        <MudPaper Class="card" Elevation="0">
+            <div style="padding:16px 16px 0;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">Recent Campaigns</MudText>
+            </div>
+            <MudTable T="CampaignRow" Items="@_campaigns" Dense="true" Hover="true"
+                      Elevation="0" Style="background-color:transparent;">
+                <HeaderContent>
+                     <MudTh Class="muted">Job Name</MudTh>
+                     <MudTh Class="muted">Client</MudTh>
+                     <MudTh Class="muted">Status</MudTh>
+                     <MudTh Class="muted">Progress</MudTh>
+                     <MudTh Class="muted">Started At</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd Class="white">@context.JobName</MudTd>
+                    <MudTd Class="white">@context.Client</MudTd>
+                    <MudTd>
+                        <div class="d-flex align-center">
+                            <div class="dot" style="background-color:@CampaignColour(context.Status);"></div>
+                            <span class="white">@context.Status</span>
+                        </div>
+                    </MudTd>
+                    <MudTd>
+                        <div class="d-flex align-center" style="gap:8px;">
+                            <MudProgressLinear Value="@((double)context.Progress)" Max="100"
+                                               Color="Color.Primary" Rounded="true" Size="Size.Small"
+                                               Style="min-width:80px; background-color:#3A3A3A;" />
+                            <span class="white" style="font-size:0.8rem;">@context.Progress%</span>
+                        </div>
+                    </MudTd>
+                    <MudTd Class="white">@context.StartedAt</MudTd>
+                  </RowTemplate>
+               </MudTable>
+                    <div style="padding:10px 16px;">
+                        <a href="/campaigns" class="lnk">View All Campaigns -></a>
+                    </div>
+                </MudPaper>
+            </MudItem>
+
+<!-- Middle Chart and Activity -->
+<MudItem xs="12" md="3">
+    <!-- Systems Overview Chart -->
+    <MudPaper Class="card-p" Style="margin-bottom:16px;" Elevation="0">
+        <div class="d-flex align-center justify-space-between" style="margin-bottom:16px; gap:12px">
+            <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600">Systems Overview</MudText>
+            <MudSelect @bind-Value="_timeRange" Dense="true" Margin="Margin.Dense"
+                       Variant="Variant.Outlined" Style="max-width:130px">
+                    <MudSelectItem Value="@("Last 24 Hours")">Last 24 Hours</MudSelectItem>
+                    <MudSelectItem Value="@("Last 7 Days")">Last 7 Days</MudSelectItem>
+                    <MudSelectItem Value="@("Last 30 Days")">Last 30 Days</MudSelectItem>
+            </MudSelect>
+        </div>
+        <MudChart T="double" ChartType="ChartType.Line" ChartSeries="@_systemSeries"
+                  XAxisLabels="@_systemXLabels" ChartOptions="@_chartOptions" Height="200px" />
+    </MudPaper>
+
+<!-- Recent Activity -->
+<MudPaper Class="card-p" Elevation="0">
+    <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:12px;">Recent Activity</MudText>
+    @if (_activities.Count == 0)
+    {
+        <div style="text-align:center; padding:16px; color:#666; font-size:0.875rem;">No Recent Activity</div>
+    }
+    else
+    {
+        @foreach (var a in _activities)
+        {
+            <div class="d-flex" style="padding:8px 0; border-bottom:1px solid #333;">
+                <MudIcon Icon="@a.Icon"
+                         Style="color:#AAA; margin-right:10px; font-size:1.1rem; margin-top:2px;" />
+                <div> 
+                    <div class="white" style="font-size:0.875rem;">@a.Description</div>
+                    <div style="color:#777; font-size:0.75rem;">@a.Time</div>
+                </div>
+            </div>
+        }
+    }
+<div style="margin-top:12px;">
+    <a href="/logs" class="lnk">View All Activity -></a>
+</div>
+</MudPaper>
+</MudItem>
+
+<!-- Quick Actions and System Satus-->
+<MudItem xs="12" md="2">
+    <!-- Quick Action buttons will open the coressponding dialog -->
+    <MudPaper Class="card-p" Style="margin-bottom:16px;" Elevation="0">
+        <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:12px;">Quick Actions</MudText>
+        <div class="d-flex flex-column" style="gap:8px;">
+            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add" Class="qa-btn"
+                       OnClick="@OpenAddNewClientDialog">Add New Client</MudButton>
+            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Work" Class="qa-btn"
+                       OnClick="@OpenCreateNewJobDialog">Create New Job</MudButton>
+            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Upload" Class="qa-btn"
+                       OnClick="@OpenUploadDocumentsDialog">Upload File</MudButton>
+            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.BarChart" Class="qa-btn"
+                       OnClick="@OpenViewReportsDialog">View Reports</MudButton>
+            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Settings" Class="qa-btn"
+                       Href="/settings">Settings</MudButton>
+        </div>
+    </MudPaper>
+    <!-- System Status Wheel (shows placeholder ring until backend is connected)-->
+    <MudPaper Class="card-p" Elevation="0">
+        <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:12px;">System Status</MudText>
+        <div style="display:flex; justify-content:center; margin-bottom:12px;">
+            @if (_totalClients > 0)
+            {
+                <MudChart T="double" ChartType="ChartType.Donut" InputData="@_statusData"
+                          InputLabels="@_statusLabels" Width="150px" Height="150px">
+                    <CustomGraphics>
+                        <text x="50%" y="44%" dominant-baseline="middle" text-anchor="middle"
+                              fill="white" font-weight="bold" font-size="1.4em">@_totalClients</text>
+                        <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle"
+                              fill="#AAA" font-size="0.65em">Total Clients</text>
+                    </CustomGraphics>
+                </MudChart>
+            }
+            else
+            {
+            //Placeholder ring will be shown when no data is available
+            <div style="width:130px; height:130px; border-radius:50%; border:18px solid #333;
+                 display:flex; align-items:center; justify-content:center;">
+            <div style="text-align:center;">
+                <div style="color:white; font-weight:bold; font-size:1.4em;">0</div>
+                <div style="color:#AAA; font-size:0.65em;">Total Clients</div>
+            </div>
+            </div>
+            }
+            </div>
+            @foreach (var row in _legend)
+            {
+                <div class="d-flex justify-space-between" style="margin-bottom:6px;">
+                    <div class="d-flex align-center">
+                        <div class="dot-lg" style="background-color:@row.Colour;"></div>
+                        <span class="white" style="font-size:0.8rem;">@row.Label</span>
+                    </div>
+                    <span class="white" style="font-size:0.8rem;">@row.Percent%</span>
+                </div>
+            }
+        </MudPaper>
+        </MudItem>
+        </MudGrid>
+        
+        <!-- Code -->
+        @code {
+
+            //Stat Cards (Should pupulate once linked with the backend)
+            private int _onlineClients = 0;
+            private int _activeCampaigns = 0;
+            private int _pendingTasks = 0;
+            private string _storedFiles = string.Empty;
+
+            //Table Data
+            private List<ClientRow> _clients = new();
+            private List<CampaignRow> _campaigns = new();
+            private List<ActivityRow> _activities = new();
+
+            //System Status
+            private int _totalClients = 0;
+            private double[] _statusData = {0,0,0};
+            private string[] _statusLabels = { "Online", "Offline", "Inactive" };
+
+            //Legend (Percent values will be updated from backend)
+            private (string Label, string Colour, int Percent)[] _legend =
+            {
+                ("Online", "#4CAF50", 0),
+                ("Offline", "#F44336", 0),
+                ("Inactive", "#888888", 0),
+            };
+
+            //Chart (Will probably be replaced by the backend data once linked, if not may have to rewrite this)
+            private string _timeRange = "Last 24 Hours";
+            private readonly string[] _systemXLabels = { "00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "24:00" };
+            private readonly List<ChartSeries<double>> _systemSeries = new()
+            {
+                new ChartSeries<double> { Name = "CPU Usage(%)", Data = new double[7] },
+                new ChartSeries<double> { Name = "Memory Usage(%)", Data = new double[7] },
+                new ChartSeries<double> { Name = "Network(Mbps)", Data = new double[7] },
+            };
+            private readonly ChartOptions _chartOptions = new();
+            //Colour Helpers
+            private static string ClientColour(string s) => s switch
+            {
+                "Online" => "#4CAF50",
+                "Offline" => "#F44336",
+                 _ => "#FFC107"
+            };
+
+            private static string CampaignColour(string s) => s switch
+            {
+                "Completed" => "#4CAF50",
+                "Running" => "#2196F3",
+                "Pending" => "#FFC107",
+                "Failed" => "#F44336",
+                _ => "#AAAAAA"
+            };
+
+            //Dialog options (should be shared across all of the dialogs, but I need to test to see if that will actually work)
+            private static readonly DialogOptions _dialogOpts = new()
+            {
+                CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true
+            };
+
+            //Dialog Launchers
+            private Task OpenAddNewClientDialog() => DialogService.ShowAsync<AddNewClientDialog>(string.Empty, new(), _dialogOpts);
+            private Task OpenCreateNewJobDialog() => DialogService.ShowAsync<CreateNewJobDialog>(string.Empty, new(), _dialogOpts);
+            private Task OpenUploadDocumentsDialog() => DialogService.ShowAsync<UploadDocumentsDialog>(string.Empty, new(), _dialogOpts);
+            private Task OpenViewReportsDialog() => DialogService.ShowAsync<ViewReportsDialog>(string.Empty, new(), _dialogOpts);
+
+            //Data Models (will need to match these to the backend when connecting so everything talks nicely)
+            private record ClientRow(string Name, string IpAddress, string OS, string Status, string LastSeen);
+            private record CampaignRow(string JobName, string Client, string Status, int Progress, string StartedAt);
+            private record ActivityRow(string Icon, string Description, string Time);
+
+            }

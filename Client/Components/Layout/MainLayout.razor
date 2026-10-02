@@ -1,23 +1,139 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudThemeProvider Theme="@_theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<MudLayout>
+
+    <!-- Top Bar -->
+    <MudAppBar Elevation="0" Style="background-color:#E87722; border-bottom:1px solid #2D2D2D; height:64px;">
+        <!-- Logo's -->
+        <div style="min-width:220px; padding-left:2px; display:flex; align-items:center;">
+    <img src="/images/Trinity_Head.svg" style="height:58px; width:auto; margin-right:4px;" />
+    <div style="position:relative; height:44px;">
+        <img src="/images/Trinity_Name.svg" style="height:72px; width:auto; display:block; position:relative; top:-5px; margin-left:-14px;" />
+        <span style="position:absolute; bottom:0; left:-6px; font-size:0.55rem; color:white; white-space:nowrap; line-height:1;">Command &amp; Control Dashboard</span>
+    </div>
+</div>
+
+        <MudSpacer />
+
+        <!-- Search Bar -->
+        <div style="max-width:380px; width:100%; border-radius:4px; overflow:hidden;">
+            <MudTextField @bind-Value="_search" Placeholder="Search..."
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true"
+                          Style="background-color:#1E1E1E;" />
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+        <MudSpacer />
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+        <!-- Notification Bell (Empty until backend linked)-->
+        <MudMenu Icon="@Icons.Material.Outlined.Notifications" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight"
+                 TransformOrigin="Origin.TopRight" PopoverClass="pa-0" Class="mr-1">
+            <div style="background-color:#87722; min-width:300px">
+                @foreach (var n in _notifications)
+                {
+                    <div style="padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.25);
+                         display:flex; justify-content:space between;">
+                        <span style="color:white; font-size:0.875rem;">@n.Message</span>
+                        <span style="color:rgba(255,255,255,0.8); font-size:0.75rem; margin-left:16px;">@n.Time</span>
+                    </div>
+                }
+                </div>
+            </MudMenu>
+
+            <!-- Settings Icon -->
+            <MudIconButton Icon="@Icons.Material.Outlined.Settings" Color="Color.Inherit" Class="mr-1" />
+
+            <!-- Profile Dropdown -->
+            <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit"
+         AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" PopoverClass="pa-0">
+    <div style="background-color:#E87722; padding:16px; min-width:240px;">
+        <div class="d-flex align-center" style="margin-bottom:16px;">
+            <MudAvatar Size="Size.Large" Style="background-color:rgba(0,0,0,0.25); margin-right:12px;">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" />
+            </MudAvatar>
+            <div>
+                <div style="color:white; font-weight:bold;">User Name</div>
+                <div style="color:rgba(255,255,255,0.85); font-size:0.8rem;">Administrator</div>
+            </div>
+        </div>
+        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.3); margin-bottom:12px;" />
+        <button style="width:100%; background:#111; color:white; border:none; border-radius:24px; padding:10px; margin-bottom:8px; cursor:pointer;">Logout</button>
+        <button style="width:100%; background:#111; color:white; border:none; border-radius:24px; padding:10px; cursor:pointer;">Switch User</button>
+    </div>
+</MudMenu>
+
+        </MudAppBar>
+
+        <!-- Sidebar -->
+        <MudDrawer Open="true" Variant="DrawerVariant.Persistent" Elevation="0"
+                   Style="background-color:#111; border-right:1px solid #2D2D2D;" Width="220px">
+            <MudNavMenu Margin="Margin.Normal">
+                @foreach (var item in _nav)
+                {
+                    <MudNavLink Href="@item.Href" Match="@item.Match"
+                                Icon="@item.Icon" ActiveClass="nav-active">@item.Label</MudNavLink>
+                }
+            </MudNavMenu>
+        </MudDrawer>
+
+        <!-- Main Content (@Body should be replaced by the active page) -->
+        <MudMainContent Style="background-color:#1A1A1A; min-height:100vh;">
+            <div style="padding:24px;">@Body</div>
+        </MudMainContent>
+    </MudLayout>
+
+    <!-- Active page gets orange infill, if tyou hover over another pages button it tints in orange -->
+    <style>
+        .nav-active { background-color: #E87722 !important; border-radius: 4px; }
+        .nav-active .mud-nav-link-text, .nav-active .mud-icon-root { color: white !important; }
+        .mud-nav-link:hover:not(.nav-active) { background-color: rgba(232,119,34,0,0.12) !important; }
+    </style>
+
+    @code {
+        private string _search = string.Empty;
+
+        //Notifications- Populated via backend once linked
+        private readonly List<(string Message, string Time)> _notifications = new(); 
+        
+        //Sidebar Navigation
+        private readonly (string Href, string Icon, string Label, NavLinkMatch Match)[] _nav =
+        {
+            ("/", Icons.Material.Filled.Home, "Dashboard", NavLinkMatch.All),
+            ("/deployment", Icons.Material.Filled.CloudUpload, "Deployment", NavLinkMatch.Prefix),
+            ("/clients", Icons.Material.Filled.Computer, "Clients", NavLinkMatch.Prefix),
+            ("/campaigns", Icons.Material.Filled.Work, "Campaigns", NavLinkMatch.Prefix),
+            ("/tasks", Icons.Material.Filled.FormatListBulleted, "Tasks", NavLinkMatch.Prefix),
+            ("/files", Icons.Material.Filled.Folder, "Files", NavLinkMatch.Prefix),
+            ("/logs", Icons.Material.Filled.Article, "Logs", NavLinkMatch.Prefix),
+            ("/reports", Icons.Material.Filled.BarChart, "Reports", NavLinkMatch.Prefix),
+            ("/settings", Icons.Material.Filled.Settings, "Settings", NavLinkMatch.Prefix),
+        };
+
+        //Orange on dark theme
+        private readonly MudTheme _theme = new()
+        {
+            PaletteDark = new PaletteDark
+            {
+                Primary = "#E87722",
+                PrimaryContrastText = "#FFFFFF",
+                Background = "#1A1A1A",
+                BackgroundGray = "#111111",
+                Surface = "#242424",
+                DrawerBackground = "#111111",
+                AppbarBackground = "#E87722",
+                TextPrimary = "rgba(255,255,255,0.87)",
+                TextSecondary = "rgba(255,255,255,0.60)",
+                DrawerText = "rgba(255,255,255,0.87)",
+                Divider = "rgba(255,255,255,0.12)",
+                TableHover = "rgba(255,255,255,0.04)",
+            }
+        };
+    }
+            
+
+        

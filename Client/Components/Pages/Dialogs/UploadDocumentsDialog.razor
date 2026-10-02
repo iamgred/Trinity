@@ -1,0 +1,30 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Upload Documents</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <div style="background-color:#1A1A1A; border:2px solid #E87722; border-radius:6px;
+             padding:40px 24px; text-align:center;">
+        <MudIcon Icon="@Icons.Material.Outlined.Upload" Style="color:#E87722; FONT-SIZE:4rem; display:block;
+                 dsiplay:block; margin:0 auto 12px;" />
+        <p style="color:#AAAAAA; font-size:0.875rem; margin-bottom:20px;">Upload All Supporting Documentation</p>
+        <div style="display:flex; gap:12px; justify-content:center;">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="min-width:90px;">Browse</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="min-width:90px;">Upload</MudButton>
+        </div>
+    </div>
+    </DialogContent>
+<DialogActions>
+    <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px">Confirm</MudButton>
+</DialogActions>
+</MudDialog>
+
+@code
+{
+    [CascadingParameter] private IMudDialogInstance MudDialog {get; set; } = default!;
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

@@ -1,3 +1,4 @@
+using MudBlazor.Services;
 using Client.Components;
 
 namespace Client
@@ -11,6 +12,9 @@ namespace Client
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+            
+            // Registers MudBlazor Components
+            builder.Services.AddMudServices();
 
             var app = builder.Build();
 

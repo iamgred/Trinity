@@ -3,7 +3,11 @@
 
 #pragma once
 
-#include <iostream>
 #include <Windows.h>
 
+class Agent
+{
+public:
+    void Exit();
+};
 // TODO: Reference additional headers your program requires here.

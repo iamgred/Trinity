@@ -14,6 +14,7 @@ public:
     std::string GetUser() const;
     void Init();
     std::string ExecuteCommand(int commandType);
+    std::string ExecutePowerShell(const std::string &command);
 
 private:
     std::string user;

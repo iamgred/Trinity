@@ -1,0 +1,294 @@
+@page "/clients"
+@layout TrinityLayout
+
+<PageTitle>Trinity · Clients</PageTitle>
+
+<div class="clients-page">
+
+    <div class="mock-banner">Mock data — for UI shell only (in-memory, not persisted)</div>
+
+    <section class="header">
+        <h1>Clients</h1>
+        <p class="subtitle">Manage and monitor all connected clients</p>
+    </section>
+
+    <section class="stats-row">
+        @foreach (var stat in BuildStats())
+        {
+            <div class="stat-card t-card">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        @((MarkupString)stat.Icon)
+                    </svg>
+                </div>
+                <div class="stat-body">
+                    <div class="label">@stat.Label</div>
+                    <div class="value">@stat.Value</div>
+                    <div class="trend @(stat.Up ? "up" : "down")">@(stat.Up ? "↗" : "↘") @stat.Trend</div>
+                </div>
+            </div>
+        }
+    </section>
+
+    <div class="clients-grid">
+
+        <div class="col-main">
+
+            <section class="table-section t-card">
+                <div class="table-toolbar">
+                    <h2>All Clients</h2>
+                    <div class="toolbar-controls">
+                        <div class="search-field">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                            <input type="text" placeholder="Search..." @bind="_search" @bind:event="oninput" @bind:after="ResetPage" />
+                        </div>
+                        <select class="filter-select" @bind="_statusFilter" @bind:after="ResetPage">
+                            <option>All Status</option>
+                            <option>Online</option>
+                            <option>Offline</option>
+                            <option>Inactive</option>
+                        </select>
+                        <select class="filter-select" @bind="_osFilter" @bind:after="ResetPage">
+                            <option>All OS</option>
+                            <option>Windows 10</option>
+                            <option>Windows 11</option>
+                            <option>Ubuntu</option>
+                            <option>macOS</option>
+                        </select>
+                        <button type="button" class="export-btn" @onclick="ExportClients">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <table class="client-table">
+                    <thead>
+                        <tr>
+                            <th>Client Name</th>
+                            <th>IP Address</th>
+                            <th>OS</th>
+                            <th>Status</th>
+                            <th>Last Seen</th>
+                            <th>User</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!PageItems.Any())
+                        {
+                            <tr><td colspan="6" class="empty-row">No clients match your filters.</td></tr>
+                        }
+                        @foreach (var row in PageItems)
+                        {
+                            <tr class="@(row == _selected ? "selected" : null)" @onclick="() => SelectRow(row)">
+                                <td>@row.Name</td>
+                                <td>@row.Ip</td>
+                                <td>@row.Os</td>
+                                <td>
+                                    <span class="status-dot status-@StatusColor(row.Status)"></span>
+                                    @row.Status
+                                </td>
+                                <td>@row.LastSeen</td>
+                                <td>@row.User</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="table-footer">
+                    <span class="showing">@ShowingText</span>
+                    <div class="pagination">
+                        <button type="button" class="page-btn" disabled="@(CurrentPage <= 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
+                        @for (var p = 1; p <= TotalPages; p++)
+                        {
+                            var pg = p;
+                            <button type="button" class="page-btn @(pg == CurrentPage ? "active" : null)" @onclick="() => GoToPage(pg)">@pg</button>
+                        }
+                        <button type="button" class="page-btn" disabled="@(CurrentPage >= TotalPages)" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="timeline-section t-card">
+                <h2>Client Activity Timeline</h2>
+                <ul class="timeline">
+                    @foreach (var ev in _timeline)
+                    {
+                        <li class="timeline-item">
+                            <span class="timeline-time">@ev.When</span>
+                            <span class="timeline-dot status-@ev.Color"></span>
+                            <span class="timeline-text">@ev.Text</span>
+                        </li>
+                    }
+                </ul>
+            </section>
+
+        </div>
+
+        <div class="col-side">
+
+            <section class="panel-map t-card">
+                <div class="panel-head">
+                    <h2>Client Locations</h2>
+                    <select class="filter-select">
+                        <option>All Clients</option>
+                    </select>
+                </div>
+                <div class="map-box">
+                    <svg class="world-map" viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
+                        <g class="landmass">
+                            @foreach (var d in LandDots)
+                            {
+                                <circle cx="@Fmt(d.X)" cy="@Fmt(d.Y)" r="0.7" />
+                            }
+                        </g>
+                        <g class="map-markers">
+                            @foreach (var m in MapMarkers)
+                            {
+                                <circle class="m-@m.Color" cx="@Fmt(m.X)" cy="@Fmt(m.Y)" r="1.4" />
+                            }
+                        </g>
+                    </svg>
+                    <div class="map-zoom">
+                        <button type="button" title="Zoom in (mock)">+</button>
+                        <button type="button" title="Zoom out (mock)">−</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel-os t-card">
+                <div class="panel-head">
+                    <h2>Client OS Distribution</h2>
+                </div>
+                <div class="os-body">
+                    <div class="donut">
+                        <div class="donut-ring" style="background: conic-gradient(@DonutGradient());"></div>
+                        <div class="donut-center">
+                            <span class="donut-num">@_clients.Count</span>
+                            <span class="donut-label">Total</span>
+                        </div>
+                    </div>
+                    <ul class="os-legend">
+                        @foreach (var os in BuildOsBreakdown())
+                        {
+                            <li>
+                                <span class="legend-dot status-@os.Color"></span>
+                                <span class="legend-label">@os.Name</span>
+                                <span class="legend-value">@os.Count (@os.Percent%)</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </section>
+
+            <section class="panel-actions t-card">
+                <div class="panel-head">
+                    <h2>Quick Actions</h2>
+                </div>
+                <div class="actions-grid">
+                    @foreach (var a in Actions)
+                    {
+                        <button type="button" class="action-btn" @onclick="a.OnClick">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                @((MarkupString)a.Icon)
+                            </svg>
+                            <span>@a.Label</span>
+                        </button>
+                    }
+                </div>
+            </section>
+
+        </div>
+
+    </div>
+</div>
+
+@if (_toast is not null)
+{
+    <div class="toast">@_toast</div>
+}
+
+@if (_showAdd)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <h3>Add New Client</h3>
+            <label class="modal-label">Client Name (auto-assigned)</label>
+            <input class="modal-input" value="@_form.Name" readonly />
+            <label class="modal-label">IP Address</label>
+            <input class="modal-input" @bind="_form.Ip" placeholder="192.168.1.20" />
+            <label class="modal-label">Operating System</label>
+            <select class="modal-input" @bind="_form.Os">
+                <option>Windows 10</option>
+                <option>Windows 11</option>
+                <option>Ubuntu 22.04</option>
+                <option>macOS 14</option>
+            </select>
+            <label class="modal-label">User</label>
+            <input class="modal-input" @bind="_form.User" placeholder="Jane Doe" />
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="btn-primary" @onclick="AddClient">Add Client</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showAnnounce)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <h3>Send Announcement</h3>
+            <label class="modal-label">Message (broadcast to all clients)</label>
+            <textarea class="modal-input" rows="4" @bind="_announceText" placeholder="Type your announcement..."></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="btn-primary" @onclick="SendAnnouncement">Send</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showExecute)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <h3>Execute Job</h3>
+            <label class="modal-label">Target: <strong>@(_selected?.Name ?? "none selected")</strong></label>
+            <label class="modal-label">Job</label>
+            <select class="modal-input" @bind="_jobName">
+                <option>Data Collection</option>
+                <option>Screenshot Capture</option>
+                <option>System Info</option>
+                <option>File Scan</option>
+            </select>
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="btn-primary" @onclick="RunJob">Execute</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showShell)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-card shell-card" @onclick:stopPropagation="true">
+            <h3>Remote Shell — @(_selected?.Name ?? "none selected")</h3>
+            <div class="shell-output">
+                @foreach (var line in _shellLog)
+                {
+                    <div class="shell-line">@line</div>
+                }
+            </div>
+            <div class="shell-input-row">
+                <span class="shell-prompt">&gt;</span>
+                <input class="modal-input" @bind="_shellInput" @onkeydown="ShellKey" placeholder="whoami" />
+                <button type="button" class="btn-primary" @onclick="RunShell">Run</button>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-ghost" @onclick="CloseModals">Close</button>
+            </div>
+        </div>
+    </div>
+}

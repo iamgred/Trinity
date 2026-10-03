@@ -21,6 +21,8 @@ add_executable (
   "CommManager.cpp"
   "CommManager.h"
   "base64.hpp"
+  "CommandDispatcher.cpp"
+  "CommandDispatcher.h"
   )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

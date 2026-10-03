@@ -1,0 +1,329 @@
+/* Trinity app shell: full-width header + sidebar.
+   Rules here are NOT inside an @layer, so they beat Bootstrap's layered
+   defaults, which is what turned the NavLinks blue/underlined. */
+
+.trinity-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg-root);
+    color: var(--text-primary);
+}
+
+.trinity-header {
+    flex: 0 0 68px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 0 20px;
+    background: var(--brand-orange);
+    color: #fff;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+}
+
+.brand-logo {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+}
+
+.brand-title {
+    font-size: 24px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: 0.05em;
+}
+
+.brand-sub {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.header-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    max-width: 460px;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 20px;
+    background: #fff;
+}
+.header-search svg { width: 16px; height: 16px; fill: none; stroke: var(--text-muted); flex: 0 0 auto; }
+.header-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #1a1a1a;
+    font-size: 14px;
+}
+.header-search input::placeholder { color: #9a9aa2; }
+
+.header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.icon-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+}
+.icon-btn { transition: background 0.15s ease, transform 0.15s ease; }
+.icon-btn:hover { background: rgba(0, 0, 0, 0.2); transform: scale(1.1); }
+.icon-btn:active { transform: scale(1); }
+.icon-btn svg { width: 22px; height: 22px; }
+
+.notif-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--status-blue);
+    border: 1.5px solid var(--brand-orange);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.user-menu { position: relative; }
+
+.menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: transparent;
+}
+
+.user-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 46px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.user-trigger:hover { background: rgba(0, 0, 0, 0.2); }
+
+.user-avatar, .dropdown-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    color: rgba(0, 0, 0, 0.45);
+    flex: 0 0 auto;
+}
+.user-avatar { width: 36px; height: 36px; }
+.user-avatar svg { width: 24px; height: 24px; }
+
+.user-block {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+    text-align: left;
+}
+.user-name { font-size: 14px; font-weight: 700; }
+.user-role { font-size: 11px; opacity: 0.9; }
+.user-caret { width: 18px; height: 18px; fill: #fff; }
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 244px;
+    padding: 16px;
+    background: var(--brand-orange);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    color: #fff;
+    z-index: 50;
+}
+
+.dropdown-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.dropdown-avatar { width: 48px; height: 48px; }
+.dropdown-avatar svg { width: 32px; height: 32px; }
+.dropdown-user { display: flex; flex-direction: column; line-height: 1.15; }
+.dropdown-name { font-size: 17px; font-weight: 800; }
+.dropdown-role { font-size: 13px; opacity: 0.9; }
+
+.dropdown-divider {
+    height: 1px;
+    margin: 14px 0;
+    background: rgba(0, 0, 0, 0.22);
+}
+
+.dropdown-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: 0;
+    border-radius: 10px;
+    background: #101014;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+.dropdown-btn:first-of-type { margin-top: 0; }
+.dropdown-btn:hover { background: #26262e; transform: translateY(-1px); }
+.dropdown-btn:active { transform: translateY(0); }
+
+.switch-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111;
+    opacity: 0.8;
+    margin-bottom: 8px;
+    letter-spacing: 0.03em;
+}
+.account-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 6px;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.12);
+    color: #111;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+.account-row:first-of-type { margin-top: 0; }
+.account-row:hover { background: rgba(0, 0, 0, 0.22); transform: translateY(-1px); }
+.account-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    color: rgba(0, 0, 0, 0.45);
+}
+.account-avatar svg { width: 20px; height: 20px; }
+.account-text { display: flex; flex-direction: column; line-height: 1.15; }
+.account-name { font-size: 14px; font-weight: 700; }
+.account-role { font-size: 11px; opacity: 0.85; }
+
+.switch-error {
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.14);
+    color: #111;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.back-btn { margin-top: 12px; }
+
+.trinity-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.trinity-sidebar {
+    width: 232px;
+    flex: 0 0 232px;
+    background: var(--bg-surface);
+    padding-top: 16px;
+    overflow-y: auto;
+}
+
+.trinity-sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 12px;
+}
+
+::deep .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--text-primary);
+    padding: 12px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+::deep .sidebar-link:hover {
+    background: var(--bg-card-alt);
+    color: var(--brand-orange);
+    transform: translateX(3px);
+}
+::deep .sidebar-link.active {
+    background: var(--brand-orange);
+    color: #111;
+    font-weight: 700;
+}
+::deep .sidebar-ico {
+    display: inline-flex;
+    align-items: center;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+}
+::deep .sidebar-ico svg { width: 22px; height: 22px; }
+
+.trinity-content {
+    flex: 1;
+    padding: 24px;
+    overflow: auto;
+    min-width: 0;
+}
+
+@media (max-width: 720px) {
+    .header-brand .brand-text { display: none; }
+    .user-block { display: none; }
+}

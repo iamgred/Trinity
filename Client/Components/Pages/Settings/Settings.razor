@@ -1,0 +1,282 @@
+@page "/settings"
+@layout TrinityLayout
+
+<PageTitle>Trinity · Settings</PageTitle>
+
+<div class="settings-page">
+
+    <div class="mock-banner">Mock data — for UI shell only (in-memory, not persisted)</div>
+
+    <section class="header">
+        <h1>Settings</h1>
+        <p class="subtitle">Configure and manage your system and preferences</p>
+    </section>
+
+    <section class="stats-row">
+        @foreach (var stat in BuildStats())
+        {
+            <div class="stat-card t-card">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        @((MarkupString)stat.Icon)
+                    </svg>
+                </div>
+                <div class="stat-body">
+                    <div class="label">@stat.Label</div>
+                    <div class="value">@stat.Value</div>
+                    <div class="sub">@stat.Sub</div>
+                </div>
+            </div>
+        }
+    </section>
+
+    <div class="settings-grid">
+
+        <aside class="categories t-card">
+            <h2>Settings Categories</h2>
+            <nav class="category-list">
+                @foreach (var c in _categories)
+                {
+                    <button type="button" class="category-item @(c == _category ? "active" : null)" @onclick="() => SelectCategory(c)">
+                        <span>@c</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                    </button>
+                }
+            </nav>
+        </aside>
+
+        <div class="col-main">
+
+            <section class="framework-section t-card">
+                <h2>C2 Framework Settings</h2>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Enable C2 Framework</span>
+                        <span class="setting-desc">Enable the command and control framework</span>
+                    </div>
+                    <button type="button" class="toggle @(_enableC2 ? "on" : null)" @onclick="() => _enableC2 = !_enableC2" role="switch" aria-checked="@_enableC2">
+                        <span class="toggle-knob"></span>
+                    </button>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Default C2 Profile</span>
+                        <span class="setting-desc">Select the default communication profile</span>
+                    </div>
+                    <select class="setting-select" @bind="_defaultProfile">
+                        <option>HTTPS Beacon</option>
+                        <option>WebDAV</option>
+                        <option>Custom (RAW)</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Default Response Profile</span>
+                        <span class="setting-desc">Select default response behaviour for new clients</span>
+                    </div>
+                    <select class="setting-select" @bind="_responseProfile">
+                        <option>Aggressive</option>
+                        <option>Balanced</option>
+                        <option>Stealth</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Default Sleep (Jitter)</span>
+                        <span class="setting-desc">Default sleep interval with jitter</span>
+                    </div>
+                    <select class="setting-select" @bind="_sleepJitter">
+                        <option>10s (10%)</option>
+                        <option>30s (25%)</option>
+                        <option>60s (50%)</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Max Concurrent Clients</span>
+                        <span class="setting-desc">Maximum number of clients allowed</span>
+                    </div>
+                    <input class="setting-input" type="text" @bind="_maxClients" />
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Auto Register New Clients</span>
+                        <span class="setting-desc">Automatically approve new client registrations</span>
+                    </div>
+                    <button type="button" class="toggle @(_autoRegister ? "on" : null)" @onclick="() => _autoRegister = !_autoRegister" role="switch" aria-checked="@_autoRegister">
+                        <span class="toggle-knob"></span>
+                    </button>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Client Expiry</span>
+                        <span class="setting-desc">Automatically remove inactive clients</span>
+                    </div>
+                    <select class="setting-select" @bind="_clientExpiry">
+                        <option>30 Days</option>
+                        <option>90 Days</option>
+                        <option>Never</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Kill Date</span>
+                        <span class="setting-desc">Date to automatically disable framework</span>
+                    </div>
+                    <input class="setting-input" type="text" @bind="_killDate" />
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-text">
+                        <span class="setting-label">Log C2 Traffic</span>
+                        <span class="setting-desc">Log all command and control traffic</span>
+                    </div>
+                    <button type="button" class="toggle @(_logTraffic ? "on" : null)" @onclick="() => _logTraffic = !_logTraffic" role="switch" aria-checked="@_logTraffic">
+                        <span class="toggle-knob"></span>
+                    </button>
+                </div>
+
+                <div class="save-row">
+                    <button type="button" class="btn-primary" @onclick="SaveChanges">Save Changes</button>
+                </div>
+            </section>
+
+            <section class="channels-section t-card">
+                <h2>Active C2 Channels</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Profile</th>
+                            <th>Transport</th>
+                            <th>Local Address</th>
+                            <th>Port</th>
+                            <th>Clients</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ch in _channels)
+                        {
+                            <tr>
+                                <td>@ch.Profile</td>
+                                <td>@ch.Transport</td>
+                                <td class="mono">@ch.Local</td>
+                                <td class="mono">@ch.Port</td>
+                                <td>@ch.Clients</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all C2 channels (mock)"))">View all channels →</a>
+            </section>
+
+        </div>
+
+        <div class="col-side">
+
+            <section class="profiles-section t-card">
+                <div class="panel-head">
+                    <h2>C2 Profiles</h2>
+                    <button type="button" class="pill-btn" @onclick="@(() => ShowToast("Manage C2 profiles (mock)"))">
+                        Manage Profiles
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                    </button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Profile</th>
+                            <th>Protocol</th>
+                            <th>Local Address</th>
+                            <th>Port</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in _profiles)
+                        {
+                            <tr>
+                                <td>@p.Name</td>
+                                <td>@p.Protocol</td>
+                                <td class="mono">@p.Local</td>
+                                <td class="mono">@p.Port</td>
+                                <td>
+                                    <span class="status-dot status-@p.StatusColor"></span>
+                                    @p.Status
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all C2 profiles (mock)"))">View all C2 profiles →</a>
+            </section>
+
+            <section class="policies-section t-card">
+                <div class="panel-head">
+                    <h2>AI Agent Behaviour Policies</h2>
+                    <button type="button" class="pill-btn" @onclick="@(() => ShowToast("Manage AI policies (mock)"))">
+                        Manage Policies
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                    </button>
+                </div>
+                <ul class="policy-list">
+                    @foreach (var p in _policies)
+                    {
+                        <li>
+                            <div class="policy-text">
+                                <span class="policy-name">@p.Name</span>
+                                <span class="policy-desc">@p.Desc</span>
+                            </div>
+                            <span class="policy-badge" style="color:@Css(p.BadgeColor); border-color:@Css(p.BadgeColor);">@p.Badge</span>
+                        </li>
+                    }
+                </ul>
+                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all AI policies (mock)"))">View all policies →</a>
+            </section>
+
+            <section class="status-section t-card">
+                <h2>C2 Framework Status</h2>
+                <div class="gauge-body">
+                    <div class="gauge">
+                        <div class="gauge-ring" style="background: conic-gradient(@HealthGauge);"></div>
+                        <div class="gauge-center">
+                            <span class="gauge-num">@HealthPercent%</span>
+                            <span class="gauge-label">Operational</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel-actions t-card">
+                <div class="panel-head">
+                    <h2>Quick Actions</h2>
+                </div>
+                <div class="actions-grid">
+                    @foreach (var a in Actions)
+                    {
+                        <button type="button" class="action-btn" @onclick="a.OnClick">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                @((MarkupString)a.Icon)
+                            </svg>
+                            <span>@a.Label</span>
+                        </button>
+                    }
+                </div>
+            </section>
+
+        </div>
+
+    </div>
+</div>
+
+@if (_toast is not null)
+{
+    <div class="toast">@_toast</div>
+}

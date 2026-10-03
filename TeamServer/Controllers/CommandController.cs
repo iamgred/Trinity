@@ -5,6 +5,7 @@ using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Enums;
+using Trinity.Shared.DTOs.Commands;
 namespace TeamServer.Controllers
 {
     [Route(Routes.Commands)]
@@ -162,6 +163,18 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> QueueKillAgentCommand([FromRoute] int agentId, KillAgentDTO killAgentDTO)
         {
             var response = await this._commandService.QueueTaskAsync(killAgentDTO, CommandTypes.KillAgent, agentId);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
+        }
+        /// <summary>
+        /// Queues a GetUID command for the specified agent and returns the asynchronous command response.
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <param name="getUIDDTO"></param>
+        /// <returns></returns>
+        [HttpPost("{agentId}/execute/getuid")]
+        public async Task<IActionResult> QueueGetUIDCommand([FromRoute] int agentId, GetUIDDTO getUIDDTO)
+        {
+            var response = await this._commandService.QueueTaskAsync(getUIDDTO, CommandTypes.GetUID, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
     }

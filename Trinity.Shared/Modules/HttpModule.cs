@@ -2,15 +2,17 @@
 using Microsoft.Extensions.Logging;
 using System.Net;
 using Trinity.Shared.Errors;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
 
 namespace Trinity.Shared.Modules
 {
-    public class HttpModule
+    public class HttpModule : ICommunicationListener
     {
         private HttpListener _httpListener { get; set; }
         private CancellationTokenSource _cts;
         private ILogger<HttpModule> _logger;
+        private readonly ICommunicationMessageHandler _messageHandler;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -18,11 +20,13 @@ namespace Trinity.Shared.Modules
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpListener"></param>
-        public HttpModule(ILogger<HttpModule> logger, HttpListener httpListener)
+        /// <param name="messageHandler"></param>
+        public HttpModule(ILogger<HttpModule> logger, HttpListener httpListener, ICommunicationMessageHandler messageHandler)
         {
             _httpListener = httpListener;
             _cts = new CancellationTokenSource();
             _logger = logger;
+            _messageHandler = messageHandler;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -52,7 +56,7 @@ namespace Trinity.Shared.Modules
         /// <remarks>Writes a UTF-8 encoded HTML acknowledgment to the response stream, sets
         /// ContentLength64, logs informational and error events, and closes the response in a finally block.</remarks>
         /// <param name="context">The HttpListenerContext containing the HTTP request and response.</param>
-        private void ProcessRequest(HttpListenerContext context)
+        private async Task ProcessRequest(HttpListenerContext context)
         {
             try
             {
@@ -60,10 +64,27 @@ namespace Trinity.Shared.Modules
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
 
-                string responseString = "<HTML><BODY> Recieved </BODY></HTML>";
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                response.ContentLength64 = buffer.Length;
-                response.OutputStream.Write(buffer, 0, buffer.Length);
+                // string responseString = "<HTML><BODY> Recieved </BODY></HTML>";
+                // byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                // response.ContentLength64 = buffer.Length;
+                // response.OutputStream.Write(buffer, 0, buffer.Length);
+
+                // Read the request body into a byte array
+                using MemoryStream ms = new MemoryStream();
+                await request.InputStream.CopyToAsync(ms);
+
+                // Convert the MemoryStream to a byte array
+                byte[] requestData = ms.ToArray();
+
+                // Pass the request data to the message handler and get the response
+                ReadOnlyMemory<byte> responseMemory = await _messageHandler.HandleAsync(requestData);
+
+                // Convert the ReadOnlyMemory<byte> to a byte array for writing to the response stream
+                byte[] responseBytes = responseMemory.ToArray();
+
+                // Set the ContentLength64 property and write the response bytes to the output stream
+                response.ContentLength64 = responseBytes.Length;
+                await response.OutputStream.WriteAsync(responseBytes);
             }
             catch (Exception ex)
             {
@@ -132,7 +153,7 @@ namespace Trinity.Shared.Modules
             _httpListener.Start();
             await _cts.CancelAsync();
             _cts = new CancellationTokenSource();
-            _ = Task.Run(async() => StartPolling());
+            _ = Task.Run(async () => StartPolling());
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -147,6 +168,16 @@ namespace Trinity.Shared.Modules
         {
             _httpListener.Stop();
             await _cts.CancelAsync();
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            return StartPolling();
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken = default)
+        {
+            await ShutdownAsync();
         }
     }
 }

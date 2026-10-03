@@ -4,6 +4,7 @@ using TeamServer.Services;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
+using Trinity.Shared.DTOs.Listener.Tor;
 
 
 namespace TeamServer.Controllers
@@ -90,6 +91,18 @@ namespace TeamServer.Controllers
             var result = await _listenerService.CreateSmbListenerAsync(request);
             return result.IsSuccess ? Created() : BadRequest(result.Error);
         }
+        /// <summary>
+        /// Creates a new Tor listener from the specified request.
+        /// </summary>
+        /// <param name="request">The request containing the listener configuration.</param>
+        /// <returns>An IActionResult that returns 201 Created when the listener is created successfully, or 400 Bad Request with
+        /// an error when creation fails.</returns>
+        [HttpPost("tor")]
+        public async Task<IActionResult> CreateTorListenerAsync([FromBody] CreateTorListenerRequest request)
+        {
+            var result = await _listenerService.CreateTorListenerAsync(request);
+            return result.IsSuccess ? Created() : BadRequest(result.Error);
+        }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -129,7 +142,7 @@ namespace TeamServer.Controllers
         /// <returns>An IActionResult that is 200 OK if the deletion succeeds, or 400 Bad Request with an error message if it
         /// fails.</returns>
         [HttpDelete("{ID}")]
-        public async Task<IActionResult> DeleteListenerAsync([FromRoute] int ID) 
+        public async Task<IActionResult> DeleteListenerAsync([FromRoute] int ID)
         {
             var result = await _listenerService.RemoveListenerAsync(ID);
             return result.IsSuccess ? Ok() : BadRequest(result.Error);

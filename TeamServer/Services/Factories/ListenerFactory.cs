@@ -6,6 +6,7 @@ using TeamServer.Modules;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
+using Trinity.Shared.DTOs.Listener.Tor;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
@@ -25,7 +26,7 @@ namespace TeamServer.Services.Factories
         /// request.Config.</returns>
         public Listener CreateHttpListener(CreateHttpListenerRequest request, int protocolID)
         {
-            return new Listener { Name = request.Name, ProtocolID =  protocolID , Config = JsonDocument.Parse(JsonSerializer.Serialize(request.Config))};
+            return new Listener { Name = request.Name, ProtocolID = protocolID, Config = JsonDocument.Parse(JsonSerializer.Serialize(request.Config)) };
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -38,7 +39,7 @@ namespace TeamServer.Services.Factories
         /// produced by serializing and parsing request.Config.</returns>
         public Listener CreateSmbListener(CreateSmbRequest request, int protocolID)
         {
-            return new Listener { Name = request.Name, ProtocolID = protocolID, Config = JsonDocument.Parse(JsonSerializer.Serialize(request.Config))};
+            return new Listener { Name = request.Name, ProtocolID = protocolID, Config = JsonDocument.Parse(JsonSerializer.Serialize(request.Config)) };
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -54,7 +55,25 @@ namespace TeamServer.Services.Factories
         /// serialized request.Config as a JsonDocument.</returns>
         public Listener CreateTcpListener(CreateTcpListenerRequest request, int protocolID)
         {
-            return new Listener { Name = request.Name, ProtocolID = protocolID, Config = JsonDocument.Parse(JsonSerializer.Serialize(request.Config))};
+            return new Listener { Name = request.Name, ProtocolID = protocolID, Config = JsonDocument.Parse(JsonSerializer.Serialize(request.Config)) };
+        }
+        /// <summary>
+        /// Creates a Listener whose Name is taken from request.Name, ProtocolID is set to protocolID, and Config is
+        /// populated by serializing request.Config to JSON and parsing it into a JsonDocument.
+        /// </summary>
+        /// <param name="request">Request containing the listener Name and configuration object to apply.</param>
+        /// <param name="protocolID">Protocol identifier to assign to the created Listener.</param>
+        /// <returns>A new Listener with Name set to request.Name, ProtocolID set to protocolID, and Config containing the
+        /// serialized request.Config as a JsonDocument.</returns>
+        public Listener CreateTorListener(CreateTorListenerRequest request, int protocolID)
+        {
+            return new Listener
+            {
+                Name = request.Name,
+                ProtocolID = protocolID,
+                Config = JsonDocument.Parse(
+                    JsonSerializer.Serialize(request.Config))
+            };
         }
 
     }

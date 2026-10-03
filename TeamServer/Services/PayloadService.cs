@@ -43,7 +43,7 @@ namespace TeamServer.Services
                 return ListenerError.NotFound(payloadCreationDTO.ListenerID);
             }
 
-            var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO);
+            var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, listener.Config);
 
             //if (!buildResult.IsSuccess)
             //{

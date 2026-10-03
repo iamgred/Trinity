@@ -5,6 +5,7 @@ using TeamServer.ExceptionHandlers;
 using TeamServer.Interface;
 using TeamServer.Repositories;
 using TeamServer.Services;
+using TeamServer.Services.Communication;
 using TeamServer.Services.Factories;
 using Trinity.Shared.Configurations;
 using Trinity.Shared.Interfaces;
@@ -23,6 +24,8 @@ namespace TeamServer
             builder.Services.AddScoped<PayloadService>();
             builder.Services.AddScoped<IPayloadBuilder, CMakePayloadBuilder>();
             builder.Services.AddScoped<AgentService>();
+            builder.Services.AddScoped<ICommunicationCodec, TrinityCommunicationCodec>();
+            builder.Services.AddScoped<ICommunicationMessageHandler, AgentCommunicationMessageHandler>();
             builder.Services.AddScoped<TaskService>();
             builder.Services.AddScoped<OperatorService>();
             builder.Services.AddScoped<CampaignService>();

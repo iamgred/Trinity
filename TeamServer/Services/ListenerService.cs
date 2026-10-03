@@ -12,18 +12,21 @@ using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 using Trinity.Shared.Modules;
+using Trinity.Shared.Interfaces;
+using Trinity.Shared.DTOs.Listener.Tor;
 
 namespace TeamServer.Services
 {
-    public class ListenerService 
+    public class ListenerService
     {
         private ILogger _logger;
         private ListenerRespository _listenerRepo;
         private ProtocolRespository _protocolRepo;
-        private ConcurrentDictionary<int, HttpModule> _httpCommModules;
+        private ConcurrentDictionary<int, ICommunicationListener> _httpCommModules;
         private readonly ListenerFactory _listenerFactory;
         private readonly HttpModuleFactory _moduleFactory;
         private readonly HttpListenerManager _httpListenerManager;
+        private readonly ICommunicationMessageHandler _messageHandler;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -31,8 +34,16 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory, HttpModuleFactory moduleFactory, HttpListenerManager httpListenerManager)
+        public ListenerService(
+            ICommunicationMessageHandler messageHandler,
+            ILogger<ListenerService> logger,
+            ListenerRespository listenerRepo,
+            ProtocolRespository protocolrepo,
+            ListenerFactory factory,
+            HttpModuleFactory moduleFactory,
+            HttpListenerManager httpListenerManager)
         {
+            _messageHandler = messageHandler;
             _logger = logger;
             _httpCommModules = new();
             _listenerRepo = listenerRepo;
@@ -67,8 +78,8 @@ namespace TeamServer.Services
         {
             try
             {
-                var module = _moduleFactory.Create(request.Config.BindPort);
-                _ = System.Threading.Tasks.Task.Run(async () => module.StartPolling());
+                var module = _moduleFactory.Create(request.Config.BindPort, _messageHandler);
+                _ = System.Threading.Tasks.Task.Run(async () => module.StartAsync());
 
                 int protocolID = await _protocolRepo.GetProtocolIDAsync("HTTP");
                 Listener listener = _listenerFactory.CreateHttpListener(request, protocolID);
@@ -103,7 +114,7 @@ namespace TeamServer.Services
             await _listenerRepo.CommitAsync();
             return Result.Success();
         }
-            
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Creates an SMB listener from the specified request, resolves the TCP protocol identifier, and adds the
@@ -196,7 +207,8 @@ namespace TeamServer.Services
                 return ListenerError.NotFound(ID);
             }
 
-            await module.RestartAsync();
+            await module.StopAsync();
+            await module.StartAsync();
             return Result.Success();
         }
 
@@ -218,9 +230,26 @@ namespace TeamServer.Services
 
             if (module != null)
             {
-                await module.ShutdownAsync();
+                await module.StopAsync();
                 _httpListenerManager.RemoveModule(ID);
             }
+            return Result.Success();
+        }
+        /// <summary>
+        /// Creates a Tor listener using the provided request and persists it to the repository.
+        /// </summary>
+        /// <param name="request">The request containing the listener configuration.</param>
+        /// <returns>A Result indicating the success or failure of the operation.</returns>
+        public async Task<Result> CreateTorListenerAsync(CreateTorListenerRequest request)
+        {
+            int protocolID = await _protocolRepo.GetProtocolIDAsync("TOR");
+
+            Listener listener =
+                _listenerFactory.CreateTorListener(request, protocolID);
+
+            await _listenerRepo.AddListenerAsync(listener);
+            await _listenerRepo.CommitAsync();
+
             return Result.Success();
         }
     }

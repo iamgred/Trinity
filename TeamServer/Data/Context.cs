@@ -53,6 +53,11 @@ namespace TeamServer.Data
                 {
                     ID = 3,
                     Name = "TCP"
+                },
+                new Protocol
+                {
+                    ID = 4,
+                    Name = "TOR"
                 }
             );
 

@@ -1,5 +1,6 @@
 // ============================================================= { START OF FILE } =============================================================== //
 using System.Diagnostics;
+using System.Text.Json;
 using TeamServer.Interface;
 using Trinity.Shared.DTOs.Payload;
 using Trinity.Shared.Errors;
@@ -27,7 +28,7 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="payloadCreationDTO"></param>
         /// <returns></returns>
-        public async Task<Result<string>> BuildAsync(PayloadCreationDTO payloadCreationDTO)
+        public async Task<Result<string>> BuildAsync(PayloadCreationDTO payloadCreationDTO, JsonDocument listenerConfig)
         {
             try
             {

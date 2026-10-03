@@ -29,16 +29,20 @@ namespace TeamServer.Services.Factories
         /// <param name="port">TCP port number to bind the HttpListener to.</param>
         /// <exception cref="HttpListenerException>"/>
         /// <returns>An HttpModule with a started HttpListener bound to localhost and the specified port.</returns>
-        public HttpModule Create(int port)
+        public HttpModule Create(int port, ICommunicationMessageHandler messageHandler)
         {
             HttpListener httpListener = new HttpListener();
             UriBuilder uriBuilder = new UriBuilder("http", "localhost", port);
             httpListener.Prefixes.Add(uriBuilder.ToString());
             httpListener.Start();
 
-            return new HttpModule(_loggerFactory.CreateLogger<HttpModule>(), httpListener);
+            return new HttpModule(_loggerFactory.CreateLogger<HttpModule>(), httpListener, messageHandler);
         }
 
+        public HttpModule Create(int port)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

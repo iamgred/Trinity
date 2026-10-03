@@ -12,6 +12,7 @@ using Trinity.Shared.DTOs.Agent;
 using Trinity.Shared.DTOs.Checkin;
 using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -30,11 +31,21 @@ namespace TeamServer.Services
         private readonly TaskResultFactory _taskResultFactory;
         private readonly HostRepository _hostRepo;
         private readonly PayloadRepository _payloadRepo;
+        private readonly ICommunicationCodec _communicationCodec;
 
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public AgentService(AgentRepository agentRepository, TaskRepository taskRepository, AgentFactory agentFactory, TaskResultRepository taskResultRepository, TaskResultFactory taskResultFactory, HostRepository hostRepository, PayloadRepository payloadRepository)
+        public AgentService(
+            ICommunicationCodec communicationCodec,
+            AgentRepository agentRepository,
+            TaskRepository taskRepository,
+            AgentFactory agentFactory,
+            TaskResultRepository taskResultRepository,
+            TaskResultFactory taskResultFactory,
+            HostRepository hostRepository,
+            PayloadRepository payloadRepository)
         {
+            _communicationCodec = communicationCodec;
             _agentRepo = agentRepository;
             _agentFactory = agentFactory;
             _taskRepo = taskRepository;
@@ -48,13 +59,14 @@ namespace TeamServer.Services
         // Checkin 
         public async Task<Result<string>> Checkin(string blob)
         {
-            // Decode base64
-            var decodedBytes = Util.Base64Decode(blob);
-            // Get the UUID
-            var blobSpan = new ReadOnlyMemory<byte>(decodedBytes);
+            // Convert the incoming blob string to a byte array for processing
+            var encodedBlob = Encoding.UTF8.GetBytes(blob);
+            // Decode the blob using the communication codec to extract the UUID and payload
+            var decodedMessage = _communicationCodec.Decode(encodedBlob);
 
-            var uuid = System.Text.Encoding.UTF8.GetString(blobSpan.Slice(RequestStartIndex, UUIDOffset).Span);
-            var request = blobSpan.Slice(36, blobSpan.Length - 36);
+            // Use the extracted UUID and payload to process the check-in logic
+            var uuid = decodedMessage.uuid;
+            var request = decodedMessage.payload;
 
             var agent = await _agentRepo.GetAgentByCheckInUUID(uuid);
             if (agent == null)
@@ -66,11 +78,11 @@ namespace TeamServer.Services
                 await _agentRepo.CreateAgentAsync(agentModel);
                 await _agentRepo.CommitAsync();
 
-                var host = new Trinity.Shared.Models.Host 
-                { 
-                    AgentID = agentModel.ID, 
-                    CPUCount = output.CPUCount, 
-                    DiskSize = output.DiskSize, 
+                var host = new Trinity.Shared.Models.Host
+                {
+                    AgentID = agentModel.ID,
+                    CPUCount = output.CPUCount,
+                    DiskSize = output.DiskSize,
                     FreeDisk = output.FreeDisk,
                     OS = output.OS,
                     HostName = output.user,
@@ -84,7 +96,7 @@ namespace TeamServer.Services
                 return CreateBase64Blob(agentModel.CheckInUUID);
             }
 
-            if (blobSpan.Length.Equals(36))
+            if (request.IsEmpty)
             {
                 goto Get_Task;
             }
@@ -109,23 +121,16 @@ namespace TeamServer.Services
 
         private string CreateBase64Blob(string uuid)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(uuid);
-            return System.Convert.ToBase64String(bytes);
+            var encoded = _communicationCodec.Encode(uuid, ReadOnlyMemory<byte>.Empty);
+
+            return Encoding.UTF8.GetString(encoded);
         }
 
         private string CreateResponseBlob(string uuid, CheckinResponse response)
         {
-            var bufferWriter = new ArrayBufferWriter<byte>();
-            Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
-            int bytesWritten = System.Text.Encoding.UTF8.GetBytes(uuid, uuidSpan);
-            bufferWriter.Advance(bytesWritten);
-
-            using (var jsonWriter = new Utf8JsonWriter(bufferWriter))
-            {
-                JsonSerializer.Serialize(jsonWriter, response);
-            }
-
-            return System.Convert.ToBase64String(bufferWriter.WrittenSpan);
+            var payload = JsonSerializer.SerializeToUtf8Bytes(response);
+            var encoded = _communicationCodec.Encode(uuid, payload);
+            return Encoding.UTF8.GetString(encoded);
         }
 
 
@@ -142,7 +147,7 @@ namespace TeamServer.Services
         /// <param name="blob">Binary blob containing a 36-byte header followed by a sequence of length-prefixed UTF-8 fields. Each field
         /// is encoded as a two-byte ASCII decimal length followed by that many UTF-8 bytes.</param>
         /// <returns>An IntialCheckInRequest populated with the parsed fields in the expected order.</returns>
-        private IntialCheckInRequest ProcessIntialCheckin(ReadOnlyMemory<byte> blob) 
+        private IntialCheckInRequest ProcessIntialCheckin(ReadOnlyMemory<byte> blob)
         {
             var items = new List<string>();
             int blobLen = blob.Length, baseIndex = UUIDOffset;

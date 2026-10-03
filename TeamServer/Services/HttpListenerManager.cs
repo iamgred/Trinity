@@ -1,39 +1,40 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Collections.Concurrent;
 using Trinity.Shared.Errors;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Modules;
 
 namespace TeamServer.Services
 {
     public class HttpListenerManager
     {
-        private ConcurrentDictionary<int, HttpModule> _httpModules;
+        private ConcurrentDictionary<int, ICommunicationListener> _listeners;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public HttpListenerManager()
         {
-            _httpModules = new ConcurrentDictionary<int, HttpModule>();
+            _listeners = new ConcurrentDictionary<int, ICommunicationListener>();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public HttpModule GetModuleByID(int ID)
+        public ICommunicationListener GetModuleByID(int ID)
         {
-            HttpModule module;
-            var moduleExists = _httpModules.TryGetValue(ID, out module);
-            return module;
+            ICommunicationListener listener;
+            var listenerExists = _listeners.TryGetValue(ID, out listener);
+            return listener;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public void AddModule (int ID, HttpModule module)
+        public void AddModule(int ID, ICommunicationListener module)
         {
-            _httpModules.TryAdd(ID, module);
+            _listeners.TryAdd(ID, module);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public bool RemoveModule(int ID) 
+        public bool RemoveModule(int ID)
         {
-            HttpModule module;
-            return _httpModules.Remove(ID, out module);
+            ICommunicationListener listener;
+            return _listeners.Remove(ID, out listener);
         }
     }
 }

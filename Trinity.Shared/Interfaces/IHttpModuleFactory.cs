@@ -7,7 +7,7 @@ namespace Trinity.Shared.Interfaces
 {
     public interface IHttpModuleFactory
     {
-        public HttpModule Create(int port);
+        public HttpModule Create(int port, ICommunicationMessageHandler messageHandler);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -31,6 +31,32 @@ std::string Agent::ExecuteCommand(int commandType)
     }
 }
 
+std::string Agent::ExecutePowerShell(const std::string &command)
+{
+#ifdef _WIN32
+    // Execute PowerShell command and return the output
+    std::string result;
+    std::string psCommand = "powershell.exe -Command \"" + command + "\"";
+    FILE *pipe = _popen(psCommand.c_str(), "r");
+    if (!pipe)
+    {
+        return "Error executing PowerShell command.";
+    }
+
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
+    {
+        result += buffer;
+    }
+
+    _pclose(pipe);
+    return result;
+#else
+    (void)command; // Suppress unused parameter warning
+    return "PowerShell execution is only supported on Windows.";
+#endif
+}
+
 void Agent::Init()
 {
     // Initialize agent

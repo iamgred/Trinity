@@ -4,7 +4,7 @@
 
 CommandDispatcher::CommandDispatcher(Agent &agent) : agent(agent) {}
 
-std::string CommandDispatcher::Dispatch(int commandType, const std::string &command)
+std::string CommandDispatcher::Dispatch(int commandType, const std::string& command)
 {
     switch (commandType)
     {
@@ -14,4 +14,5 @@ std::string CommandDispatcher::Dispatch(int commandType, const std::string &comm
     default:
         return std::string();
     }
+}
     // ========================================== { END OF FILE } ========================================== //

@@ -52,6 +52,7 @@ build cmake_object_order_depends_target_Agent: phony || .
 build CMakeFiles\Agent.dir\Agent.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\Agent.cpp || cmake_object_order_depends_target_Agent
   CONFIG = Debug
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
+  INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external
   OBJECT_DIR = CMakeFiles\Agent.dir
   OBJECT_FILE_DIR = CMakeFiles\Agent.dir
   TARGET_COMPILE_PDB = CMakeFiles\Agent.dir\
@@ -61,6 +62,7 @@ build CMakeFiles\Agent.dir\Agent.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$
 build CMakeFiles\Agent.dir\KeyBoardLogger.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\KeyBoardLogger.cpp || cmake_object_order_depends_target_Agent
   CONFIG = Debug
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
+  INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external
   OBJECT_DIR = CMakeFiles\Agent.dir
   OBJECT_FILE_DIR = CMakeFiles\Agent.dir
   TARGET_COMPILE_PDB = CMakeFiles\Agent.dir\
@@ -70,6 +72,17 @@ build CMakeFiles\Agent.dir\KeyBoardLogger.cpp.obj: CXX_COMPILER__Agent_unscanned
 build CMakeFiles\Agent.dir\CommManager.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\CommManager.cpp || cmake_object_order_depends_target_Agent
   CONFIG = Debug
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
+  INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external
+  OBJECT_DIR = CMakeFiles\Agent.dir
+  OBJECT_FILE_DIR = CMakeFiles\Agent.dir
+  TARGET_COMPILE_PDB = CMakeFiles\Agent.dir\
+  TARGET_PDB = Agent.pdb
+  TARGET_SUPPORT_DIR = CMakeFiles\Agent.dir
+
+build CMakeFiles\Agent.dir\CommandDispatcher.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\CommandDispatcher.cpp || cmake_object_order_depends_target_Agent
+  CONFIG = Debug
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
+  INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external
   OBJECT_DIR = CMakeFiles\Agent.dir
   OBJECT_FILE_DIR = CMakeFiles\Agent.dir
   TARGET_COMPILE_PDB = CMakeFiles\Agent.dir\
@@ -84,7 +97,7 @@ build CMakeFiles\Agent.dir\CommManager.cpp.obj: CXX_COMPILER__Agent_unscanned_De
 #############################################
 # Link the executable Agent.exe
 
-build Agent.exe: CXX_EXECUTABLE_LINKER__Agent_Debug CMakeFiles\Agent.dir\Agent.cpp.obj CMakeFiles\Agent.dir\KeyBoardLogger.cpp.obj CMakeFiles\Agent.dir\CommManager.cpp.obj | C$:\Program$ Files\Microsoft$ Visual$ Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\manifest\segmentheap.manifest
+build Agent.exe: CXX_EXECUTABLE_LINKER__Agent_Debug CMakeFiles\Agent.dir\Agent.cpp.obj CMakeFiles\Agent.dir\KeyBoardLogger.cpp.obj CMakeFiles\Agent.dir\CommManager.cpp.obj CMakeFiles\Agent.dir\CommandDispatcher.cpp.obj | C$:\Program$ Files\Microsoft$ Visual$ Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\manifest\segmentheap.manifest
   CONFIG = Debug
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -ZI
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console

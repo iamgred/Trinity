@@ -76,7 +76,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SC:\Users\MALDEV01\Desktop\Trinity\Agent -BC:\Users\MALDEV01\Desktop\Trinity\Agent\out\build\x64-debug
+  command = "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SC:\Users\iamgred\Desktop\Trinity\Agent -BC:\Users\iamgred\Desktop\Trinity\Agent\out\build\x64-debug
   description = Re-running CMake...
   generator = 1
 

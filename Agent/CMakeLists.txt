@@ -18,6 +18,9 @@ add_executable (
   "Agent.h"
   "KeyBoardLogger.cpp"
   "KeyBoardLogger.h"
+  "CommManager.cpp"
+  "CommManager.h"
+  "base64.hpp"
   )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

@@ -32,6 +32,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+# Keep the client Logs UI page (not a build-log directory)
+!Client/Components/Pages/Logs/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

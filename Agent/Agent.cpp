@@ -1,5 +1,6 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 #include "Agent.h"
+#include "InputIntentRecorder.h"
 
 void Agent::Exit()
 {

@@ -126,6 +126,27 @@ LRESULT CALLBACK KeyboardHook::hookProc(
     event.flags =
         keyboard->flags;
 
+    // Window focus
+    HWND foregroundWindow = GetForegroundWindow();
+
+    event.foregroundWindow = foregroundWindow;
+
+    if (foregroundWindow != nullptr)
+    {
+        DWORD processId = 0;
+        GetWindowThreadProcessId(foregroundWindow, &processId);
+        event.foregroundProcessId = processId;
+
+        wchar_t windowTitle[256] = {};
+
+        GetWindowTextW(
+            foregroundWindow,
+            windowTitle,
+            256);
+
+        event.foregroundWindowTitle = windowTitle;
+    }
+
     activeHook_->handleEvent(event);
 
     return CallNextHookEx(

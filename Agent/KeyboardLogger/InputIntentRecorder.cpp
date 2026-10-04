@@ -3,7 +3,56 @@
 
 #include <Windows.h>
 
+#include <chrono>
+#include <cstdint>
+#include <string>
 #include <utility>
+
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
+namespace
+{
+    std::string WideToUtf8(const std::wstring &value)
+    {
+        if (value.empty())
+        {
+            return {};
+        }
+
+        const int size =
+            WideCharToMultiByte(
+                CP_UTF8,
+                0,
+                value.data(),
+                static_cast<int>(value.size()),
+                nullptr,
+                0,
+                nullptr,
+                nullptr);
+
+        if (size <= 0)
+        {
+            return {};
+        }
+
+        std::string result(
+            size,
+            '\0');
+
+        WideCharToMultiByte(
+            CP_UTF8,
+            0,
+            value.data(),
+            static_cast<int>(value.size()),
+            result.data(),
+            size,
+            nullptr,
+            nullptr);
+
+        return result;
+    }
+}
 
 InputIntentRecorder::InputIntentRecorder()
     : hook_(
@@ -34,10 +83,63 @@ bool InputIntentRecorder::isRunning() const noexcept
     return hook_.isRunning();
 }
 
-std::span<const IntentEvent>
-InputIntentRecorder::events() const noexcept
+std::string InputIntentRecorder::events() const
 {
-    return events_;
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+    writer.StartArray();
+
+    for (const auto &event : events_)
+    {
+        writer.StartObject();
+
+        writer.Key("timestamp");
+        writer.Int64(
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                event.timestamp.time_since_epoch())
+                .count());
+
+        writer.Key("type");
+        switch (event.type)
+        {
+        case IntentType::Text:
+            writer.String("Text");
+            break;
+        case IntentType::Shortcut:
+            writer.String("Shortcut");
+            break;
+        case IntentType::SpecialKey:
+            writer.String("SpecialKey");
+            break;
+        case IntentType::Modifier:
+            writer.String("Modifier");
+            break;
+        default:
+            writer.String("Unknown");
+            break;
+        }
+
+        writer.Key("meaning");
+        writer.String(WideToUtf8(event.meaning).c_str());
+
+        writer.Key("text");
+        writer.String(WideToUtf8(event.text).c_str());
+
+        writer.Key("focusedWindow");
+        writer.Uint64(reinterpret_cast<uint64_t>(event.focusedWindow));
+
+        writer.Key("focusedProcessId");
+        writer.Uint(event.focusedProcessId);
+
+        writer.Key("focusedWindowTitle");
+        writer.String(WideToUtf8(event.focusedWindowTitle).c_str());
+
+        writer.EndObject();
+    }
+
+    writer.EndArray();
+    return buffer.GetString();
 }
 
 void InputIntentRecorder::clear()

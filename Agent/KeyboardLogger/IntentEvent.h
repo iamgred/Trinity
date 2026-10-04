@@ -1,6 +1,8 @@
 // ====================================================== { START OF FILE } ====================================================== //
 #pragma once
 
+#include <Windows.h>
+
 #include <chrono>
 #include <string>
 
@@ -25,5 +27,14 @@ struct IntentEvent
 
     // Text associated with the intent event
     std::wstring text;
+
+    // Window that is focused on
+    HWND focusedWindow{nullptr};
+
+    // Process ID of the focused window
+    DWORD focusedProcessId{0};
+
+    // Title of the focused window
+    std::wstring focusedWindowTitle;
 };
 // ====================================================== { END OF FILE } ====================================================== //

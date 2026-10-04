@@ -2,6 +2,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <string>
 
 // Represents a single low-level keyboard event.
 struct KeyboardEvent
@@ -14,6 +15,13 @@ struct KeyboardEvent
 
     // Flags supplied by the Windows keyboard hook.
     DWORD flags{};
+
+    // The handle of the foreground window.
+    HWND foregroundWindow{};
+    // The process ID of the foreground window.
+    DWORD foregroundProcessId{};
+    // The title of the foreground window.
+    std::wstring foregroundWindowTitle{};
 
     // Returns true when this event represents a key-down action.
     [[nodiscard]]

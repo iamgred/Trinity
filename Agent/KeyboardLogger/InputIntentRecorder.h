@@ -6,8 +6,8 @@
 #include "KeyboardInterpreter.h"
 #include "KeyboardState.h"
 
-#include <span>
 #include <vector>
+#include <string>
 
 // High-level keyboard intent recorder.
 class InputIntentRecorder
@@ -36,7 +36,7 @@ public:
 
     // Returns all recorded semantic events.
     [[nodiscard]]
-    std::span<const IntentEvent> events() const noexcept;
+    std::string events() const;
 
     // Removes all recorded events.
     void clear();

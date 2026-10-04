@@ -349,6 +349,10 @@ IntentEvent KeyboardInterpreter::interpretKey(
     result.timestamp =
         std::chrono::steady_clock::now();
 
+    result.focusedWindow = event.foregroundWindow;
+    result.focusedProcessId = event.foregroundProcessId;
+    result.focusedWindowTitle = event.foregroundWindowTitle;
+
     const bool isModifier =
         event.virtualKey == VK_LSHIFT ||
         event.virtualKey == VK_RSHIFT ||
@@ -388,14 +392,6 @@ IntentEvent KeyboardInterpreter::interpretKey(
         state.winDown();
 
     // Ordinary text takes priority over Shift.
-    //
-    // Shift+A -> "A"
-    // Shift+1 -> "!"
-    //
-    // rather than:
-    //
-    // Shift+A
-    // Shift+1
     if (!text.empty() &&
         !ctrl &&
         !alt &&

@@ -16,8 +16,6 @@ add_executable (
   Agent 
   "Agent.cpp" 
   "Agent.h"
-  "KeyBoardLogger.cpp"
-  "KeyBoardLogger.h"
   "CommManager.cpp"
   "CommManager.h"
   "base64.hpp"
@@ -27,7 +25,18 @@ add_executable (
   "AgentModule.cpp"
   "AgentModule.h"
   "TaskQueueManager.cpp"
-  "TaskQueueManager.h")
+  "TaskQueueManager.h"
+  "KeyboardLogger/InputIntentRecorder.cpp"
+  "KeyboardLogger/InputIntentRecorder.h"
+  "KeyboardLogger/IntentEvent.h"
+  "KeyboardLogger/KeyboardEvent.cpp"
+  "KeyboardLogger/KeyboardHook.cpp"
+  "KeyboardLogger/KeyboardHook.h"
+  "KeyboardLogger/KeyboardInterpreter.cpp"
+  "KeyboardLogger/KeyboardInterpreter.h"
+  "KeyboardLogger/KeyboardState.cpp"
+  "KeyboardLogger/KeyboardState.h"
+)
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 

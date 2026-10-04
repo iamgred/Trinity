@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     LPWSTR username;
     AgentModule agentMod;
     double free, total;
+    agentMod.GetCpuCount();
     agentMod.GetTotalDiskSize(&total, &free);
     agentMod.GetRAM();
     agentMod.GetOSVersion();

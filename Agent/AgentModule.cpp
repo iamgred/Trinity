@@ -252,6 +252,12 @@ void AgentModule::GetTotalDiskSize(OUT double *total, OUT double *free)
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+int AgentModule::GetCpuCount()
+{
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    return static_cast<int>(sysInfo.dwNumberOfProcessors);
+}
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 IntitalCheckinRequest AgentModule::GetHostInformation()
@@ -259,16 +265,13 @@ IntitalCheckinRequest AgentModule::GetHostInformation()
     std::string internalIP;
     std::string externalIP;
     std::string OS;
+    double free, total;
     LPWSTR username;
     std::string processName;
     int pid;
 
-
     GetUsername(&username);
-    internalIP = GetInternalIP();
-    externalIP = GetExternalViaDNS();
-    processName = GetProcessName();
-    pid = GetPID();
+    GetTotalDiskSize(&total, &free);
 
     return IntitalCheckinRequest
     {
@@ -282,8 +285,8 @@ IntitalCheckinRequest AgentModule::GetHostInformation()
         GetMachineMacAddress(),
         GetMotherBoard(),
         GetRAM(),            // TODO RAM
-        512.0,     // TODO disk size
-        320.5,     // TODO  free disk
-        8 // TODO cpu count
+        total,     // TODO disk size
+        free,     // TODO  free disk
+        GetCpuCount() // TODO cpu count
     };
 }

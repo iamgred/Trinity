@@ -17,6 +17,7 @@ public:
 	int GetRAM();
 	int GetOSVersion();
 	void GetTotalDiskSize(OUT double* total, OUT double* free);
+	int GetCpuCount();
 	void Start();
 private:
 	CommManager commManager;

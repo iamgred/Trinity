@@ -116,9 +116,9 @@ namespace TeamServer.Services
         private string CreateResponseBlob(string uuid, CheckinResponse response)
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
-            Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
-            int bytesWritten = System.Text.Encoding.UTF8.GetBytes(uuid, uuidSpan);
-            bufferWriter.Advance(bytesWritten);
+            //Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
+            //int bytesWritten = System.Text.Encoding.UTF8.GetBytes(uuid, uuidSpan);
+            //bufferWriter.Advance(bytesWritten);
 
             using (var jsonWriter = new Utf8JsonWriter(bufferWriter))
             {

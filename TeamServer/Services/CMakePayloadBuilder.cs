@@ -1,8 +1,11 @@
 // ============================================================= { START OF FILE } =============================================================== //
 using System.Diagnostics;
+using System.Text.Json;
 using TeamServer.Interface;
+using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Payload;
 using Trinity.Shared.Errors;
+using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 
 /// <summary>
@@ -27,7 +30,7 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="payloadCreationDTO"></param>
         /// <returns></returns>
-        public async Task<Result<string>> BuildAsync(PayloadCreationDTO payloadCreationDTO)
+        public async Task<Result<string>> BuildAsync(PayloadCreationDTO payloadCreationDTO, string payloadUUID, Listener listener)
         {
             try
             {
@@ -62,12 +65,16 @@ namespace TeamServer.Services
                     return PayloadError.GenerationFailed();
                 }
 
+                var config = JsonDocument.Parse(JsonSerializer.Deserialize<HttpConfig>(listener.Config).Hosts.FirstOrDefault().ToString());
+
                 // Configure the build environment and generate build files using CMake
                 Result configureResult = await RunProcessAsync(
                     "cmake",
                     $"-S \"{agentPath}\" " +
                     $"-B \"{buildRoot}\" " +
                     "-G Ninja " +
+                    $"-DHOST=\"{config}\"" +
+                    $"-DPAYLOAD_UUID=\"{payloadUUID}\"" +
                     $"-DCMAKE_CXX_COMPILER=\"{compiler}\" "
                 );
 

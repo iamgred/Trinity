@@ -48,9 +48,12 @@ namespace TeamServer.Controllers
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("checkin")]
-        public async Task<IActionResult> Checkin([FromBody] string blob)
+        public async Task<IActionResult> Checkin()
         {
+            using var reader = new StreamReader(Request.Body);
+            string blob = await reader.ReadToEndAsync();
             var result = await _agentService.Checkin(blob);
+
             return result.IsSuccess ? Ok(result.Response) : BadRequest();
         }
 

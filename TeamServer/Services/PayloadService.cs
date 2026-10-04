@@ -43,7 +43,9 @@ namespace TeamServer.Services
                 return ListenerError.NotFound(payloadCreationDTO.ListenerID);
             }
 
-            var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO);
+            var payloadUUID = Guid.NewGuid().ToString();
+
+            var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
 
             //if (!buildResult.IsSuccess)
             //{
@@ -52,7 +54,7 @@ namespace TeamServer.Services
 
             var payload = new Payload
             {
-                PayloadUUID = Guid.NewGuid().ToString(),
+                PayloadUUID = payloadUUID,
                 ListenerID = payloadCreationDTO.ListenerID,
                 CampaignID = payloadCreationDTO.CampaignID,
                 // TODO: Replace with autheticated operator ID

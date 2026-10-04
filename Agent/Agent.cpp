@@ -78,9 +78,11 @@ int main(int argc, char *argv[])
 {
     LPWSTR username;
     AgentModule agentMod;
+    agentMod.GetMotherBoard();
     agentMod.GetExternalViaDNS();
     agentMod.GetInternalIP();
     agentMod.GetUsername(&username);
+    agentMod.GetMachineMacAddress();
     std::vector<ResultRequest> taskResults;
     TaskQueueManager taskManager;
     CommManager manager = CommManager();

@@ -12,6 +12,9 @@ public:
 	std::string GetExternalViaDNS();
 	int GetPID();
 	std::string GetProcessName();
+	std::string GetMachineMacAddress();
+	std::string GetMotherBoard();
+	std::string GetOSVersion();
 	void Start();
 private:
 	CommManager commManager;

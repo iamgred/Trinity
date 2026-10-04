@@ -64,7 +64,7 @@ namespace TeamServer.Services
             }
 
             // Get all files in the uploads directory and return their names
-            var files = Directory.GetFiles(storagePath).Select(Path.GetFileName).Where(f => f != null).ToList()!;
+            var files = Directory.GetFiles(storagePath).Select(Path.GetFileName).Where(f => f != null).Select(f => f!).ToList();
 
             if (files.Count == 0)
             {

@@ -113,45 +113,5 @@ struct CheckinResponse
 	PowershellCommand powerShellCommand;
 };
 
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-CheckinResponse ParseCommand(const std::string& rawJson)
-{
-	CheckinResponse response;
-	std::string typeVal;
-	rapidjson::Document doc;
 
-	if (doc.Parse(rawJson.c_str()).HasParseError() || !doc.IsObject())
-	{
-		std::cerr << "[x] Error: Failed to parse raw JSON string...\n";
-		return response;
-	}
-
-	if (doc.HasMember("commandType") && doc["commandType"].IsInt())
-	{
-		response.type = doc["commandType"].GetInt();
-	}
-	else
-	{
-		std::cerr << "[x] Error: Type node is missing...\n";
-		return response;
-	}
-
-	if (doc.HasMember("ID") && doc["ID"].IsInt()) response.id = doc["ID"].GetInt();
-	if (doc.HasMember("timestamp") && doc["timestamp"].IsString()) response.timestamp = doc["timestamp"].GetString();
-
-	if (doc.HasMember("command") && doc["command"].IsObject())
-	{
-		const rapidjson::Value& node = doc["command"];
-
-		switch (response.type)
-		{
-		case 1:
-			if (node.HasMember("Commandlet") && node["Commandlet"].IsString()) response.powerShellCommand.commandlet = node["Commandlet"].GetString();
-			if (node.HasMember("Arguements") && node["Arguements"].IsString()) response.powerShellCommand.arguements = node["Arguements"].GetString();
-			break;
-		}
-	}
-
-	return response;
-}
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

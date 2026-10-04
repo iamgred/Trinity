@@ -23,7 +23,11 @@ add_executable (
   "base64.hpp"
   "CommandDispatcher.cpp"
   "CommandDispatcher.h"
-   "SleepObf.cpp")
+  "SleepObf.cpp"
+  "AgentModule.cpp"
+  "AgentModule.h"
+  "TaskQueueManager.cpp"
+  "TaskQueueManager.h")
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 

@@ -126,3 +126,37 @@ std::string AgentModule::GetExternalViaDNS() {
     return "";
 }
 
+std::string GetMachineMacAddress() {
+    ULONG bufferSize = 15000; 
+    std::vector<BYTE> buffer(bufferSize);
+    
+    ULONG flags = GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST;
+    PIP_ADAPTER_ADDRESSES adapterList = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+
+    // Call the Windows API
+    ULONG result = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, adapterList, &bufferSize);
+    
+    // Resize buffer if it needs more space
+    if (result == ERROR_BUFFER_OVERFLOW) {
+        buffer.resize(bufferSize);
+        adapterList = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+        result = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, adapterList, &bufferSize);
+    }
+
+    if (result == NO_ERROR) {
+        for (PIP_ADAPTER_ADDRESSES adapter = adapterList; adapter != NULL; adapter = adapter->Next) {
+            // Ensure the adapter is up and has a valid hardware MAC address (6 bytes)
+            if (adapter->OperStatus == IfOperStatusUp && adapter->PhysicalAddressLength == 6) {
+                char macBuffer[18];
+                snprintf(macBuffer, sizeof(macBuffer), "%02X:%02X:%02X:%02X:%02X:%02X",
+                         adapter->PhysicalAddress[0], adapter->PhysicalAddress[1],
+                         adapter->PhysicalAddress[2], adapter->PhysicalAddress[3],
+                         adapter->PhysicalAddress[4], adapter->PhysicalAddress[5]);
+                
+                return std::string(macBuffer); // Return the first active MAC found
+            }
+        }
+    }
+
+    return ""; // Return empty string if nothing is found
+}

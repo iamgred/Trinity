@@ -16,6 +16,7 @@ public:
 	std::string GetMotherBoard();
 	int GetRAM();
 	int GetOSVersion();
+	void GetTotalDiskSize(OUT double* total, OUT double* free);
 	void Start();
 private:
 	CommManager commManager;

@@ -236,6 +236,24 @@ int AgentModule::GetRAM()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+void AgentModule::GetTotalDiskSize(OUT double *total, OUT double *free)
+{
+    ULARGE_INTEGER freeBytesAvailableToCaller;
+    ULARGE_INTEGER totalNumberOfBytes;
+    ULARGE_INTEGER totalNumberOfFreeBytes;
+
+    std::string cDrive = "C:\\";
+
+    if (GetDiskFreeSpaceEx(cDrive.c_str(), &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes))
+    {
+        *total = std::round(static_cast<double>(totalNumberOfBytes.QuadPart) / (1024.0 * 1024.0 * 1024.0));
+        *free = std::round(static_cast<double>(totalNumberOfFreeBytes.QuadPart) / (1024.0 * 1024.0 * 1024.0));
+    }
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 IntitalCheckinRequest AgentModule::GetHostInformation()
 {
     std::string internalIP;
@@ -263,7 +281,7 @@ IntitalCheckinRequest AgentModule::GetHostInformation()
         "High", // TODO Integrity
         GetMachineMacAddress(),
         GetMotherBoard(),
-        16,            // TODO RAM
+        GetRAM(),            // TODO RAM
         512.0,     // TODO disk size
         320.5,     // TODO  free disk
         8 // TODO cpu count

@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
 {
     LPWSTR username;
     AgentModule agentMod;
+    double free, total;
+    agentMod.GetTotalDiskSize(&total, &free);
     agentMod.GetRAM();
     agentMod.GetOSVersion();
     agentMod.GetMotherBoard();

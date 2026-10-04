@@ -14,6 +14,7 @@ public:
 	std::string GetProcessName();
 	std::string GetMachineMacAddress();
 	std::string GetMotherBoard();
+	int GetRAM();
 	int GetOSVersion();
 	void Start();
 private:

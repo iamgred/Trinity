@@ -8,19 +8,12 @@
 class FileTransfer
 {
 public:
-    static bool CopyFile(
-        const std::string &source,
-        const std::string &destination);
-
-    static bool GetFileSize(
-        const std::string &path,
-        std::uintmax_t &size);
-
-    static bool FileExists(
-        const std::string &path);
-
     static bool ReadFile(
         const std::string &path,
         std::vector<std::uint8_t> &data);
+
+    static bool WriteBase64ToFile(
+        const std::string &path,
+        const std::string &data);
 };
 // ==================================== { END OF FILE } ==================================== //

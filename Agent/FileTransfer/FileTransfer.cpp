@@ -1,77 +1,72 @@
 // ==================================== { START OF FILE } ==================================== //
 #include "FileTransfer.h"
 
-#include <filesystem>
+#include <cstdint>
 #include <fstream>
+#include <vector>
 
-bool FileTransfer::CopyFile(
-    const std::string &source,
-    const std::string &destination)
+namespace
 {
-    try
+    constexpr char base64_chars[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "0123456789+/";
+
+    std::string Base64Encode(
+        const std::vector<std::uint8_t> &data)
     {
-        const std::filesystem::path sourcePath(source);
-        const std::filesystem::path destinationPath(destination);
+        std::string result;
 
-        if (!std::filesystem::is_regular_file(sourcePath))
-            return false;
+        result.reserve(((data.size() + 2) / 3) * 4);
 
-        if (std::filesystem::exists(destinationPath) &&
-            std::filesystem::equivalent(sourcePath, destinationPath))
+        std::size_t i = 0;
+
+        while (i + 2 < data.size())
         {
-            return false;
+            const std::uint32_t value =
+                (static_cast<std::uint32_t>(data[i]) << 16) |
+                (static_cast<std::uint32_t>(data[i + 1]) << 8) |
+                static_cast<std::uint32_t>(data[i + 2]);
+
+            result += base64_chars[(value >> 18) & 0x3F];
+            result += base64_chars[(value >> 12) & 0x3F];
+            result += base64_chars[(value >> 6) & 0x3F];
+            result += base64_chars[value & 0x3F];
+
+            i += 3;
         }
 
-        return std::filesystem::copy_file(
-            sourcePath,
-            destinationPath,
-            std::filesystem::copy_options::overwrite_existing);
-    }
-    catch (const std::filesystem::filesystem_error &)
-    {
-        return false;
-    }
-}
+        const std::size_t remaining = data.size() - i;
 
-bool FileTransfer::GetFileSize(
-    const std::string &path,
-    std::uintmax_t &size)
-{
-    size = 0;
+        if (remaining == 1)
+        {
+            const std::uint32_t value =
+                static_cast<std::uint32_t>(data[i]) << 16;
 
-    try
-    {
-        const std::filesystem::path filePath(path);
+            result += base64_chars[(value >> 18) & 0x3F];
+            result += base64_chars[(value >> 12) & 0x3F];
+            result += '=';
+            result += '=';
+        }
+        else if (remaining == 2)
+        {
+            const std::uint32_t value =
+                (static_cast<std::uint32_t>(data[i]) << 16) |
+                (static_cast<std::uint32_t>(data[i + 1]) << 8);
 
-        if (!std::filesystem::is_regular_file(filePath))
-            return false;
+            result += base64_chars[(value >> 18) & 0x3F];
+            result += base64_chars[(value >> 12) & 0x3F];
+            result += base64_chars[(value >> 6) & 0x3F];
+            result += '=';
+        }
 
-        size = std::filesystem::file_size(filePath);
-        return true;
-    }
-    catch (const std::filesystem::filesystem_error &)
-    {
-        return false;
-    }
-}
-
-bool FileTransfer::FileExists(
-    const std::string &path)
-{
-    try
-    {
-        return std::filesystem::is_regular_file(
-            std::filesystem::path(path));
-    }
-    catch (const std::filesystem::filesystem_error &)
-    {
-        return false;
+        return result;
     }
 }
 
 bool FileTransfer::ReadFile(
     const std::string &path,
-    std::vector<std::uint8_t> &data)
+    std::string &data)
 {
     data.clear();
 
@@ -89,20 +84,20 @@ bool FileTransfer::ReadFile(
 
     file.seekg(0, std::ios::beg);
 
-    data.resize(static_cast<std::size_t>(size));
+    std::vector<std::uint8_t> bytes(
+        static_cast<std::size_t>(size));
 
-    if (size == 0)
-        return true;
-
-    file.read(
-        reinterpret_cast<char *>(data.data()),
-        size);
-
-    if (!file)
+    if (size > 0)
     {
-        data.clear();
-        return false;
+        file.read(
+            reinterpret_cast<char *>(bytes.data()),
+            size);
+
+        if (!file)
+            return false;
     }
+
+    data = Base64Encode(bytes);
 
     return true;
 }

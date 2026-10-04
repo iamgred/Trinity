@@ -75,7 +75,7 @@ std::string Agent::GetUser() const
 int main(int argc, char *argv[])
 {
     std::vector<ResultRequest> taskResults;
-    CommManager manager("d0e055ee-4290-4bbd-abff-71fbdfcc4058", "localhost");
+    CommManager manager = CommManager();
 
     IntitalCheckinRequest dummyData = {
     "192.168.1.101",          // internalIP

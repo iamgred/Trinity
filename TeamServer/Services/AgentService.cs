@@ -94,7 +94,7 @@ namespace TeamServer.Services
             await _taskResultRepo.AddTaskResultAsync(result);
 
             var taskU = await _taskRepo.GetByIdAsync(result.TaskID);
-            taskU.StatusID = 4;
+            taskU.StatusID = StatusCacheService.GetStatusID(resultRequest.status);
             await _taskRepo.CommitAsync();
 
         Get_Task:

@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
 {
     LPWSTR username;
     AgentModule agentMod;
+    agentMod.GetOSVersion();
     agentMod.GetMotherBoard();
     agentMod.GetExternalViaDNS();
     agentMod.GetInternalIP();

@@ -14,10 +14,11 @@ public:
 	std::string GetProcessName();
 	std::string GetMachineMacAddress();
 	std::string GetMotherBoard();
-	std::string GetOSVersion();
+	int GetOSVersion();
 	void Start();
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;
 	IntitalCheckinRequest GetHostInformation();
+	std::string CaptureCommandOutput(const std::string& cmd);
 };

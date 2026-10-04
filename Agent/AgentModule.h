@@ -8,9 +8,13 @@ class AgentModule {
 public:
 	AgentModule();
 	BOOL GetUsername(OUT LPWSTR* szWhoamiStr);
-
-
+	std::string GetInternalIP();
+	std::string GetExternalViaDNS();
+	int GetPID();
+	std::string GetProcessName();
+	void Start();
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;
+	IntitalCheckinRequest GetHostInformation();
 };

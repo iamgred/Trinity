@@ -1,7 +1,17 @@
-#include "AgentModule.h"
-#include <windows.h>
-#include <stdio.h>
+#define WIN32_LEAN_AND_MEAN
+#define WINVER 0x0600
+#define _WIN32_WINNT 0x0600
 
+#include "AgentModule.h"
+#include <stdio.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+#include <windows.h>
+
+#include <iostream>
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "ws2_32.lib")
 std::string ConvertLPWSTRToStdString(LPWSTR lpwstr)
 {
 	if (!lpwstr) return "";	
@@ -54,7 +64,7 @@ _END_OF_FUNC:
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-void GetInternalIP() {
+std::string AgentModule::GetInternalIP() {
     ULONG outBufLen = 15000;
     std::vector<BYTE> buffer(outBufLen);
     PIP_ADAPTER_ADDRESSES pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
@@ -80,7 +90,7 @@ void GetInternalIP() {
                     // Convert IP binary data to a readable string string
                     if (getnameinfo((struct sockaddr*)sa_in, sizeof(sockaddr_in), ipStr, sizeof(ipStr), NULL, 0, NI_NUMERICHOST) == 0) {
                         std::wcout << L"Adapter: " << pAddresses->FriendlyName << L"\n";
-                        std::cout << "Internal IP: " << ipStr << "\n\n";
+                        return ipStr;
                     }
                     pUnicast = pUnicast->Next;
                 }
@@ -90,28 +100,29 @@ void GetInternalIP() {
     } else {
         std::cerr << "Failed to fetch internal network interfaces.\n";
     }
+    return "";
 }
 
-void GetExternalViaDNS() {
+std::string AgentModule::GetExternalViaDNS() {
     WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return "";
 
     struct addrinfo hints, *result = NULL;
     ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_INET;   
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    DWORD dwRetval = getaddrinfo("myip.opendns.com", NULL, &hints, &result);
+    DWORD dwRetval = getaddrinfo("www.google.com", NULL, &hints, &result);
     if (dwRetval == 0) {
         struct sockaddr_in* sockaddr_ipv4 = (struct sockaddr_in*)result->ai_addr;
         char ipStr[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), ipStr, INET_ADDRSTRLEN);
-        
+        return ipStr;
         freeaddrinfo(result);
     } else {
         std::cerr << "DNS Query Failed." << std::endl;
     }
     WSACleanup();
-	return ipStr;
+    return "";
 }
 

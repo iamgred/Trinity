@@ -54,4 +54,64 @@ _END_OF_FUNC:
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+void GetInternalIP() {
+    ULONG outBufLen = 15000;
+    std::vector<BYTE> buffer(outBufLen);
+    PIP_ADAPTER_ADDRESSES pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+
+    // Retrieve network adapter configurations
+    DWORD dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
+    
+    if (dwRetVal == ERROR_BUFFER_OVERFLOW) {
+        buffer.resize(outBufLen);
+        pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+        dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
+    }
+
+    if (dwRetVal == NO_ERROR) {
+        while (pAddresses) {
+            // Ignore loopback and inactive interfaces
+            if (pAddresses->IfType != IF_TYPE_SOFTWARE_LOOPBACK && pAddresses->OperStatus == IfOperStatusUp) {
+                PIP_ADAPTER_UNICAST_ADDRESS pUnicast = pAddresses->FirstUnicastAddress;
+                while (pUnicast) {
+                    sockaddr_in* sa_in = reinterpret_cast<sockaddr_in*>(pUnicast->Address.lpSockaddr);
+                    char ipStr[INET_ADDRSTRLEN];
+                    
+                    // Convert IP binary data to a readable string string
+                    if (getnameinfo((struct sockaddr*)sa_in, sizeof(sockaddr_in), ipStr, sizeof(ipStr), NULL, 0, NI_NUMERICHOST) == 0) {
+                        std::wcout << L"Adapter: " << pAddresses->FriendlyName << L"\n";
+                        std::cout << "Internal IP: " << ipStr << "\n\n";
+                    }
+                    pUnicast = pUnicast->Next;
+                }
+            }
+            pAddresses = pAddresses->Next;
+        }
+    } else {
+        std::cerr << "Failed to fetch internal network interfaces.\n";
+    }
+}
+
+void GetExternalViaDNS() {
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return;
+
+    struct addrinfo hints, *result = NULL;
+    ZeroMemory(&hints, sizeof(hints));
+    hints.ai_family = AF_INET;   
+    hints.ai_socktype = SOCK_STREAM;
+
+    DWORD dwRetval = getaddrinfo("myip.opendns.com", NULL, &hints, &result);
+    if (dwRetval == 0) {
+        struct sockaddr_in* sockaddr_ipv4 = (struct sockaddr_in*)result->ai_addr;
+        char ipStr[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), ipStr, INET_ADDRSTRLEN);
+        
+        freeaddrinfo(result);
+    } else {
+        std::cerr << "DNS Query Failed." << std::endl;
+    }
+    WSACleanup();
+	return ipStr;
+}
 

@@ -50,7 +50,6 @@ std::string Agent::ExecutePowerShell(const std::string &command)
     std::string psCommand = "powershell.exe -Command \"" + command + "\"";
     FILE *pipe = _popen(psCommand.c_str(), "r");
     if (!pipe)
-
     {
         return "Error executing PowerShell command.";
     }

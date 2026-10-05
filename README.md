@@ -26,7 +26,7 @@ When you're done, stop and remove the containers, network, and (optionally) volu
 # Video Links Used In Presentation for Code Walkthrough
 - Presentation: https://www.youtube.com/watch?v=M2PHoHGGW1Y
 - System Demo: https://www.youtube.com/watch?v=vw6UiIC5VX4
-- James Marchall: https://www.youtube.com/watch?v=nw_U1A0IO_c
-- Lyle Richardson: https://www.youtube.com/watch?v=DpOx4p39GXM&feature=youtu.be
-- Connaire Myall: https://www.youtube.com/watch?v=krvivaSBQH0
-- Simon Slingerland: https://www.youtube.com/watch?v=UXqz9NEM7fI
+- James Marchall code walkthrough: https://www.youtube.com/watch?v=nw_U1A0IO_c
+- Lyle Richardson code walkthrough: https://www.youtube.com/watch?v=DpOx4p39GXM&feature=youtu.be
+- Connaire Myall code walkthrough: https://www.youtube.com/watch?v=krvivaSBQH0
+- Simon Slingerland code walkthrough: https://www.youtube.com/watch?v=UXqz9NEM7fI

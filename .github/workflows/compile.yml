@@ -18,5 +18,5 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - run: dotnet build TeamServer/TeamServer.slnx --configuration Release
-      - run: dotnet test TeamServer/TeamServer.Tests/TeamServer.Tests.csproj --configuration Release --no-build
+      - run: dotnet test TeamServer.Tests/TeamServer.Tests.csproj --configuration Release --no-build
       - run: dotnet build Client/Client.slnx --configuration Release

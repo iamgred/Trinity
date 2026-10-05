@@ -109,8 +109,6 @@ std::wstring KeyboardInterpreter::translateToText(
     }
 
     // A negative result means a dead key.
-    //
-    // We intentionally don't emit the dead key as completed text.
     if (result < 0)
     {
         return {};

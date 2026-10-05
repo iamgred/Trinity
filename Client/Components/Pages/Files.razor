@@ -1,0 +1,475 @@
+@page "/files"
+@rendermode InteractiveServer
+@using MudBlazor
+@using Client.Components.Pages.Dialogs
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IConfiguration Config
+@inject IDialogService DialogService
+
+<style>
+    .card  { background-color:#242424; border:1px solid #333; }
+    .card-p{ background-color:#242424; border:1px solid #333; padding:16px; }
+    .muted { color:#AAAAAA !important; }
+    .white { color:white; }
+    .lnk   { color:#E87722; text-decoration:none; font-size:0.875rem; }
+    .dot   { width:8px;  height:8px;  border-radius:50%; margin-right:6px; }
+    .dot-lg{ width:10px; height:10px; border-radius:50%; margin-right:6px; }
+    .qa-btn{ text-transform:none !important; justify-content:flex-start !important; }
+</style>
+
+<!-- Page Header -->
+<div style="margin-bottom:20px;">
+    <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Files</MudText>
+    <MudText Typo="Typo.body2" Class="muted">Manage, Store and Share your files</MudText>
+</div>
+
+<!-- Stat Cards -->
+<MudGrid Spacing="3" Class="mb-4">
+    @foreach (var card in _statCards)
+    {
+        <MudItem xs="12" sm="6" md="2">
+            <MudPaper Class="card" Style="padding:20px;">
+                <div class="d-flex align-center">
+                    <MudIcon Icon="@card.Icon" Style="color:#888; font-size:2.8rem; margin-right:14px;" />
+                    <div>
+                        <MudText Typo="Typo.caption" Class="muted">@card.Label</MudText>
+                        <MudText Typo="Typo.h4" Style="color:white; font-weight:700;">@card.Value</MudText>
+                    </div>
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<!-- All Files Table + Right Charts -->
+<MudGrid Spacing="3" Class="mb-4">
+
+    <!-- All Files (left, 8 cols) -->
+    <MudItem xs="12" md="8">
+        <MudPaper Class="card" Elevation="0">
+            <div style="padding:16px 16px 0; display:flex; justify-content:space-between;
+                        align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">All Files</MudText>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                    <MudTextField @bind-Value="_search" Placeholder="Search..."
+                                  Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Style="min-width:140px;" />
+                    <MudSelect @bind-Value="_statusFilter" Label="All Status" Variant="Variant.Outlined"
+                               Margin="Margin.Dense" Style="min-width:110px;">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                        <MudSelectItem Value="@("Archived")">Archived</MudSelectItem>
+                    </MudSelect>
+                    <MudSelect @bind-Value="_typeFilter" Label="All Types" Variant="Variant.Outlined"
+                               Margin="Margin.Dense" Style="min-width:110px;">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        <MudSelectItem Value="@("PDF")">PDF</MudSelectItem>
+                        <MudSelectItem Value="@("Excel")">Excel</MudSelectItem>
+                        <MudSelectItem Value="@("Word")">Word</MudSelectItem>
+                        <MudSelectItem Value="@("Image")">Image</MudSelectItem>
+                        <MudSelectItem Value="@("ZIP")">ZIP</MudSelectItem>
+                        <MudSelectItem Value="@("Text")">Text</MudSelectItem>
+                        <MudSelectItem Value="@("PowerPoint")">PowerPoint</MudSelectItem>
+                        <MudSelectItem Value="@("MP4")">MP4</MudSelectItem>
+                    </MudSelect>
+                    <MudSelect @bind-Value="_modifiedFilter" Label="All Modified" Variant="Variant.Outlined"
+                               Margin="Margin.Dense" Style="min-width:120px;">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        <MudSelectItem Value="@("Today")">Today</MudSelectItem>
+                        <MudSelectItem Value="@("Week")">This Week</MudSelectItem>
+                        <MudSelectItem Value="@("Month")">This Month</MudSelectItem>
+                    </MudSelect>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.FileDownload"
+                               Style="text-transform:none;"
+                               OnClick="OpenExportFileDialog">Export</MudButton>
+                </div>
+            </div>
+            <MudTable T="FileModel" Items="@_files" Dense="true" Hover="true"
+                      Elevation="0" Style="background-color:transparent;">
+                <HeaderContent>
+                    <MudTh Class="muted">File Name</MudTh>
+                    <MudTh Class="muted">Type</MudTh>
+                    <MudTh Class="muted">Size</MudTh>
+                    <MudTh Class="muted">Location</MudTh>
+                    <MudTh Class="muted">Uploaded By</MudTh>
+                    <MudTh Class="muted">Modified</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd Style="color:white">@context.Name</MudTd>
+                    <MudTd Class="muted">@context.Type</MudTd>
+                    <MudTd Class="muted">@context.Size</MudTd>
+                    <MudTd Class="muted">@context.Location</MudTd>
+                    <MudTd Class="muted">@context.UploadedBy</MudTd>
+                    <MudTd Class="muted">@context.Modified</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="muted" Style="text-align:center; padding:20px;">No Files To Display</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Right Column: Storage + Type Charts -->
+    <MudItem xs="12" md="4">
+        <MudStack Spacing="3">
+
+            <!-- Storage Overview -->
+            <MudPaper Class="card-p" Elevation="0">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:16px;">Storage Overview</MudText>
+                <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                    <div style="width:130px; height:130px; border-radius:50%; border:18px solid #333;
+                                display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <div style="color:#AAA; font-size:0.75rem; text-align:center;">No Data</div>
+                    </div>
+                    <div>
+                        <div style="margin-bottom:10px;">
+                            <div class="muted" style="font-size:0.72rem; margin-bottom:2px;">Used Storage</div>
+                            <div style="color:white; font-size:0.9rem; font-weight:600;">0 GB (0%)</div>
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <div class="muted" style="font-size:0.72rem; margin-bottom:2px;">Free Storage</div>
+                            <div style="color:white; font-size:0.9rem; font-weight:600;">0 GB (0%)</div>
+                        </div>
+                        <div style="border-top:1px solid #333; padding-top:8px;">
+                            <div class="muted" style="font-size:0.75rem;">0% used of 0 TB</div>
+                        </div>
+                    </div>
+                </div>
+            </MudPaper>
+
+            <!-- File Type Distribution -->
+            <MudPaper Class="card-p" Elevation="0">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:16px;">File Type Distribution</MudText>
+                <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                    <div style="width:130px; height:130px; border-radius:50%; border:18px solid #333;
+                                display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <div style="color:#AAA; font-size:0.75rem; text-align:center;">No Data</div>
+                    </div>
+                    <div>
+                        @foreach (var item in _fileTypeLegend)
+                        {
+                            <div class="d-flex align-center" style="margin-bottom:6px;">
+                                <div class="dot-lg" style="background:@item.Color; flex-shrink:0;"></div>
+                                <MudText Typo="Typo.caption" Class="muted">@item.Label</MudText>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </MudPaper>
+
+        </MudStack>
+    </MudItem>
+
+</MudGrid>
+
+<!-- Recent Uploads + Quick Actions -->
+<MudGrid Spacing="3">
+
+    <!-- Recent Uploads (left, 8 cols) -->
+    <MudItem xs="12" md="8">
+        <MudPaper Class="card" Elevation="0">
+            <div style="padding:16px 16px 0;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">Recent Uploads</MudText>
+            </div>
+            <MudTable T="RecentUploadModel" Items="@_recentUploads" Dense="true" Hover="true"
+                      Elevation="0" Style="background-color:transparent;">
+                <HeaderContent>
+                    <MudTh Class="muted">File Name</MudTh>
+                    <MudTh Class="muted">Size</MudTh>
+                    <MudTh Class="muted">Time</MudTh>
+                    <MudTh Class="muted">Uploaded By</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <div class="white" style="font-size:0.85rem;">@context.Name</div>
+                        <div class="muted" style="font-size:0.75rem;">@context.Path</div>
+                    </MudTd>
+                    <MudTd Class="muted">@context.Size</MudTd>
+                    <MudTd Class="muted">@context.Time</MudTd>
+                    <MudTd Class="muted">@context.UploadedBy</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="muted" Style="text-align:center; padding:20px;">No Recent Uploads</MudText>
+                </NoRecordsContent>
+            </MudTable>
+            <div style="padding:12px 16px; border-top:1px solid #333;">
+                <a class="lnk" href="#">View Uploads →</a>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Quick Actions (right, 4 cols) -->
+    <MudItem xs="12" md="4">
+        <MudPaper Class="card-p" Elevation="0">
+            <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:12px;">Quick Actions</MudText>
+            <MudGrid Spacing="2">
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" StartIcon="@Icons.Material.Filled.Upload"
+                               OnClick="OpenUploadFileDialog">Upload File</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" StartIcon="@Icons.Material.Filled.Security"
+                               OnClick="OpenScanFileDialog">Scan File</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" StartIcon="@Icons.Material.Filled.FileDownload"
+                               OnClick="OpenDownloadFileDialog">Download</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" StartIcon="@Icons.Material.Filled.Share"
+                               OnClick="OpenShareFileDialog">Share File</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" StartIcon="@Icons.Material.Filled.CreateNewFolder"
+                               OnClick="OpenCreateNewFolderDialog">New Folder</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" StartIcon="@Icons.Material.Filled.FolderOpen"
+                               OnClick="OpenViewFilesDialog">View Files</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" StartIcon="@Icons.Material.Filled.CloudUpload"
+                               OnClick="OpenBulkUploadDialog">Bulk Upload</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" StartIcon="@Icons.Material.Filled.Link"
+                               OnClick="OpenGenerateLinkDialog">Gen. Link</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+@code {
+    private string _search         = string.Empty;
+    private string _statusFilter   = "All";
+    private string _typeFilter     = "All";
+    private string _modifiedFilter = "All";
+
+    private record StatCard(string Label, string Value, string Icon);
+    private StatCard[] _statCards =
+    {
+        new("Total Files",      "0", Icons.Material.Outlined.Description),
+        new("Total Folders",    "0", Icons.Material.Outlined.Folder),
+        new("Total Storage",    "0", Icons.Material.Outlined.Storage),
+        new("Files Uploaded",   "0", Icons.Material.Outlined.CloudUpload),
+        new("Files Downloaded", "0", Icons.Material.Outlined.CloudDownload),
+    };
+
+    private record FileModel(
+        string Name, string Type, string Size,
+        string Location, string UploadedBy, string Modified);
+    private List<FileModel> _files = new();
+
+    private record RecentUploadModel(
+        string Name, string Path, string Size,
+        string Time, string UploadedBy);
+    private List<RecentUploadModel> _recentUploads = new();
+
+    protected override async Task OnInitializedAsync()
+    => await LoadFilesAsync();
+
+    private async Task LoadFilesAsync()
+    {
+    try
+    {
+        var list = await Http.GetFromJsonAsync<List<string>>(
+            $"{Config["TeamServer:BaseUrl"]}/api/v1/files");
+        if (list is null) return;
+        _files = list.Select(f => new FileModel(f, "—", "—", "—", "—", "—")).ToList();
+        _statCards[0] = _statCards[0] with { Value = list.Count.ToString() };
+    }
+    catch { }
+}
+
+    private record LegendItem(string Label, string Color);
+    private LegendItem[] _fileTypeLegend =
+    {
+        new("Documents", "#4CAF50"),
+        new("Images",    "#2196F3"),
+        new("Archives",  "#E87722"),
+        new("Videos",    "#F44336"),
+        new("Others",    "#9C27B0"),
+    };
+
+    private static readonly DialogOptions _dialogOpts = new()
+    {
+        CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true
+    };
+
+    private Task OpenUploadFileDialog()
+        => DialogService.ShowAsync<UploadFileDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenScanFileDialog()
+        => DialogService.ShowAsync<ScanFileDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenDownloadFileDialog()
+        => DialogService.ShowAsync<DownloadFileDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenShareFileDialog()
+        => DialogService.ShowAsync<ShareFileDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenCreateNewFolderDialog()
+        => DialogService.ShowAsync<CreateNewFolderDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenViewFilesDialog()
+        => DialogService.ShowAsync<ViewFilesDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenBulkUploadDialog()
+        => DialogService.ShowAsync<BulkUploadDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenGenerateLinkDialog()
+        => DialogService.ShowAsync<GenerateLinkDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenExportFileDialog()
+        => DialogService.ShowAsync<ExportFileDialog>(string.Empty, new(), _dialogOpts);
+}
+
+<!-- =============================================End of Code==================================================================== -->
+<!-- Main Page References:
+    
+HttpClient.GetFromJsonAsync (System.Net.Http.Json)
+https://learn.microsoft.com/en-us/dotnet/api/system.net.http.json.httpclientjsonextensions.getfromjsonasync
+
+IConfiguration
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration
+
+Blazor OnInitializedAsync
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/lifecycle#component-initialization-oninitializedasync
+
+MudTable
+https://mudblazor.com/components/table
+
+MudSelect & MudSelectItem
+https://mudblazor.com/components/select
+
+MudTextField
+https://mudblazor.com/components/textfield
+
+MudButton
+https://mudblazor.com/components/button
+
+MudStack
+https://mudblazor.com/components/stack
+
+MudGrid & MudItem
+https://mudblazor.com/components/grid
+
+MudPaper
+https://mudblazor.com/components/paper
+
+IDialogService & DialogOptions
+https://mudblazor.com/components/dialog
+
+IFormFile (ASP.NET Core — upload side)
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.iformfile
+
+List<T>.Select (LINQ projection)
+https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.select
+
+with expression on records
+https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
+
+Respective Dialog References:
+
+MudBlazor Dialog Overview
+https://mudblazor.com/components/dialog
+
+IDialogService — ShowAsync, Show, Close
+https://mudblazor.com/api/mudblazor.idialogservice
+
+MudDialog — root component (Actions, Content, TitleContent slots)
+https://mudblazor.com/api/mudblazor.muddialog
+
+MudDialogInstance — Close()/Cancel() from within a dialog
+https://mudblazor.com/api/mudblazor.muddialoginstance
+
+MudDialogProvider — place once in MainLayout
+https://mudblazor.com/api/mudblazor.muddialogprovider
+
+DialogOptions — FullWidth, MaxWidth, CloseOnEscapeKey, BackdropClick
+https://mudblazor.com/api/mudblazor.dialogoptions
+
+DialogParameters — passing typed data into a dialog
+https://mudblazor.com/api/mudblazor.dialogparameters
+
+DialogResult — what a dialog returns on close
+https://mudblazor.com/api/mudblazor.dialogresult
+
+IDialogReference.Result — awaiting the return value
+https://mudblazor.com/components/dialog#dialog-result
+
+MaxWidth enum (ExtraSmall → ExtraExtraLarge)
+https://mudblazor.com/api/mudblazor.maxwidth
+
+MudFileUpload — primary control for upload/bulk-upload dialogs
+https://mudblazor.com/components/fileupload
+
+IBrowserFile / InputFileChangeEventArgs — handling file streams
+https://learn.microsoft.com/en-us/aspnet/core/blazor/file-uploads
+
+MudProgressLinear — upload progress bar
+https://mudblazor.com/components/progress
+
+MudTextField — folder name, share link, generated link display
+https://mudblazor.com/components/textfield
+
+MudIconButton (content_copy) — copy link to clipboard
+https://mudblazor.com/components/iconbutton
+
+JSInterop navigator.clipboard.writeText — copy to clipboard from Blazor
+https://learn.microsoft.com/en-us/aspnet/core/blazor/javascript-interoperability/call-javascript-from-dotnet
+
+MudSelect — export format picker (ZIP, RAW, etc.)
+https://mudblazor.com/components/select
+
+MudSwitch — share permissions toggles (read/write/expiry)
+https://mudblazor.com/components/switch
+
+MudChip — tags in ShareFileDialog
+https://mudblazor.com/components/chip
+
+MudAlert — scan result display (safe / threat found)
+https://mudblazor.com/components/alert
+
+MudTable inside dialog — ViewFilesDialog file listing
+https://mudblazor.com/components/table
+
+MudDivider — section separator inside dialogs
+https://mudblazor.com/components/divider
+
+MudProgressCircular — loading spinner while fetching
+https://mudblazor.com/components/progress
+
+Scrollable dialog for long content
+https://mudblazor.com/components/dialog#scrollable-dialog
+
+Blazor [Parameter] on dialog components
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/index#component-parameters
+
+CascadingParameter MudDialogInstance
+https://mudblazor.com/components/dialog#pass-data-to-dialog
+
+Services References For This Page:
+
+HttpClient.GetFromJsonAsync<List<string>>
+https://learn.microsoft.com/en-us/dotnet/api/system.net.http.json.httpclientjsonextensions.getfromjsonasync
+
+IConfiguration indexer — Config["TeamServer:BaseUrl"]
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration
+
+IJSRuntime.InvokeVoidAsync — navigator.clipboard.writeText
+https://learn.microsoft.com/en-us/aspnet/core/blazor/javascript-interoperability/call-javascript-from-dotnet
+
+navigator.clipboard.writeText (MDN)
+https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/writeText
+
+IDialogService.ShowAsync<TDialog>(parameters, options)
+https://mudblazor.com/api/mudblazor.idialogservice
+
+ISnackbar.Add(message, Severity)
+https://mudblazor.com/components/snackbar-->

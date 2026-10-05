@@ -1,0 +1,46 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Report Templates</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudTable Items="_templates" Dense="true" Hover="true"
+                  Style="background:transparent;" RowStyle="border-bottom:1px solid #2A2A2A;">
+            <HeaderContent>
+                <MudTh Style="color:#AAAAAA; font-size:0.78rem;">Name</MudTh>
+                <MudTh Style="color:#AAAAAA; font-size:0.78rem;">Category</MudTh>
+                <MudTh Style="color:#AAAAAA; font-size:0.78rem;"></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="color:white; font-size:0.85rem;">@context.Name</MudTd>
+                <MudTd Style="color:#AAAAAA; font-size:0.85rem;">@context.Category</MudTd>
+                <MudTd>
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined"
+                               Style="border-color:#E87722; color:#E87722;"
+                               OnClick="@(() => UseTemplate(context.Name))">Use Template</MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private record TemplateModel(string Name, string Category);
+    private TemplateModel[] _templates =
+    {
+        new("Client Summary",    "Client"),
+        new("Campaign Overview", "Campaign"),
+        new("Threat Analysis",   "Security"),
+        new("Weekly Activity",   "Activity"),
+        new("System Status",     "System"),
+    };
+    private void UseTemplate(string name) { }
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

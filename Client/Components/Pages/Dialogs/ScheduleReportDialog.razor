@@ -1,0 +1,67 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Schedule Report</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudTextField @bind-Value="_reportName" Label="Report Name" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Class="mb-4" />
+        <MudSelect @bind-Value="_reportType" Label="Report Type" Variant="Variant.Outlined"
+                   Margin="Margin.Dense" FullWidth="true" Class="mb-4">
+            <MudSelectItem Value="@("PDF")">PDF</MudSelectItem>
+            <MudSelectItem Value="@("DOCX")">DOCX</MudSelectItem>
+            <MudSelectItem Value="@("CSV")">CSV</MudSelectItem>
+            <MudSelectItem Value="@("Excel")">Excel</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_fields" Label="Select Fields" Variant="Variant.Outlined"
+                   Margin="Margin.Dense" FullWidth="true" Class="mb-4">
+            <MudSelectItem Value="@("All")">All</MudSelectItem>
+            <MudSelectItem Value="@("Basic")">Basic</MudSelectItem>
+            <MudSelectItem Value="@("Advanced")">Advanced</MudSelectItem>
+            <MudSelectItem Value="@("Custom")">Custom</MudSelectItem>
+        </MudSelect>
+        <MudTextField @bind-Value="_desc" Label="Description" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Lines="4" Class="mb-4" />
+        <MudDivider Style="background-color:#333; height:1px; margin-bottom:16px;" />
+        <MudText Typo="Typo.caption" Style="color:#AAAAAA; display:block; margin-bottom:12px;">Schedule Settings</MudText>
+        <MudGrid Spacing="2">
+            <MudItem xs="6">
+                <MudSelect @bind-Value="_scheduleDate" Label="Date" Variant="Variant.Outlined"
+                           Margin="Margin.Dense" FullWidth="true">
+                    <MudSelectItem Value="@("Today")">Today</MudSelectItem>
+                    <MudSelectItem Value="@("Tomorrow")">Tomorrow</MudSelectItem>
+                    <MudSelectItem Value="@("This Week")">This Week</MudSelectItem>
+                    <MudSelectItem Value="@("Next Week")">Next Week</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="6">
+                <MudSelect @bind-Value="_scheduleTime" Label="Time" Variant="Variant.Outlined"
+                           Margin="Margin.Dense" FullWidth="true">
+                    <MudSelectItem Value="@("06:00")">06:00</MudSelectItem>
+                    <MudSelectItem Value="@("09:00")">09:00</MudSelectItem>
+                    <MudSelectItem Value="@("12:00")">12:00</MudSelectItem>
+                    <MudSelectItem Value="@("15:00")">15:00</MudSelectItem>
+                    <MudSelectItem Value="@("18:00")">18:00</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" Style="border-color:#E87722; color:#E87722; min-width:100px;">Generate</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _reportName = string.Empty;
+    private string _reportType = "PDF";
+    private string _fields = "All";
+    private string _desc = string.Empty;
+    private string _scheduleDate = "Today";
+    private string _scheduleTime = "09:00";
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

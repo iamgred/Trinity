@@ -1,0 +1,43 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Select Target</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudSelect @bind-Value="_os" T="string" Label="Operating System"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("windows")">Windows</MudSelectItem>
+            <MudSelectItem Value="@("linux")">Linux</MudSelectItem>
+            <MudSelectItem Value="@("macos")">macOS</MudSelectItem>
+            <MudSelectItem Value="@("android")">Android</MudSelectItem>
+            <MudSelectItem Value="@("ios")">iOS</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_agentGroup" T="string" Label="Agent Group"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("none")">— No groups configured —</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_level" T="string" Label="Level"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("user")">User</MudSelectItem>
+            <MudSelectItem Value="@("admin")">Administrator</MudSelectItem>
+            <MudSelectItem Value="@("system")">SYSTEM</MudSelectItem>
+        </MudSelect>
+        <MudTextField @bind-Value="_ip" Label="IP Address" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Placeholder="192.168.1.1" Class="mb-2" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _os = "windows";
+    private string _agentGroup = "none";
+    private string _level = "user";
+    private string _ip = string.Empty;
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

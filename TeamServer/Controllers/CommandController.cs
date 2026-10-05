@@ -5,7 +5,7 @@ using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Enums;
-using Trinity.Shared.DTOs.Commands;
+//using Trinity.Shared.DTOs.Commands;
 namespace TeamServer.Controllers
 {
     [Route(Routes.Commands)]

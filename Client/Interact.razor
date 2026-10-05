@@ -1,0 +1,117 @@
+@page "/agents/{AgentId:int}/interact"
+@rendermode InteractiveServer
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using MudBlazor
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.SignalR.Client
+@using Client.Interpreter
+@using Client.Services
+@implements IAsyncDisposable
+
+@inject CommandInterpreter Interpreter
+@inject TaskApiService TaskService
+@inject IConfiguration Config
+
+<PageTitle>Agent @AgentId — Interact</PageTitle>
+
+<MudText Typo="Typo.h6" Class="mb-3">Agent @AgentId</MudText>
+
+<div class="d-flex flex-column" style="height: calc(100vh - 180px);">
+    <MudPaper Class="flex-grow-1 overflow-auto pa-3 mb-3"
+              Style="background:#1e1e1e; font-family:monospace; font-size:0.85rem;">
+        @foreach (var line in _outputs)
+        {
+            <div style="color:#d4d4d4; white-space:pre-wrap;">@line</div>
+        }
+    </MudPaper>
+
+    <div class="d-flex align-center gap-2">
+        <MudTextField @bind-Value="_inputText"
+                      Placeholder="powershell whoami"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.Start"
+                      AdornmentText=">"
+                      OnKeyDown="OnKeyDownAsync"
+                      Immediate="true"
+                      Class="flex-grow-1"
+                      Style="font-family:monospace;" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="SendCommandAsync" Disabled="_sending">Send</MudButton>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int AgentId { get; set; }
+
+    private HubConnection? _hubConnection;
+    private List<string>   _outputs   = [];
+    private string         _inputText = string.Empty;
+    private bool           _sending;
+
+   protected override async Task OnInitializedAsync()
+{
+    string baseUrl = Config["TeamServer:BaseUrl"]!;
+    _hubConnection = new HubConnectionBuilder()
+        .WithUrl($"{baseUrl}/register")
+        .WithAutomaticReconnect()
+        .Build();
+
+    _hubConnection.On<string>("RecieveTaskOutput", async output =>
+    {
+        _outputs.Add(output);
+        await InvokeAsync(StateHasChanged);
+    });
+
+    try
+    {
+        await _hubConnection.StartAsync();
+        _outputs.Add("[+] Connected to TeamServer");
+    }
+    catch (Exception ex)
+    {
+        _outputs.Add($"[-] Could not connect to TeamServer: {ex.Message}");
+    }
+
+    _outputs.Add($"[*] Interacting with agent {AgentId}");
+}
+
+    private async Task SendCommandAsync()
+    {
+        string input = _inputText.Trim();
+        if (string.IsNullOrEmpty(input)) return;
+
+        _inputText = string.Empty;
+        _outputs.Add($"> {input}");
+
+        _sending = true;
+        try
+        {
+            var dto      = Interpreter.ProcessRawInput(input);
+            var route    = Interpreter.GetCommandEndpoint(dto);
+            var endpoint = $"/api/v1/agents/{AgentId}{route}";
+
+            var result = await TaskService.PostCommandAsync(endpoint, dto);
+            _outputs.Add(result is not null
+                ? $"[+] Task queued — ID: {result.TaskID}"
+                : "[-] TeamServer did not accept the command.");
+        }
+        catch (NotSupportedException ex) { _outputs.Add($"[!] {ex.Message}"); }
+        catch (Exception ex)             { _outputs.Add($"[!] Error: {ex.Message}"); }
+        finally
+        {
+            _sending = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnKeyDownAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SendCommandAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+            await _hubConnection.DisposeAsync();
+    }
+}

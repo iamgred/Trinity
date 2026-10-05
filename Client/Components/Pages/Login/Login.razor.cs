@@ -1,12 +1,11 @@
-using Microsoft.AspNetCore.Components;
 using Client.Services;
+using Microsoft.AspNetCore.Components;
 
 namespace Client.Components.Pages.Login;
 
 public partial class Login
 {
-    [Inject]
-    private NavigationManager Nav { get; set; } = default!;
+    // Nav is already injected via @inject in Login.razor — don't redeclare it here
 
     [Inject]
     private TeamServerConnection TeamServerConnection { get; set; } = default!;

@@ -1,0 +1,66 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <MudIcon Icon="@Icons.Material.Filled.Description" Style="color:#E87722;" />
+            <MudText Typo="Typo.h6" Style="color:white; font-weight:600;">Campaign Templates</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:12px;" />
+        <div style="padding:4px 0;">
+            <MudTable Items="@_templates" T="TemplateModel" Hover="true" Dense="true"
+                      Elevation="0" Style="background:transparent;">
+                <HeaderContent>
+                    <MudTh Style="color:#E87722; font-weight:600;">Template Name</MudTh>
+                    <MudTh Style="color:#E87722; font-weight:600;">Category</MudTh>
+                    <MudTh Style="color:#E87722; font-weight:600;">Action</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Template Name" Style="color:white;">@context.Name</MudTd>
+                    <MudTd DataLabel="Category" Class="muted">@context.Category</MudTd>
+                    <MudTd DataLabel="Action">
+                        <MudButton Variant="Variant.Filled" Size="Size.Small"
+                                   Style="background:#E87722; color:white; text-transform:none; border-radius:12px;"
+                                   OnClick="@(() => UseTemplate(context))">
+                            Use Template
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <div style="display:flex; justify-content:flex-end; width:100%; padding:4px 0 0 0;">
+            <MudButton Variant="Variant.Filled"
+                       Style="background:#E87722; color:white; text-transform:none; border-radius:24px; min-width:120px;"
+                       OnClick="@Confirm">
+                Confirm
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private record TemplateModel(string Name, string Category);
+
+    private readonly List<TemplateModel> _templates = new()
+    {
+        new("Phishing Simulation",         "Phishing"),
+        new("Security Awareness Training", "Awareness"),
+        new("Malware Simulation",          "Malware"),
+        new("Vulnerability Assessment",    "Assessment"),
+        new("Ransomware Simulation",       "Ransomware"),
+    };
+
+    private void UseTemplate(TemplateModel template)
+    {
+        // TODO: pre-fill Create New Campaign dialog with selected template
+    }
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}

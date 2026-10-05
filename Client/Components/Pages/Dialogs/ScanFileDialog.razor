@@ -1,0 +1,67 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Scan File</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <div style="background-color:#1A1A1A; border:2px dashed #444; border-radius:6px;
+                    padding:48px 24px; text-align:center; cursor:pointer;" @onclick="TriggerBrowse">
+            <MudIcon Icon="@Icons.Material.Outlined.Security"
+                     Style="color:#E87722; font-size:4rem; display:block; margin:0 auto;" />
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+            <InputFile id="scan-file-input" OnChange="OnFileSelected" style="display:none;" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FolderOpen"
+                       Style="text-transform:none; min-width:110px;"
+                       OnClick="TriggerBrowse">Browse</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.BugReport"
+                       Style="text-transform:none; min-width:110px;"
+                       Disabled="@(string.IsNullOrEmpty(_fileName) || _scanning)"
+                       OnClick="RunScan">@(_scanning ? "Scanning…" : "Scan")</MudButton>
+        </div>
+        @if (!string.IsNullOrEmpty(_fileName))
+        {
+            <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+                <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Style="color:#E87722;" />
+                <span style="color:#ccc; font-size:0.85rem;">@_fileName</span>
+            </div>
+        }
+        <p style="color:#AAAAAA; font-size:0.75rem; margin:14px 0 6px;
+                  text-transform:uppercase; letter-spacing:0.05em;">Results Output</p>
+        <div style="background-color:#0a0a0a; border:1px solid #333; border-radius:4px;
+                    padding:12px; min-height:100px; font-family:'Courier New',monospace;
+                    font-size:0.75rem; color:#00ff41; white-space:pre-wrap; word-break:break-all;">@_results</div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _fileName = string.Empty;
+    private bool   _scanning = false;
+    private string _results  = "// No scan run yet.\n// Browse for a file and click Scan.";
+    private async Task TriggerBrowse()
+        => await JS.InvokeVoidAsync("eval", "document.getElementById('scan-file-input').click()");
+    private void OnFileSelected(InputFileChangeEventArgs e) => _fileName = e.File.Name;
+    private async Task RunScan()
+    {
+        _scanning = true;
+        _results  = $"[{DateTime.Now:HH:mm:ss}] Scanning '{_fileName}'...\n";
+        StateHasChanged();
+        await Task.Delay(800);
+        // TODO: replace with backend scan API call
+        _results += $"[{DateTime.Now:HH:mm:ss}] Backend not connected — stub response.\n";
+        _scanning = false;
+        StateHasChanged();
+    }
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

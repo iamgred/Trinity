@@ -1,0 +1,68 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <MudIcon Icon="@Icons.Material.Filled.AddCircleOutline" Style="color:#E87722;" />
+            <MudText Typo="Typo.h6" Style="color:white; font-weight:600;">Create New Campaign</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <div style="display:flex; flex-direction:column; gap:16px;">
+            <MudTextField @bind-Value="_name" Label="Campaign Name" Variant="Variant.Outlined"
+                          Placeholder="Enter campaign name" FullWidth="true" />
+            <div>
+                <MudTextField @bind-Value="_description" Label="Description" Variant="Variant.Outlined"
+                              Lines="4" MaxLength="200" FullWidth="true"
+                              Placeholder="Enter a brief description of the campaign" />
+                <div style="text-align:right; margin-top:4px;">
+                    <span style="color:#555; font-size:0.75rem;">@(_description.Length)/200</span>
+                </div>
+            </div>
+            <MudSelect @bind-Value="_campaignType" Label="Campaign Type" Variant="Variant.Outlined" FullWidth="true">
+                <MudSelectItem Value="@("")" Disabled="true">Select Type</MudSelectItem>
+                <MudSelectItem Value="@("Phishing")">Phishing</MudSelectItem>
+                <MudSelectItem Value="@("Awareness")">Security Awareness</MudSelectItem>
+                <MudSelectItem Value="@("Malware")">Malware Simulation</MudSelectItem>
+                <MudSelectItem Value="@("Assessment")">Vulnerability Assessment</MudSelectItem>
+                <MudSelectItem Value="@("Ransomware")">Ransomware Simulation</MudSelectItem>
+            </MudSelect>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <MudSelect @bind-Value="_targetGroup" Label="Target" Variant="Variant.Outlined"
+                           Style="flex:1; min-width:150px;">
+                    <MudSelectItem Value="@("")" Disabled="true">Select Client or Group</MudSelectItem>
+                </MudSelect>
+                <MudSelect @bind-Value="_delivery" Label="Delivery" Variant="Variant.Outlined"
+                           Style="flex:1; min-width:150px;">
+                    <MudSelectItem Value="@("")" Disabled="true">Select Delivery</MudSelectItem>
+                    <MudSelectItem Value="@("Email")">Email</MudSelectItem>
+                    <MudSelectItem Value="@("SMS")">SMS</MudSelectItem>
+                    <MudSelectItem Value="@("Web")">Web</MudSelectItem>
+                </MudSelect>
+            </div>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <div style="display:flex; justify-content:flex-end; width:100%; padding:4px 0 0 0;">
+            <MudButton Variant="Variant.Filled"
+                       Style="background:#E87722; color:white; text-transform:none; border-radius:24px; min-width:120px;"
+                       OnClick="@Confirm">
+                Confirm
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private string _name         = string.Empty;
+    private string _description  = string.Empty;
+    private string _campaignType = string.Empty;
+    private string _targetGroup  = string.Empty;
+    private string _delivery     = string.Empty;
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}

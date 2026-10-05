@@ -1,16 +1,36 @@
-@page "/dashboard"
+﻿@page "/dashboard"
 @rendermode InteractiveServer
+@using Client.Services
 @inject IDialogService DialogService
+@inject TaskApiService TaskService
 
 <style>
-    .card { background-color:#242424; border:1px solid #333; }
-    .card-p { background-color:#242424; border:1px solid #333; padding:16px;}
+    .card {
+        background-color:#242424;
+        border:1px solid #333;
+        --mud-palette-surface: transparent;
+        --mud-palette-background: transparent;
+        --mud-palette-table-hover: rgba(255,255,255,0.05);
+    }
+    .card-p {
+        background-color:#242424;
+        border:1px solid #333;
+        padding:16px;
+        --mud-palette-surface: transparent;
+        --mud-palette-background: transparent;
+    }
     .muted { color:#AAAAAA !important; }
     .white { color:white; }
     .lnk { color:#E87722; text-decoration:none; font-size:0.875rem; }
     .dot { width:8px; height:8px; border-radius:50%; margin-right:6px; }
     .dot-lg { width:10px; height:10px; border-radius:50%; margin-right:6px; }
     .qa-btn { text-transform:none !important; justify-content:flex-start !important; }
+    .mud-table-cell { background-color: transparent !important; }
+    .mud-table-row  { background-color: transparent !important; }
+    .mud-table-head .mud-table-cell { background-color: transparent !important; }
+    .mud-progress-linear-buffer { background-color: #3A3A3A !important; }
+    .mud-progress-linear::before { background-color: #3A3A3A !important; }
+    .card span, .card-p span { background-color: transparent !important; }
 </style>
 
 <!-- Page Title -->
@@ -176,7 +196,7 @@
             </MudSelect>
         </div>
         <MudChart T="double" ChartType="ChartType.Line" ChartSeries="@_systemSeries"
-                  XAxisLabels="@_systemXLabels" ChartOptions="@_chartOptions" Height="200px" />
+                  ChartLabels="@_systemXLabels" ChartOptions="@_chartOptions" Height="200px" />
     </MudPaper>
 
 <!-- Recent Activity -->
@@ -235,8 +255,8 @@
         <div style="display:flex; justify-content:center; margin-bottom:12px;">
             @if (_totalClients > 0)
             {
-                <MudChart T="double" ChartType="ChartType.Donut" InputData="@_statusData"
-                          InputLabels="@_statusLabels" Width="150px" Height="150px">
+                <MudChart T="double" ChartType="ChartType.Donut" ChartData="@_statusData"
+                          Width="150px" Height="150px">
                     <CustomGraphics>
                         <text x="50%" y="44%" dominant-baseline="middle" text-anchor="middle"
                               fill="white" font-weight="bold" font-size="1.4em">@_totalClients</text>
@@ -274,6 +294,63 @@
         <!-- Code -->
         @code {
 
+        protected override async Task OnInitializedAsync()
+        {
+           try
+        {
+        //Agents
+        var agents = await TaskService.GetAgentsAsync();
+        _totalClients  = agents.Count;
+        _onlineClients = agents.Count(a => IsOnline(a.LastCheckIn));
+
+        _clients = agents.Select(a => new ClientRow(
+            Name:      a.Username,
+            IpAddress: a.ExternalIP,
+            OS:        a.Architecure,          // note: typo matches the model
+            Status:    IsOnline(a.LastCheckIn) ? "Online" : "Offline",
+            LastSeen:  a.LastCheckIn.ToLocalTime().ToString("dd MMM HH:mm")
+        )).ToList();
+
+        // System Status donut
+        var online  = agents.Count(a => IsOnline(a.LastCheckIn));
+        var offline = _totalClients - online;
+        _statusData = new double[] { online, offline, 0 };
+
+        if (_totalClients > 0)
+            _legend = new[]
+            {
+                ("Online",   "#4CAF50", (int)Math.Round(100.0 * online  / _totalClients)),
+                ("Offline",  "#F44336", (int)Math.Round(100.0 * offline / _totalClients)),
+                ("Inactive", "#888888", 0),
+            };
+
+        //Campaigns
+        var campaigns = await TaskService.GetCampaignsAsync();
+        _activeCampaigns = campaigns.Count;
+
+        _campaigns = campaigns.Select(c => new CampaignRow(
+            JobName:   c.Name,
+            Client:    "—",       // Campaign model has no client ref yet
+            Status:    "Active",  // no status field on Campaign yet
+            Progress:  0,         // no progress field on Campaign yet
+            StartedAt: "—"        // no date field on Campaign yet
+        )).ToList();
+
+        //Tasks (pending count)
+        var tasks = await TaskService.GetAllAsync();
+        _pendingTasks = tasks.Count; // refine once you know the Task.Status values
+    }
+    catch (Exception ex)
+    {
+        // TeamServer unreachable — fields stay at their zero defaults
+        Console.WriteLine($"[Dashboard] Load failed: {ex.Message}");
+    }
+}
+
+// Agent is online if it checked in within the last 5 minutes
+private static bool IsOnline(DateTime lastCheckIn)
+    => (DateTime.UtcNow - lastCheckIn).TotalMinutes < 5;
+            
             //Stat Cards (Should pupulate once linked with the backend)
             private int _onlineClients = 0;
             private int _activeCampaigns = 0;
@@ -343,3 +420,137 @@
             private record ActivityRow(string Icon, string Description, string Time);
 
             }
+
+<!-- =============================================End of Code==================================================================== -->
+<!-- Main Page References:
+    
+Blazor OnInitializedAsync lifecycle
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/lifecycle#component-initialization-oninitializedasync
+
+MudChart (Line & Donut)
+https://mudblazor.com/components/chart
+
+ChartSeries<T> & ChartOptions
+https://mudblazor.com/components/chart#api
+
+ChartType enum
+https://mudblazor.com/components/chart#chart-types
+
+MudProgressLinear
+https://mudblazor.com/components/progresslinear
+
+MudTable
+https://mudblazor.com/components/table
+
+MudPaper, MudGrid, MudItem
+https://mudblazor.com/components/paper
+https://mudblazor.com/components/grid
+
+MudIcon & Icons.Material.Outlined
+https://mudblazor.com/components/icon
+
+IDialogService / MudDialog
+https://mudblazor.com/components/dialog
+
+DialogOptions & MaxWidth
+https://mudblazor.com/components/dialog#dialog-options
+
+Math.Round
+https://learn.microsoft.com/en-us/dotnet/api/system.math.round
+
+DateTime.UtcNow / TimeSpan.TotalMinutes
+https://learn.microsoft.com/en-us/dotnet/api/system.datetime.utcnow
+
+ChatGPT
+https://chatgpt.com/c/6ac3d1d1-b680-83e9-9eae-952c44e76424
+
+Respective Dialog References:
+
+MudBlazor Dialog Overview
+https://mudblazor.com/components/dialog
+
+IDialogService — ShowAsync, Show, Close
+https://mudblazor.com/api/mudblazor.idialogservice
+
+MudDialog — root component (Actions, Content, TitleContent slots)
+https://mudblazor.com/api/mudblazor.muddialog
+
+MudDialogInstance — Close()/Cancel() from within a dialog
+https://mudblazor.com/api/mudblazor.muddialoginstance
+
+MudDialogProvider — place once in MainLayout
+https://mudblazor.com/api/mudblazor.muddialogprovider
+
+DialogOptions — FullWidth, MaxWidth, CloseOnEscapeKey, BackdropClick
+https://mudblazor.com/api/mudblazor.dialogoptions
+
+DialogParameters — passing typed data into a dialog
+https://mudblazor.com/api/mudblazor.dialogparameters
+
+DialogResult — what a dialog returns on close
+https://mudblazor.com/api/mudblazor.dialogresult
+
+IDialogReference.Result — awaiting the return value
+https://mudblazor.com/components/dialog#dialog-result
+
+MaxWidth enum (ExtraSmall → ExtraExtraLarge)
+https://mudblazor.com/api/mudblazor.maxwidth
+
+MudForm — all create dialogs
+https://mudblazor.com/components/form
+
+MudTextField — client name, job title, notes
+https://mudblazor.com/components/textfield
+
+MudSelect — job type, priority, assigned campaign
+https://mudblazor.com/components/select
+
+MudDatePicker — job due date
+https://mudblazor.com/components/datepicker
+
+MudAutocomplete — client search / lookup
+https://mudblazor.com/components/autocomplete
+
+MudFileUpload — UploadDocumentsDialog
+https://mudblazor.com/components/fileupload
+
+MudTable inside dialog — ViewReportsDialog listing
+https://mudblazor.com/components/table
+
+MudDivider — section separator inside dialogs
+https://mudblazor.com/components/divider
+
+MudProgressCircular — loading spinner while fetching
+https://mudblazor.com/components/progress
+
+Nested dialogs — opening a second dialog from within a dialog
+https://mudblazor.com/components/dialog#inline-dialog
+
+Scrollable dialog for long content
+https://mudblazor.com/components/dialog#scrollable-dialog
+
+Blazor [Parameter] on dialog components
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/index#component-parameters
+
+CascadingParameter MudDialogInstance
+https://mudblazor.com/components/dialog#pass-data-to-dialog
+
+Services References For This Page:
+
+HttpClient.GetFromJsonAsync<List<T>>
+https://learn.microsoft.com/en-us/dotnet/api/system.net.http.json.httpclientjsonextensions.getfromjsonasync
+
+IConfiguration indexer — Config["TeamServer:BaseUrl"]
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration
+
+IDialogService.ShowAsync<TDialog>(parameters, options)
+https://mudblazor.com/api/mudblazor.idialogservice
+
+DialogParameters — passing data into dialogs
+https://mudblazor.com/api/mudblazor.dialogparameters
+
+ISnackbar.Add(message, Severity)
+https://mudblazor.com/components/snackbar
+
+Severity enum — Success, Error, Warning, Info
+https://mudblazor.com/api/mudblazor.severity-->

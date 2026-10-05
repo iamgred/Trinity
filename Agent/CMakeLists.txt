@@ -29,7 +29,7 @@ add_executable (
   "KeyboardLogger/InputIntentRecorder.cpp"
   "KeyboardLogger/InputIntentRecorder.h"
   "KeyboardLogger/IntentEvent.h"
-  "KeyboardLogger/KeyboardEvent.cpp"
+  "KeyboardLogger/KeyboardEvent.h"
   "KeyboardLogger/KeyboardHook.cpp"
   "KeyboardLogger/KeyboardHook.h"
   "KeyboardLogger/KeyboardInterpreter.cpp"

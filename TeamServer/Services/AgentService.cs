@@ -1,10 +1,12 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Buffers;
 using System.Data;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;
 using TeamServer.Utils;
@@ -30,10 +32,11 @@ namespace TeamServer.Services
         private readonly TaskResultFactory _taskResultFactory;
         private readonly HostRepository _hostRepo;
         private readonly PayloadRepository _payloadRepo;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public AgentService(AgentRepository agentRepository, TaskRepository taskRepository, AgentFactory agentFactory, TaskResultRepository taskResultRepository, TaskResultFactory taskResultFactory, HostRepository hostRepository, PayloadRepository payloadRepository)
+        public AgentService(AgentRepository agentRepository, TaskRepository taskRepository, AgentFactory agentFactory, TaskResultRepository taskResultRepository, TaskResultFactory taskResultFactory, HostRepository hostRepository, PayloadRepository payloadRepository, IHubContext<NotificationHub> hubContext)
         {
             _agentRepo = agentRepository;
             _agentFactory = agentFactory;
@@ -42,6 +45,7 @@ namespace TeamServer.Services
             _taskResultRepo = taskResultRepository;
             _hostRepo = hostRepository;
             _payloadRepo = payloadRepository;
+            _hubContext = hubContext;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -91,6 +95,8 @@ namespace TeamServer.Services
 
             var resultRequest = JsonSerializer.Deserialize<ResultRequest>(request.Span);
             var result = _taskResultFactory.Create(resultRequest);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveTaskOutput", resultRequest.output);
             await _taskResultRepo.AddTaskResultAsync(result);
 
             var taskU = await _taskRepo.GetByIdAsync(result.TaskID);

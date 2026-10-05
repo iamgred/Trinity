@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using TeamServer.ExceptionHandlers;
 using TeamServer.Interface;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
@@ -58,6 +59,9 @@ namespace TeamServer
             builder.Services.AddScoped<AdminRepository>();
             builder.Services.AddScoped<HostRepository>();
 
+            // SignalR
+            builder.Services.AddSignalR();
+
             // Exception handler
             builder.Services.AddSingleton<GlobalExceptionHandler>();
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -88,6 +92,7 @@ namespace TeamServer
                 });
             }
 
+            app.MapHub<NotificationHub>("/register");
             app.UseExceptionHandler();
             app.UseHttpsRedirection();
             app.UseAuthorization();

@@ -1,11 +1,16 @@
+using Microsoft.AspNetCore.Components;
+
 namespace Client.Components.Pages.Login;
-//All of this is mock data for UI testing, can be removed without issue
+
 public partial class Login
 {
+    [Inject]
+    private NavigationManager Nav { get; set; } = default!;
+
     private bool _showPassword;
 
     private void HandleLogin()
     {
-        Nav.NavigateTo("/clients");
+        Nav.NavigateTo("/dashboard");
     }
 }

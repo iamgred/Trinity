@@ -11,4 +11,8 @@
     <PackageReference Include="MudBlazor" Version="9.11.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Trinity.Shared\Trinity.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

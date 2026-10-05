@@ -1,5 +1,6 @@
 using MudBlazor.Services;
 using Client.Components;
+using Client.Services;
 
 namespace Client
 {
@@ -15,6 +16,13 @@ namespace Client
             
             // Registers MudBlazor Components
             builder.Services.AddMudServices();
+            builder.Services.AddScoped<TeamServerConnection>();
+            builder.Services.AddHttpClient<AgentApiClient>();
+            builder.Services.AddHttpClient<TaskApiClient>();
+            builder.Services.AddHttpClient<AuthApiClient>();
+            builder.Services.AddHttpClient<ListenerApiClient>();
+            builder.Services.AddHttpClient<CommandApiClient>();
+            builder.Services.AddHttpClient<ServerApiClient>();
 
             var app = builder.Build();
 

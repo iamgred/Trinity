@@ -1,17 +1,23 @@
 using System.Globalization;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text;
+using Client.Services;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using Trinity.Shared.DTOs.Task;
 
 namespace Client.Components.Pages.Logs;
-//All of this is mock data for UI testing, can be removed without issue
 public partial class Logs
 {
     private class LogRow
     {
-        public string Timestamp = "31/01/2026  12:00";
+        public string Timestamp = "";
         public string Level = "INFO";
         public string Source = "";
         public string Event = "";
         public string User = "";
-        public string Ip = "";
+        public string Ip = "Not provided";
     }
 
     private record ClientCount(string Name, int Count, double Percent);
@@ -26,6 +32,16 @@ public partial class Logs
     private readonly List<SliceVm> _levelBreakdown = new();
     private readonly List<SliceVm> _sourceBreakdown = new();
     private LogRow? _selected;
+    private string? _loadError;
+    private bool _isLoading;
+
+    [Inject]
+    private TaskApiClient TaskApiClient { get; set; } = default!;
+
+    [Inject]
+    private TeamServerConnection Connection { get; set; } = default!;
+
+    private void GoToLogin() => Navigation.NavigateTo("/login");
 
     private string _search = "";
     private string _levelFilter = "All Levels";
@@ -39,58 +55,81 @@ public partial class Logs
     private string _alertName = "";
     private string _alertLevel = "WARN";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync() => await LoadTasksAsync();
+
+    private async Task LoadTasksAsync()
     {
-        _logs.AddRange(new[]
-        {
-            new LogRow { Level="INFO",     Source="System",      Event="User Login",            User="Tony Stark",     Ip="192.168.1.10" },
-            new LogRow { Level="INFO",     Source="Client",      Event="Client Connected",      User="CLIENT-001",     Ip="192.168.1.11" },
-            new LogRow { Level="WARN",     Source="Campaign",    Event="Campaign Paused",       User="Phishing",       Ip="192.168.1.12" },
-            new LogRow { Level="ERROR",    Source="File System", Event="File Uploaded",         User="Elton John",     Ip="192.168.1.13" },
-            new LogRow { Level="WARN",     Source="Task",        Event="Task Failed",           User="Elton John",     Ip="192.168.1.14" },
-            new LogRow { Level="INFO",     Source="Security",    Event="Failed Login Attempt",  User="Siya Kholisi",   Ip="192.168.1.15" },
-            new LogRow { Level="ERROR",    Source="System",      Event="Config Updated",        User="Trevor Belmont", Ip="192.168.1.16" },
-            new LogRow { Level="CRITICAL", Source="Client",      Event="Client Disconnected",   User="Trevor Belmont", Ip="192.168.1.17" },
-            new LogRow { Level="INFO",     Source="System",      Event="Database Error",        User="Trevor Belmont", Ip="192.168.1.18" },
-        });
+        _isLoading = true;
+        _loadError = null;
+        _logs.Clear();
+        _topClients.Clear();
+        _criticalLogs.Clear();
+        _levelBreakdown.Clear();
+        _sourceBreakdown.Clear();
 
-        _topClients.AddRange(new[]
+        try
         {
-            new ClientCount("CLIENT-001", 5342, 21.8),
-            new ClientCount("CLIENT-002", 4125, 16.8),
-            new ClientCount("CLIENT-003", 3876, 15.8),
-        });
-
-        _criticalLogs.AddRange(new[]
+            var tasks = await TaskApiClient.GetTasksAsync();
+            var orderedTasks = tasks.OrderByDescending(task => task.timeStamp).ToList();
+            _logs.AddRange(orderedTasks.Select(ToLogRow));
+            var agentGroups = orderedTasks.GroupBy(task => task.agentID).ToList();
+            var total = Math.Max(1, orderedTasks.Count);
+            _topClients.AddRange(agentGroups
+                .OrderByDescending(group => group.Count())
+                .Take(5)
+                .Select(group => new ClientCount(
+                    $"Agent {group.Key}",
+                    group.Count(),
+                    group.Count() * 100.0 / total)));
+            _criticalLogs.AddRange(orderedTasks
+                .Where(task => task.status.Equals("Failure", StringComparison.OrdinalIgnoreCase))
+                .Take(5)
+                .Select(task => new CriticalLog(
+                    $"{task.commandType} reported failure",
+                    $"Agent {task.agentID}",
+                    task.timeStamp.ToLocalTime().ToString("g"))));
+            _levelBreakdown.AddRange(BuildBreakdown(orderedTasks
+                .GroupBy(task => task.status)
+                .Select(group => (group.Key, group.Count(), LevelColor(group.Key)))));
+            var sourcePalette = new[] { "blue", "green", "purple", "yellow", "red", "gray" };
+            _sourceBreakdown.AddRange(BuildBreakdown(orderedTasks
+                .GroupBy(task => task.commandType)
+                .Select((group, index) => (group.Key, group.Count(), sourcePalette[index % sourcePalette.Length]))));
+            _page = 1;
+        }
+        catch (InvalidOperationException exception)
         {
-            new CriticalLog("Database connection lost",       "System",   "2m ago"),
-            new CriticalLog("Client authentication failure",  "Security", "15m ago"),
-            new CriticalLog("Critical system resource low",   "System",   "32m ago"),
-            new CriticalLog("Malware detected on CLIENT-001", "Security", "1h ago"),
-            new CriticalLog("Backup process failed",          "System",   "2h ago"),
-        });
-
-        _levelBreakdown.AddRange(BuildBreakdown(new (string, int, string)[]
+            _loadError = exception.Message;
+        }
+        catch (HttpRequestException exception)
         {
-            ("Informational", 15342, "green"),
-            ("Warning",        4283, "yellow"),
-            ("Error",          2156, "red"),
-            ("Critical",        751, "purple"),
-            ("Debug",          2000, "blue"),
-        }));
-
-        _sourceBreakdown.AddRange(BuildBreakdown(new (string, int, string)[]
+            _loadError = $"Could not load task records from TeamServer: {exception.Message}";
+        }
+        catch (TaskCanceledException exception)
         {
-            ("System",      9856, "blue"),
-            ("Client",      6742, "green"),
-            ("Security",    3245, "purple"),
-            ("Task",        2891, "yellow"),
-            ("File System", 1798, "red"),
-            ("Others",      1000, "gray"),
-        }));
+            _loadError = $"The TeamServer task request timed out: {exception.Message}";
+        }
+        catch (JsonException exception)
+        {
+            _loadError = $"TeamServer returned an invalid task response: {exception.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
+    private static LogRow ToLogRow(TaskResponse task) => new()
+    {
+        Timestamp = task.timeStamp.ToLocalTime().ToString("g"),
+        Level = task.status,
+        Source = task.commandType,
+        Event = $"{task.commandType} reported status: {task.status}",
+        User = $"Agent {task.agentID}"
+    };
+
     private IEnumerable<string> Sources => _logs.Select(l => l.Source).Distinct().OrderBy(s => s);
+    private IEnumerable<string> Levels => _logs.Select(l => l.Level).Distinct().OrderBy(level => level);
 
     private IEnumerable<LogRow> Filtered => _logs.Where(l =>
         (string.IsNullOrWhiteSpace(_search)
@@ -113,7 +152,9 @@ public partial class Logs
     {
         get
         {
-            if (FilteredCount == 0) return "No logs to show";
+            if (_isLoading) return "Loading task history...";
+            if (_loadError is not null) return "Task history unavailable";
+            if (FilteredCount == 0) return "No task history to show";
             var start = (CurrentPage - 1) * PageSize + 1;
             var end = Math.Min(CurrentPage * PageSize, FilteredCount);
             return $"Show {start}-{end} of {FilteredCount:N0} logs";
@@ -124,33 +165,33 @@ public partial class Logs
     private void GoToPage(int p) => _page = Math.Clamp(p, 1, TotalPages);
     private void SelectRow(LogRow row) => _selected = row == _selected ? null : row;
 
-    private static string LevelColor(string level) => level switch
+    private static string LevelColor(string level) => level.ToLowerInvariant() switch
     {
-        "INFO" => "green",
-        "WARN" => "yellow",
-        "ERROR" => "red",
-        "CRITICAL" => "purple",
+        "successful" => "green",
+        "queued" or "running" or "pending" => "yellow",
+        "failure" => "red",
         _ => "gray",
     };
 
     private List<StatVm> BuildStats() => new()
     {
-        new("Total Logs", "24,532", "18% from last 24h", true,
+        new("Task Records", _logs.Count.ToString("N0"), "From TeamServer", true,
             "<path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/>"),
-        new("Informational", "15,342", "12% from last 24h", true,
-            "<path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/>"),
-        new("Warnings", "4,283", "9% from last 24h", true,
-            "<path d='M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/>"),
-        new("Errors", "2,156", "25% from last 24h", true,
+        new("Successful", _logs.Count(log => log.Level.Equals("Successful", StringComparison.OrdinalIgnoreCase)).ToString("N0"), "Reported status", true,
+            "<path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/><polyline points='22 4 12 14.01 9 11.01'/>"),
+        new("Queued", _logs.Count(log => log.Level.Equals("Queued", StringComparison.OrdinalIgnoreCase)).ToString("N0"), "Reported status", true,
+            "<rect x='6' y='5' width='4' height='14' rx='1'/><rect x='14' y='5' width='4' height='14' rx='1'/>"),
+        new("Running", _logs.Count(log => log.Level.Equals("Running", StringComparison.OrdinalIgnoreCase)).ToString("N0"), "Reported status", true,
+            "<circle cx='12' cy='12' r='9'/><polyline points='12 7 12 12 15 14'/>"),
+        new("Failed", _logs.Count(log => log.Level.Equals("Failure", StringComparison.OrdinalIgnoreCase)).ToString("N0"), "Reported status", false,
             "<circle cx='12' cy='12' r='9'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/>"),
-        new("Critical", "751", "33% from last 24h", false,
-            "<path d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9'/><path d='M13.73 21a2 2 0 0 1-3.46 0'/>"),
     };
 
-    private static List<SliceVm> BuildBreakdown((string Name, int Count, string Color)[] items)
+    private static List<SliceVm> BuildBreakdown(IEnumerable<(string Name, int Count, string Color)> items)
     {
-        int total = Math.Max(1, items.Sum(i => i.Count));
-        return items.Select(i => new SliceVm(i.Name, i.Count, (int)Math.Round(i.Count * 100.0 / total), i.Color)).ToList();
+        var slices = items.ToArray();
+        int total = Math.Max(1, slices.Sum(i => i.Count));
+        return slices.Select(i => new SliceVm(i.Name, i.Count, (int)Math.Round(i.Count * 100.0 / total), i.Color)).ToList();
     }
 
     private static readonly Dictionary<string, string> _colorVar = new()
@@ -186,7 +227,7 @@ public partial class Logs
             OpenAlert),
         new ActionVm("Export Logs",
             "<path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><polyline points='7 10 12 15 17 10'/><line x1='12' y1='15' x2='12' y2='3'/>",
-            ExportLogs),
+            async () => await ExportLogs()),
         new ActionVm("Clear Old Logs",
             "<polyline points='3 6 5 6 21 6'/><path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/>",
             () => ShowToast("Archived logs older than 90 days (mock)")),
@@ -195,7 +236,44 @@ public partial class Logs
             () => Navigation.NavigateTo("/settings")),
     };
 
-    private void ExportLogs() => ShowToast($"Exported {FilteredCount} logs to CSV (mock)");
+    private async Task ExportLogs()
+    {
+        var rows = Filtered.ToList();
+        if (rows.Count == 0)
+        {
+            ShowToast("There are no task records to export.");
+            return;
+        }
+
+        var csv = new StringBuilder();
+        AppendCsvRow(csv, "Timestamp", "Status", "Command Type", "Event", "Agent", "IP Address");
+        foreach (var row in rows)
+            AppendCsvRow(csv, row.Timestamp, row.Level, row.Source, row.Event, row.User, row.Ip);
+        try
+        {
+            await using var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/clients.js");
+            await module.InvokeVoidAsync("downloadCsv", "task-history.csv", csv.ToString());
+        }
+        catch (JSException exception)
+        {
+            ShowToast($"Task history CSV download failed: {exception.Message}");
+        }
+    }
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    private static void AppendCsvRow(StringBuilder csv, params string[] values) =>
+        csv.AppendJoin(',', values.Select(EscapeCsvValue)).AppendLine();
+
+    private static string EscapeCsvValue(string value)
+    {
+        var safeValue = value.TrimStart() is ['=', '+', '-', '@', ..] ? $"'{value}" : value;
+        return $"\"{safeValue.Replace("\"", "\"\"")}\"";
+    }
 
     private void OpenAlert()
     {

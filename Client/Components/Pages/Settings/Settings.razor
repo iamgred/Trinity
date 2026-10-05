@@ -5,7 +5,7 @@
 
 <div class="settings-page">
 
-    <div class="mock-banner">Mock data — for UI shell only (in-memory, not persisted)</div>
+    <div class="mock-banner" role="status">Settings shown here are UI-only and are not saved to TeamServer.</div>
 
     <section class="header">
         <h1>Settings</h1>
@@ -174,6 +174,10 @@
                         }
                     </tbody>
                 </table>
+                @if (_serverIpV4 is not null)
+                {
+                    <p class="server-ip">TeamServer: <span class="mono">@_serverIpV4</span>@(string.IsNullOrEmpty(_serverIpV6) ? "" : $" · {_serverIpV6}")</p>
+                }
                 <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all C2 channels (mock)"))">View all channels →</a>
             </section>
 
@@ -197,6 +201,7 @@
                             <th>Local Address</th>
                             <th>Port</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -210,6 +215,17 @@
                                 <td>
                                     <span class="status-dot status-@p.StatusColor"></span>
                                     @p.Status
+                                </td>
+                                <td>
+                                    @if (p.Id > 0)
+                                    {
+                                        <button type="button" class="row-action" @onclick="() => RestartProfile(p.Id)">Restart</button>
+                                        <button type="button" class="row-action danger" @onclick="() => DeleteProfile(p.Id)">Delete</button>
+                                    }
+                                    else
+                                    {
+                                        <span class="row-muted">—</span>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -275,6 +291,33 @@
 
     </div>
 </div>
+
+@if (_showCreateProfile)
+{
+    <div class="modal-overlay" @onclick="CloseCreateProfile">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <h3>Create New C2 Profile</h3>
+
+            <label class="modal-label">Profile Name</label>
+            <input class="modal-input" @bind="_profileName" placeholder="HTTPS Beacon" />
+
+            <label class="modal-label">Protocol</label>
+            <select class="modal-input" @bind="_profileProtocol">
+                <option>HTTP</option>
+            </select>
+
+            <label class="modal-label">Local Address</label>
+            <input class="modal-input" @bind="_profileHost" placeholder="0.0.0.0" />
+
+            <label class="modal-label">Port</label>
+            <input class="modal-input" @bind="_profilePort" placeholder="8443" />
+
+            <div class="modal-actions">
+                <button type="button" class="btn-primary" @onclick="CreateProfile">Confirm</button>
+            </div>
+        </div>
+    </div>
+}
 
 @if (_toast is not null)
 {

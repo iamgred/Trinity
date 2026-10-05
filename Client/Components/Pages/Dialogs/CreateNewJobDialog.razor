@@ -1,5 +1,7 @@
 @namespace Client.Components.Pages.Dialogs
 @rendermode InteractiveServer
+@using Client.Services
+@inject TaskApiService TaskService
 
 <MudDialog>
     <TitleContent>
@@ -11,19 +13,43 @@
                       Margin="Margin.Dense" FullWidth="true" Class="mb-4" />
         <MudTextField @bind-Value="_desc" Label="Job Description" Variant="Variant.Outlined"
                       Margin="Margin.Dense" FullWidth="true" Lines="5" Class="mb-2" />
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <MudText Style="color:#f44336; font-size:0.85rem; margin-top:8px;">@_error</MudText>
+        }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Style="min-width:100px;" Disabled="@_loading">
+            @(_loading ? "Creating..." : "Confirm")
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
-@code
-{
-    [CascadingParameter] private IMudDialogInstance MudDialog {get; set; } = default!;
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private string _jobName = string.Empty;
-    private string _company = string.Empty;
-    private string _desc = string.Empty;
+    private string _desc    = string.Empty;
+    private string _error   = string.Empty;
+    private bool   _loading = false;
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private async Task Submit()
+    {
+        if (string.IsNullOrWhiteSpace(_jobName))
+        {
+            _error = "Job name is required.";
+            return;
+        }
+        _loading = true;
+        _error   = string.Empty;
+
+        var result = await TaskService.CreateCampaignAsync(_jobName);
+        _loading = false;
+
+        if (result is not null)
+            MudDialog.Close(DialogResult.Ok(true));
+        else
+            _error = "Failed to create job. Check TeamServer is running.";
+    }
 }

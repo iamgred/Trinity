@@ -389,3 +389,8 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Local-only files (DB seed scripts, integration notes, local backend tooling) — not committed
+.local-backend/
+*.local.sql
+*.local.md

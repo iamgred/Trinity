@@ -1,13 +1,14 @@
-﻿using System.Text.RegularExpressions;
+﻿
+using System.Text.RegularExpressions;
 using Trinity.Shared.DTOs.Command;
-using Trinity.Shared.DTOs.Commands;
+//using Trinity.Shared.DTOs.Commands;
 
 namespace Client.Interpreter
 {
 
     // BASIC USSAGE 
     /*
-     *      CommandStrategyInterpreter interpreter = new CommandStrategyInterpreter();
+     *       CommandStrategyInterpreter interpreter = new CommandStrategyInterpreter();
             var commanddto = interpreter.ProcessRawInput("powershell test");
             var test = interpreter.GetCommandEndpoint(commanddto);
      */

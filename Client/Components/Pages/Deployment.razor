@@ -1,0 +1,905 @@
+@page "/deployment"
+@rendermode InteractiveServer
+@using MudBlazor
+@using Microsoft.AspNetCore.SignalR.Client
+@using Client.Interpreter
+@using Client.Services
+@using System.Net.Http.Json
+@using System.Diagnostics
+@using System.IO
+@inject HttpClient Http
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject CommandInterpreter Interpreter
+@inject TaskApiService TaskService
+@inject IConfiguration Config
+@inject PowerShellService PSService
+@using Client.Components.Pages.Dialogs
+@implements IAsyncDisposable
+
+<style>
+    .card     { background-color:#242424; border:1px solid #333; }
+    .card-p   { background-color:#242424; border:1px solid #333; padding:16px; }
+    .muted    { color:#AAAAAA !important; }
+    .white    { color:white; }
+    .lnk      { color:#E87722; text-decoration:none; font-size:0.875rem; }
+    .dot      { width:8px;  height:8px;  border-radius:50%; margin-right:6px; }
+    .dot-lg   { width:10px; height:10px; border-radius:50%; margin-right:6px; }
+    .qa-btn   { text-transform:none !important; justify-content:flex-start !important; font-size:0.78rem !important; }
+
+    .term-out {
+        background-color:#0a0a0a;
+        color:#00ff41;
+        font-family:'Courier New',Courier,monospace;
+        font-size:0.78rem;
+        padding:12px 14px;
+        height:300px;
+        overflow-y:auto;
+        white-space:pre-wrap;
+        word-break:break-all;
+        line-height:1.55;
+    }
+    .term-in-row {
+        display:flex;
+        align-items:center;
+        background-color:#0a0a0a;
+        border-top:1px solid #222;
+        padding:7px 14px;
+    }
+    .term-prompt {
+        color:#E87722;
+        font-family:'Courier New',Courier,monospace;
+        font-size:0.78rem;
+        margin-right:7px;
+        white-space:nowrap;
+        user-select:none;
+    }
+    .term-input {
+        background:transparent;
+        border:none;
+        outline:none;
+        color:#00ff41;
+        font-family:'Courier New',Courier,monospace;
+        font-size:0.78rem;
+        flex:1;
+        caret-color:#00ff41;
+    }
+    .graph-wrap {
+        background-color:#0a0a0a;
+        height:342px;
+        position:relative;
+        overflow:hidden;
+    }
+    #matrix-canvas {
+        position:absolute;
+        top:0; left:0;
+        width:100%; height:100%;
+        display:none;
+        pointer-events:none;
+    }
+    #graph-svg { transition:transform 0.2s ease; }
+    .mud-table-body td              { background-color: transparent !important; }
+    .mud-table-row:hover td         { background-color:#2a2a2a !important; }
+    .mud-selected-item td           { background-color:#2a2a2a !important; }
+
+</style>
+
+<!-- Page Title -->
+<div class="mb-4">
+    <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Deployment</MudText>
+    <MudText Typo="Typo.caption" Class="muted">Control and deploy AI agents</MudText>
+</div>
+
+<!-- Top Row: Terminal | Toolbar | Graph -->
+<MudGrid Spacing="3" Class="mb-3">
+
+    <!-- Terminal -->
+    <MudItem xs="12" md="5">
+        <MudPaper Class="card" Elevation="0">
+            <div style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">Terminal</MudText>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <MudSelect @bind-Value="_encoding" T="string" Variant="Variant.Outlined"
+                               Margin="Margin.Dense" Style="min-width:88px; font-size:0.75rem;">
+                        <MudSelectItem Value="@("UTF-8")">UTF-8</MudSelectItem>
+                        <MudSelectItem Value="@("ASCII")">ASCII</MudSelectItem>
+                        <MudSelectItem Value="@("UTF-16")">UTF-16</MudSelectItem>
+                    </MudSelect>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                               Style="border-color:#444; color:#888; text-transform:none; min-width:56px;"
+                               OnClick="ClearTerminal">Clear</MudButton>
+                </div>
+            </div>
+            <div id="terminal-output" class="term-out">@((MarkupString)_termOutput)</div>
+            <div class="term-in-row">
+                <span class="term-prompt">trinity@c2:~$</span>
+                <input id="terminal-input"
+                       class="term-input"
+                       type="text"
+                       value="@_currentInput"
+                       @oninput="e => _currentInput = e.Value?.ToString() ?? string.Empty"
+                       @onkeydown="HandleKeyDown"
+                       placeholder="Enter command…"
+                       autocomplete="off"
+                       spellcheck="false" />
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Graph Toolbar -->
+    <MudItem xs="12" md="1"
+             Style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+        <MudTooltip Text="Zoom In" Placement="Placement.Right">
+            <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"
+                           Style="color:#aaa; background-color:#242424; border:1px solid #333;"
+                           Size="Size.Small"
+                           OnClick="@(() => _zoom = Math.Min(_zoom + 0.15, 3.0))" />
+        </MudTooltip>
+        <MudTooltip Text="Zoom Out" Placement="Placement.Right">
+            <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"
+                           Style="color:#aaa; background-color:#242424; border:1px solid #333;"
+                           Size="Size.Small"
+                           OnClick="@(() => _zoom = Math.Max(_zoom - 0.15, 0.3))" />
+        </MudTooltip>
+        <MudTooltip Text="Reset View" Placement="Placement.Right">
+            <MudIconButton Icon="@Icons.Material.Filled.CenterFocusStrong"
+                           Style="color:#aaa; background-color:#242424; border:1px solid #333;"
+                           Size="Size.Small"
+                           OnClick="@(() => _zoom = 1.0)" />
+        </MudTooltip>
+        <MudTooltip Text="Refresh" Placement="Placement.Right">
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                           Style="color:#aaa; background-color:#242424; border:1px solid #333;"
+                           Size="Size.Small" />
+        </MudTooltip>
+        <MudTooltip Text="Fit to Screen" Placement="Placement.Right">
+            <MudIconButton Icon="@Icons.Material.Filled.FitScreen"
+                           Style="color:#aaa; background-color:#242424; border:1px solid #333;"
+                           Size="Size.Small"
+                           OnClick="@(() => _zoom = 1.0)" />
+        </MudTooltip>
+    </MudItem>
+
+    <!-- Graph View -->
+    <MudItem xs="12" md="6">
+        <MudPaper Class="card" Elevation="0">
+            <div style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">Graph View</MudText>
+                <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                           Style="border-color:#444; color:#888; text-transform:none; min-width:56px;"
+                           OnClick="ClearGraph">Clear</MudButton>
+            </div>
+            <div class="graph-wrap" id="graph-container">
+                <canvas id="matrix-canvas"></canvas>
+                <svg id="graph-svg" width="100%" height="100%" viewBox="0 0 600 320"
+                     xmlns="http://www.w3.org/2000/svg"
+                     style="transform:scale(@_zoom.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)); transform-origin:center center;">
+                    <defs>
+                        <marker id="arrow" markerWidth="7" markerHeight="5"
+                                refX="7" refY="2.5" orient="auto">
+                            <polygon points="0 0, 7 2.5, 0 5" fill="#E87722" opacity="0.7" />
+                        </marker>
+                    </defs>
+                    @foreach (var e in _edges)
+                    {
+                        <line x1="@e.X1" y1="@e.Y1" x2="@e.X2" y2="@e.Y2"
+                              stroke="#E87722" stroke-width="1.5" stroke-opacity="0.55"
+                              marker-end="url(#arrow)" />
+                    }
+                    @foreach (var n in _nodes)
+                    {
+                        <g transform="translate(@n.X,@n.Y)">
+                            <rect x="-22" y="-16" width="44" height="32" rx="5"
+                                  fill="@n.Color" opacity="0.88" />
+                            <text y="26" text-anchor="middle"
+                                  fill="#ccc" font-size="9" font-family="monospace">@n.Label</text>
+                            <circle cx="17" cy="-12" r="4"
+                                    fill="@(n.Online ? "#4CAF50" : "#555")" />
+                        </g>
+                    }
+                    @if (!_nodes.Any())
+                    {
+                        @:<text x="300" y="148" text-anchor="middle" fill="#333" font-size="13" font-family="monospace">No agents connected</text>
+                        @:<text x="300" y="168" text-anchor="middle" fill="#2a2a2a" font-size="10" font-family="monospace">Graph populates when backend connects</text>
+                    }
+                </svg>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+<!-- Bottom Row: Agents | Groups | Quick Actions -->
+<MudGrid Spacing="3">
+
+    <!-- Agents table -->
+    <MudItem xs="12" md="4">
+        <MudPaper Class="card" Elevation="0">
+            <div style="padding:14px 16px 0;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">Agents</MudText>
+            </div>
+            <MudTable T="AgentRow" Items="@_agents" Dense="true" Hover="true"
+                      Elevation="0" Style="background-color:transparent;">
+                <HeaderContent>
+                    <MudTh Class="muted">Agent</MudTh>
+                    <MudTh Class="muted">Status</MudTh>
+                    <MudTh Class="muted">Group</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd Class="white">@context.Name</MudTd>
+                    <MudTd>
+                        <div class="d-flex align-center">
+                            <span class="dot-lg" style="background-color:@context.StatusColor;"></span>
+                            <span style="color:@context.StatusColor; font-size:0.78rem;">@context.Status</span>
+                        </div>
+                    </MudTd>
+                    <MudTd Class="muted">@context.Group</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <tr><td colspan="3" style="padding:20px; text-align:center; color:#555; font-size:0.8rem;">
+                        No agents — backend will populate
+                    </td></tr>
+                </NoRecordsContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Manage Groups table -->
+    <MudItem xs="12" md="4">
+        <MudPaper Class="card" Elevation="0">
+            <div style="padding:14px 16px 0;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">Manage Groups</MudText>
+            </div>
+            <MudTable T="GroupRow" Items="@_groups" Dense="true" Hover="true"
+                      Elevation="0" Style="background-color:transparent;">
+                <HeaderContent>
+                    <MudTh Class="muted">Group</MudTh>
+                    <MudTh Class="muted">Client</MudTh>
+                    <MudTh Class="muted">Status</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd Class="white">@context.Name</MudTd>
+                    <MudTd Class="muted">@context.Client</MudTd>
+                    <MudTd>
+                        <div class="d-flex align-center">
+                            <span class="dot-lg" style="background-color:@context.StatusColor;"></span>
+                            <span style="color:@context.StatusColor; font-size:0.78rem;">@context.Status</span>
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <tr><td colspan="3" style="padding:20px; text-align:center; color:#555; font-size:0.8rem;">
+                        No groups — backend will populate
+                    </td></tr>
+                </NoRecordsContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Quick Actions -->
+    <MudItem xs="12" md="4">
+        <MudPaper Class="card" Elevation="0" Style="padding:16px;">
+            <MudText Typo="Typo.subtitle1"
+                     Style="color:white; font-weight:600; margin-bottom:12px; display:block;">
+                Quick Actions
+            </MudText>
+            <MudGrid Spacing="2">
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Router"
+                               OnClick="OpenSetNewBeacon">Set New Beacon</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.NetworkCheck"
+                               OnClick="OpenTestBeacon">Test Beacon</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Psychology"
+                               OnClick="OpenAgentBehaviour">Agent Behaviour</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.FileUpload"
+                               OnClick="OpenImportConfig">Import Config</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.FileDownload"
+                               OnClick="OpenExportConfig">Export Config</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Shield"
+                               OnClick="OpenEvasionConfig">Evasion Config</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.GpsFixed"
+                               OnClick="OpenSelectTarget">Select Target</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Assessment"
+                               OnClick="OpenGenerateReport">Generate Report</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.GroupAdd"
+                               OnClick="OpenCreateAgentGroup">Create Agent Group</MudButton>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               Class="qa-btn" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Groups"
+                               OnClick="OpenEditAgentGroups">Edit Agent Groups</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+@code {
+    private static readonly DialogOptions _dialogOpts = new()
+    {
+        CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true
+    };
+
+    // Terminal
+    private string _encoding     = "UTF-8";
+    private string _termOutput   = "<span style='color:#E87722;'>Trinity C2 Terminal v1.0</span>\n" +
+                                   "<span style='color:#555;'>─────────────────────────────</span>\n" +
+                                   "<span style='color:#888;'>Type <span style='color:#E87722;'>help</span> for commands. Connecting…\n\n</span>";
+    private string _currentInput = string.Empty;
+    private bool   _matrixOn     = false;
+    private readonly List<string> _history = new();
+    private int _histIdx = -1;
+
+    // Hub
+    private HubConnection? _hubConnection;
+    private int?           _activeAgentId;
+
+    // Graph
+    private double _zoom = 1.0;
+
+    private record GraphNode(int X, int Y, string Label, string Color, bool Online);
+    private record GraphEdge(int X1, int Y1, int X2, int Y2);
+    private readonly List<GraphNode> _nodes = new();
+    private readonly List<GraphEdge> _edges = new();
+
+    // Tables
+    private record AgentRow(string Name, string Status, string StatusColor, string Group);
+    private record GroupRow(string Name, string Client, string Status, string StatusColor);
+    private readonly List<AgentRow>  _agents = new();
+    private readonly List<GroupRow>  _groups = new();
+
+    protected override async Task OnInitializedAsync()
+    => await LoadAgentsAsync();
+
+private async Task LoadAgentsAsync()
+{
+    try
+    {
+        var list = await Http.GetFromJsonAsync<List<AgentDto>>(
+            $"{Config["TeamServer:BaseUrl"]}/api/v1/agents");
+        if (list is null) return;
+        _agents.Clear(); _nodes.Clear();
+        int i = 0;
+        foreach (var a in list)
+        {
+            bool online = (DateTime.UtcNow - a.LastCheckIn).TotalMinutes < 2;
+            var col = online ? "#4CAF50" : "#888";
+            _agents.Add(new AgentRow(a.Username, online ? "Online" : "Offline", col, $"Campaign {a.CampaignID}"));
+            _nodes.Add(new GraphNode(80 + (i % 4) * 130, 80 + (i / 4) * 100, a.Username, "#1e3a2a", online));
+            i++;
+        }
+    }
+    catch { }
+}
+
+private record AgentDto(int ID, string Username, DateTime LastCheckIn, int CampaignID);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await JS.InvokeVoidAsync("eval", @"
+            window.trinity = window.trinity || {};
+            window.trinity.termScroll = function(id) {
+                var el = document.getElementById(id);
+                if (el) el.scrollTop = el.scrollHeight;
+            };
+            window.trinity.matrixStart = function() {
+                var canvas = document.getElementById('matrix-canvas');
+                if (!canvas) return;
+                canvas.style.display = 'block';
+                var parent = document.getElementById('graph-container');
+                canvas.width  = parent ? parent.clientWidth  : 600;
+                canvas.height = parent ? parent.clientHeight : 340;
+                var ctx   = canvas.getContext('2d');
+                var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*;:/|?<>[]{}+-=~`';
+                var fz    = 12;
+                var cols  = Math.floor(canvas.width / fz);
+                var drops = Array.from({length: cols}, function() { return Math.random() * -60; });
+                if (window._trinityTimer) clearInterval(window._trinityTimer);
+                window._trinityTimer = setInterval(function() {
+                    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#00ff41';
+                    ctx.font = fz + 'px monospace';
+                    for (var i = 0; i < drops.length; i++) {
+                        var t = chars[Math.floor(Math.random() * chars.length)];
+                        ctx.fillText(t, i * fz, drops[i] * fz);
+                        if (drops[i] * fz > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                        drops[i]++;
+                    }
+                }, 40);
+            };
+            window.trinity.matrixStop = function() {
+                if (window._trinityTimer) { clearInterval(window._trinityTimer); window._trinityTimer = null; }
+                var canvas = document.getElementById('matrix-canvas');
+                if (!canvas) return;
+                canvas.style.display = 'none';
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            };
+        ");
+        await ConnectHubAsync();
+    }
+
+    private async Task ConnectHubAsync()
+    {
+        var baseUrl = Config["TeamServer:BaseUrl"]!;
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl($"{baseUrl}/register")
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hubConnection.On<string>("RecieveTaskOutput", async output =>
+        {
+            _termOutput += $"<span style='color:#00ff41;'>{Esc(output)}</span>\n";
+            await InvokeAsync(StateHasChanged);
+            await JS.InvokeVoidAsync("trinity.termScroll", "terminal-output");
+        });
+
+        try
+        {
+            await _hubConnection.StartAsync();
+            _termOutput += "<span style='color:#4CAF50;'>[+] Connected to TeamServer</span>\n\n";
+        }
+        catch (Exception ex)
+        {
+            _termOutput += $"<span style='color:#f44336;'>[-] TeamServer offline: {Esc(ex.Message)}</span>\n\n";
+        }
+
+        await InvokeAsync(StateHasChanged);
+        await JS.InvokeVoidAsync("trinity.termScroll", "terminal-output");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_matrixOn)
+            await JS.InvokeVoidAsync("trinity.matrixStop");
+        if (_hubConnection is not null)
+            await _hubConnection.DisposeAsync();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "Enter":
+                var cmd = _currentInput.Trim();
+                _currentInput = string.Empty;
+                if (!string.IsNullOrEmpty(cmd))
+                {
+                    if (_history.Count == 0 || _history[0] != cmd)
+                        _history.Insert(0, cmd);
+                    if (_history.Count > 50) _history.RemoveAt(50);
+                    _histIdx = -1;
+                    await RunCommand(cmd);
+                }
+                break;
+            case "ArrowUp":
+                if (_history.Count > 0)
+                {
+                    _histIdx = Math.Min(_histIdx + 1, _history.Count - 1);
+                    _currentInput = _history[_histIdx];
+                    StateHasChanged();
+                }
+                break;
+            case "ArrowDown":
+                _histIdx = Math.Max(_histIdx - 1, -1);
+                _currentInput = _histIdx >= 0 ? _history[_histIdx] : string.Empty;
+                StateHasChanged();
+                break;
+        }
+    }
+
+    private async Task RunCommand(string cmd)
+    {
+        _termOutput += $"<span style='color:#E87722;'>trinity@c2:~$</span> <span style='color:#00ff41;'>{Esc(cmd)}</span>\n";
+
+        // interact <id> — target an agent
+        if (cmd.StartsWith("interact ", StringComparison.OrdinalIgnoreCase))
+        {
+            var parts = cmd.Split(' ', 2);
+            if (parts.Length == 2 && int.TryParse(parts[1].Trim(), out int id))
+            {
+                _activeAgentId = id;
+                _termOutput += $"<span style='color:#4CAF50;'>[*] Targeting agent {id}. Type commands to send.</span>\n\n";
+            }
+            else
+            {
+                _termOutput += "<span style='color:#f44336;'>Usage: interact &lt;agentId&gt;</span>\n\n";
+            }
+            await InvokeAsync(StateHasChanged);
+            await JS.InvokeVoidAsync("trinity.termScroll", "terminal-output");
+            return;
+        }
+
+        switch (cmd.ToLowerInvariant())
+        {
+            case "help":
+                _termOutput +=
+                    "<span style='color:#aaa;'>Commands:\n" +
+                    "  help – show this help\n" +
+                    "  clear – clear terminal\n" +
+                    "  status – agent/hub/target summary\n" +
+                    "  agents – list agents\n" +
+                    "  groups – list groups\n" +
+                    "  version – Trinity version info\n" +
+                    "  interact &lt;id&gt; – target an agent by ID\n" +
+                    "  deselect – stop targeting current agent\n" +
+                    "  build – compile the agent\n" +
+                    "  matrix – initiate matrix sequence\n" +
+                    "  exit matrix – stop matrix sequence\n" +
+                    "  [any other cmd] – sent to targeted agent via TeamServer</span>\n\n";
+                break;
+
+            case "clear":
+                ClearTerminal();
+                return;
+
+            case "status":
+                var hubState = _hubConnection?.State == HubConnectionState.Connected
+                    ? "<span style='color:#4CAF50;'>connected</span>"
+                    : "<span style='color:#888;'>disconnected</span>";
+                var agentState = _activeAgentId.HasValue
+                    ? $"<span style='color:#4CAF50;'>{_activeAgentId}</span>"
+                    : "<span style='color:#888;'>none</span>";
+                _termOutput +=
+                    $"<span style='color:#aaa;'>Agents  : <span style='color:#4CAF50;'>{_agents.Count(a => a.Status == "Online")}</span> online / {_agents.Count} total\n" +
+                    $"Groups  : {_groups.Count}\n" +
+                    $"Target  : {agentState}\n" +
+                    $"Hub     : {hubState}</span>\n\n";
+                break;
+
+            case "agents":
+                _termOutput += _agents.Count == 0
+                    ? "<span style='color:#555;'>No agents — backend will populate.</span>\n\n"
+                    : string.Concat(_agents.Select(a =>
+                        $"<span style='color:#aaa;'>  {Esc(a.Name)}  {Esc(a.Status)}  {Esc(a.Group)}</span>\n")) + "\n";
+                break;
+
+            case "groups":
+                _termOutput += _groups.Count == 0
+                    ? "<span style='color:#555;'>No groups — backend will populate.</span>\n\n"
+                    : string.Concat(_groups.Select(g =>
+                        $"<span style='color:#aaa;'>  {Esc(g.Name)}  {Esc(g.Client)}  {Esc(g.Status)}</span>\n")) + "\n";
+                break;
+
+            case "version":
+                _termOutput +=
+                    "<span style='color:#aaa;'>Trinity C2 Framework v1.0.0\n" +
+                    "Frontend : Blazor Server / MudBlazor\n" +
+                    "Backend  : [link pending]</span>\n\n";
+                break;
+
+            case "deselect":
+                _activeAgentId = null;
+                _termOutput += "<span style='color:#888;'>Agent deselected.</span>\n\n";
+                break;
+
+            case "matrix":
+                _termOutput +=
+                    "<span style='color:#00ff41;'>Initiating matrix sequence…\n</span>" +
+                    "<span style='color:#555;'>Type <span style='color:#E87722;'>exit matrix</span> to stop.</span>\n\n";
+                _matrixOn = true;
+                await InvokeAsync(StateHasChanged);
+                await JS.InvokeVoidAsync("trinity.matrixStart");
+                return;
+
+            case "exit matrix":
+            case "exitmatrix":
+            case "stop matrix":
+                _matrixOn = false;
+                _termOutput += "<span style='color:#888;'>Matrix sequence stopped.</span>\n\n";
+                await InvokeAsync(StateHasChanged);
+                await JS.InvokeVoidAsync("trinity.matrixStop");
+                return;
+
+                case "build":
+    _termOutput += "<span style='color:#888;'>Building agent…</span>\n";
+    await InvokeAsync(StateHasChanged);
+    await JS.InvokeVoidAsync("trinity.termScroll", "terminal-output");
+    try
+    {
+        
+        var buildDir = @"C:\Users\conna\source\repos\Trinity\Agent\build";
+        if (!Directory.Exists(buildDir))
+        {
+            var configure = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "cmake",
+                    Arguments = "-S . -B build",
+                    WorkingDirectory = @"C:\Users\conna\source\repos\Trinity\Agent",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError  = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                }
+            };
+            configure.Start();
+            _termOutput += Esc(await configure.StandardOutput.ReadToEndAsync()
+                         + await configure.StandardError.ReadToEndAsync()) + "\n";
+            await configure.WaitForExitAsync();
+        }
+
+        
+        var p = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "cmake",
+                Arguments = "--build build --config Release",
+                WorkingDirectory = @"C:\Users\conna\source\repos\Trinity\Agent",
+                RedirectStandardOutput = true,
+                RedirectStandardError  = true,
+                UseShellExecute        = false,
+                CreateNoWindow         = true
+            }
+        };
+        p.Start();
+        var output = await p.StandardOutput.ReadToEndAsync()
+                   + await p.StandardError.ReadToEndAsync();
+        await p.WaitForExitAsync();
+        _termOutput += $"<span style='color:#00ff41;'>{Esc(output)}</span>\n\n";
+    }
+    catch (Exception ex)
+    {
+        _termOutput += $"<span style='color:#f44336;'>[-] Build failed: {Esc(ex.Message)}</span>\n\n";
+    }
+    break;
+
+            default:
+    if (!_activeAgentId.HasValue)
+    {
+        var output = await PSService.ExecuteAsync(cmd);
+        _termOutput += $"<span style='color:#00ff41;'>{Esc(output)}</span>\n\n";
+    }
+    else
+    {
+        try
+        {
+            var dto      = Interpreter.ProcessRawInput(cmd);
+            var route    = Interpreter.GetCommandEndpoint(dto);
+            var endpoint = $"/api/v1/agents/{_activeAgentId}{route}";
+            var result   = await TaskService.PostCommandAsync(endpoint, dto);
+            _termOutput += result is not null
+                ? $"<span style='color:#4CAF50;'>[+] Task queued — ID: {result.TaskID}</span>\n\n"
+                : "<span style='color:#f44336;'>[-] TeamServer rejected the command.</span>\n\n";
+        }
+        catch (NotSupportedException ex)
+        {
+            _termOutput += $"<span style='color:#f44336;'>[!] {Esc(ex.Message)}</span>\n\n";
+        }
+        catch (Exception ex)
+        {
+            _termOutput += $"<span style='color:#f44336;'>[!] {Esc(ex.Message)}</span>\n\n";
+        }
+    }
+  
+                break;
+        }
+
+        await InvokeAsync(StateHasChanged);
+        await JS.InvokeVoidAsync("trinity.termScroll", "terminal-output");
+    }
+
+    private void ClearTerminal()
+    {
+        _termOutput = "<span style='color:#E87722;'>Trinity C2 Terminal v1.0</span>\n" +
+                      "<span style='color:#888;'>Terminal cleared.\n\n</span>";
+        StateHasChanged();
+    }
+
+    private void ClearGraph() { _nodes.Clear(); _edges.Clear(); StateHasChanged(); }
+
+    private static string Esc(string s) =>
+        s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
+    // Dialog openers
+    private Task OpenSetNewBeacon()
+        => DialogService.ShowAsync<SetNewBeaconDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenTestBeacon()
+        => DialogService.ShowAsync<TestBeaconDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenAgentBehaviour()
+        => DialogService.ShowAsync<AgentBehaviourDialog>(string.Empty, new(),
+               _dialogOpts with { MaxWidth = MaxWidth.Medium });
+    private Task OpenImportConfig()
+        => DialogService.ShowAsync<ImportConfigDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenExportConfig()
+        => DialogService.ShowAsync<ExportConfigDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenEvasionConfig()
+        => DialogService.ShowAsync<DeployEvasionConfigDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenSelectTarget()
+        => DialogService.ShowAsync<SelectTargetDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenGenerateReport()
+        => DialogService.ShowAsync<GenerateReportDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenCreateAgentGroup()
+        => DialogService.ShowAsync<CreateAgentGroupDialog>(string.Empty, new(), _dialogOpts);
+    private Task OpenEditAgentGroups()
+        => DialogService.ShowAsync<EditAgentGroupsDialog>(string.Empty, new(), _dialogOpts);
+}
+
+<!-- =============================================End of Code==================================================================== -->
+<!-- Main Page Refernces:
+    
+SignalR HubConnection & HubConnectionBuilder
+https://learn.microsoft.com/en-us/aspnet/core/signalr/dotnet-client
+
+HubConnection.On<T> (receive messages)
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.signalr.client.hubconnectionextensions.on
+
+HubConnectionState
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.signalr.client.hubconnectionstate
+
+WithAutomaticReconnect
+https://learn.microsoft.com/en-us/aspnet/core/signalr/dotnet-client#automatically-reconnect
+
+IJSRuntime & JS Interop (InvokeVoidAsync)
+https://learn.microsoft.com/en-us/aspnet/core/blazor/javascript-interoperability/call-javascript-from-dotnet
+
+IAsyncDisposable
+https://learn.microsoft.com/en-us/dotnet/api/system.iasyncdisposable
+
+KeyboardEventArgs (@onkeydown)
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/event-handling#keyboard-event-example
+
+OnAfterRenderAsync (firstRender)
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/lifecycle#after-component-render-onafterrenderasync
+
+@implements directive
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/#specify-a-base-class
+
+InvokeAsync / StateHasChanged
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/lifecycle#state-changes-statehaschanged
+
+HttpClient.GetFromJsonAsync
+https://learn.microsoft.com/en-us/dotnet/api/system.net.http.json.httpclientjsonextensions.getfromjsonasync
+
+MudTable, MudTooltip, MudIconButton, MudSelect
+https://mudblazor.com/components/table
+https://mudblazor.com/components/tooltip
+https://mudblazor.com/components/iconbutton
+
+SVG in Blazor (inline svg with @foreach)
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/built-in-components
+
+Respective Page Dialog References:
+
+MudBlazor Dialog Overview
+https://mudblazor.com/components/dialog
+
+IDialogService — ShowAsync, Show, Close
+https://mudblazor.com/api/mudblazor.idialogservice
+
+MudDialog — root component (Actions, Content, TitleContent slots)
+https://mudblazor.com/api/mudblazor.muddialog
+
+MudDialogInstance — Close()/Cancel() from within a dialog
+https://mudblazor.com/api/mudblazor.muddialoginstance
+
+MudDialogProvider — place once in MainLayout
+https://mudblazor.com/api/mudblazor.muddialogprovider
+
+DialogOptions — FullWidth, MaxWidth, CloseOnEscapeKey, BackdropClick
+https://mudblazor.com/api/mudblazor.dialogoptions
+
+DialogParameters — passing typed data into a dialog
+https://mudblazor.com/api/mudblazor.dialogparameters
+
+DialogResult — what a dialog returns on close
+https://mudblazor.com/api/mudblazor.dialogresult
+
+IDialogReference.Result — awaiting the return value
+https://mudblazor.com/components/dialog#dialog-result
+
+MaxWidth enum (ExtraSmall → ExtraExtraLarge)
+https://mudblazor.com/api/mudblazor.maxwidth
+
+MudForm — validation inside dialogs
+https://mudblazor.com/components/form
+
+MudTextField — text inputs (beacon name, config fields)
+https://mudblazor.com/components/textfield
+
+MudSelect / MudSelectItem — dropdowns (beacon interval, evasion profile)
+https://mudblazor.com/components/select
+
+MudNumericField — numeric inputs (sleep timers, jitter %)
+https://mudblazor.com/components/numericfield
+
+MudSwitch — toggles (stealth mode, evasion enabled)
+https://mudblazor.com/components/switch
+
+MudSlider — range inputs (jitter %, timing)
+https://mudblazor.com/components/slider
+
+MudChip / MudChipSet — agent group tag display
+https://mudblazor.com/components/chip
+
+MudList / MudListItem — group member lists
+https://mudblazor.com/components/list
+
+MudFileUpload — ImportConfigDialog file picker
+https://mudblazor.com/components/fileupload
+
+MudDivider — section separator inside dialogs
+https://mudblazor.com/components/divider
+
+MudProgressCircular — loading spinner while fetching
+https://mudblazor.com/components/progress
+
+Confirmation dialog pattern
+https://mudblazor.com/components/dialog#confirmation-dialog
+
+Scrollable dialog for long content
+https://mudblazor.com/components/dialog#scrollable-dialog
+
+Passing data in — DialogParameters pattern
+https://mudblazor.com/components/dialog#pass-data-to-dialog
+
+Blazor [Parameter] on dialog components
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/index#component-parameters
+
+CascadingParameter MudDialogInstance
+https://mudblazor.com/components/dialog#pass-data-to-dialog
+
+Servives References For This Page:
+
+HttpClient.GetFromJsonAsync<List<AgentDto>>
+https://learn.microsoft.com/en-us/dotnet/api/system.net.http.json.httpclientjsonextensions.getfromjsonasync
+
+IConfiguration indexer — Config["TeamServer:BaseUrl"]
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration
+
+HubConnectionBuilder — build SignalR connection to {baseUrl}/register
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.signalr.client.hubconnectionbuilder
+
+HubConnection.StartAsync()
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.signalr.client.hubconnection.startasync
+
+HubConnection.On<T>(methodName, handler)
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.signalr.client.hubconnectionextensions.on
+
+HubConnection.DisposeAsync() — IAsyncDisposable cleanup
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.signalr.client.hubconnection.disposeasync
+
+IDialogService.ShowAsync<TDialog>(parameters, options)
+https://mudblazor.com/api/mudblazor.idialogservice
+
+ISnackbar.Add(message, Severity)
+https://mudblazor.com/components/snackbar-->

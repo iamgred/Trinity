@@ -1,0 +1,32 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Create New Folder</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudTextField @bind-Value="_folderName" Label="Folder Name" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Class="mb-4" />
+        <div style="display:flex; gap:8px; align-items:flex-end;">
+            <MudTextField @bind-Value="_filePath" Label="File Path" Variant="Variant.Outlined"
+                          Margin="Margin.Dense" Placeholder="/Data/Files/"
+                          Style="flex:1;" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       Style="text-transform:none; height:40px; margin-bottom:1px;">Browse</MudButton>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Style="min-width:100px;"
+                   Disabled="@string.IsNullOrWhiteSpace(_folderName)">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _folderName = string.Empty;
+    private string _filePath   = string.Empty;
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

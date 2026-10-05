@@ -5,7 +5,29 @@
 
 <div class="clients-page">
 
-    <div class="mock-banner">Mock data — for UI shell only (in-memory, not persisted)</div>
+    @if (_loadError is not null || _taskLoadError is not null)
+    {
+        <div class="mock-banner" role="status">
+            @if (Connection.BaseAddress is null)
+            {
+                <span>Connect to a TeamServer from the Login page before viewing clients.</span>
+                <button type="button" class="export-btn" @onclick="GoToLogin">Go to Login</button>
+            }
+            else
+            {
+                @if (_loadError is not null)
+                {
+                    <span>@_loadError</span>
+                    <button type="button" class="export-btn" @onclick="LoadAgentsAsync">Retry agents</button>
+                }
+                @if (_taskLoadError is not null)
+                {
+                    <span>@_taskLoadError</span>
+                    <button type="button" class="export-btn" @onclick="LoadTasksAsync">Retry task history</button>
+                }
+            }
+        </div>
+    }
 
     <section class="header">
         <h1>Clients</h1>
@@ -24,7 +46,6 @@
                 <div class="stat-body">
                     <div class="label">@stat.Label</div>
                     <div class="value">@stat.Value</div>
-                    <div class="trend @(stat.Up ? "up" : "down")">@(stat.Up ? "↗" : "↘") @stat.Trend</div>
                 </div>
             </div>
         }
@@ -44,21 +65,18 @@
                         </div>
                         <select class="filter-select" @bind="_statusFilter" @bind:after="ResetPage">
                             <option>All Status</option>
-                            <option>Online</option>
-                            <option>Offline</option>
-                            <option>Inactive</option>
+                            <option>Unknown</option>
                         </select>
                         <select class="filter-select" @bind="_osFilter" @bind:after="ResetPage">
-                            <option>All OS</option>
-                            <option>Windows 10</option>
-                            <option>Windows 11</option>
-                            <option>Ubuntu</option>
-                            <option>macOS</option>
+                            <option>All Architectures</option>
+                            <option>x64</option>
+                            <option>x86</option>
                         </select>
                         <button type="button" class="export-btn" @onclick="ExportClients">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                             Export
                         </button>
+                        <button type="button" class="export-btn" @onclick="RefreshDataAsync">Refresh</button>
                     </div>
                 </div>
 
@@ -67,7 +85,7 @@
                         <tr>
                             <th>Client Name</th>
                             <th>IP Address</th>
-                            <th>OS</th>
+                            <th>Architecture</th>
                             <th>Status</th>
                             <th>Last Seen</th>
                             <th>User</th>
@@ -76,12 +94,12 @@
                     <tbody>
                         @if (!PageItems.Any())
                         {
-                            <tr><td colspan="6" class="empty-row">No clients match your filters.</td></tr>
+                            <tr><td colspan="6" class="empty-row">@( _loadError ?? (_isLoading ? "Loading agents from TeamServer..." : "No clients match your filters."))</td></tr>
                         }
                         @foreach (var row in PageItems)
                         {
                             <tr class="@(row == _selected ? "selected" : null)" @onclick="() => SelectRow(row)">
-                                <td>@row.Name</td>
+                                <td>@row.Name @if (row.IsSample) { <span>(Sample)</span> }</td>
                                 <td>@row.Ip</td>
                                 <td>@row.Os</td>
                                 <td>
@@ -112,6 +130,10 @@
             <section class="timeline-section t-card">
                 <h2>Client Activity Timeline</h2>
                 <ul class="timeline">
+                    @if (_timeline.Count == 0 && _taskLoadError is null)
+                    {
+                        <li class="timeline-item"><span class="timeline-text">No task history is available from TeamServer.</span></li>
+                    }
                     @foreach (var ev in _timeline)
                     {
                         <li class="timeline-item">
@@ -135,6 +157,7 @@
                     </select>
                 </div>
                 <div class="map-box">
+                    <p>TeamServer does not provide agent location coordinates.</p>
                     <svg class="world-map" viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
                         <g class="landmass">
                             @foreach (var d in LandDots)
@@ -158,7 +181,7 @@
 
             <section class="panel-os t-card">
                 <div class="panel-head">
-                    <h2>Client OS Distribution</h2>
+                    <h2>Client Architecture Distribution</h2>
                 </div>
                 <div class="os-body">
                     <div class="donut">
@@ -188,7 +211,7 @@
                 <div class="actions-grid">
                     @foreach (var a in Actions)
                     {
-                        <button type="button" class="action-btn" @onclick="a.OnClick">
+                        <button type="button" class="action-btn" disabled="@(a.Label is not ("View All Clients" or "Execute Job"))" title="@(a.Label is ("View All Clients" or "Execute Job") ? null : "TeamServer does not support this action from the Clients page.")" @onclick="a.OnClick">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 @((MarkupString)a.Icon)
                             </svg>
@@ -254,17 +277,41 @@
     <div class="modal-overlay" @onclick="CloseModals">
         <div class="modal-card" @onclick:stopPropagation="true">
             <h3>Execute Job</h3>
-            <label class="modal-label">Target: <strong>@(_selected?.Name ?? "none selected")</strong></label>
+
+            <label class="modal-label">Target</label>
+            <select class="modal-input" @bind="_jobTargetId">
+                @foreach (var client in _clients)
+                {
+                    <option value="@client.AgentId">@client.Name</option>
+                }
+            </select>
+
             <label class="modal-label">Job</label>
             <select class="modal-input" @bind="_jobName">
-                <option>Data Collection</option>
-                <option>Screenshot Capture</option>
-                <option>System Info</option>
-                <option>File Scan</option>
+                <option>Get UID</option>
+                <option>Set Sleep</option>
+                <option>Shell Command</option>
+                <option>PowerShell</option>
             </select>
+
+            @if (_jobName != "Get UID")
+            {
+                <label class="modal-label">@(_jobName == "Set Sleep" ? "Sleep (ms)" : "Command")</label>
+                <input class="modal-input" @bind="_jobArg" placeholder="@(_jobName == "Set Sleep" ? "5000" : "whoami")" />
+            }
+
+            <label class="modal-label">Execution Options</label>
+            <div class="radio-row">
+                <button type="button" class="radio-pill @(_jobImmediate ? "on" : null)" @onclick="() => _jobImmediate = true">
+                    <span class="radio-dot"></span> Immediate
+                </button>
+                <button type="button" class="radio-pill @(!_jobImmediate ? "on" : null)" @onclick="() => _jobImmediate = false">
+                    <span class="radio-dot"></span> Scheduled
+                </button>
+            </div>
+
             <div class="modal-actions">
-                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
-                <button type="button" class="btn-primary" @onclick="RunJob">Execute</button>
+                <button type="button" class="btn-primary" @onclick="RunJob">Confirm</button>
             </div>
         </div>
     </div>

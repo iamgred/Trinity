@@ -1,0 +1,472 @@
+@page "/campaigns"
+@rendermode InteractiveServer
+@using MudBlazor
+@using Client.Components.Pages.Dialogs
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IConfiguration Config
+@inject IDialogService DialogService
+
+<style>
+    .card  { background-color:#242424; border:1px solid #333; }
+    .card-p{ background-color:#242424; border:1px solid #333; padding:16px; }
+    .muted { color:#AAAAAA !important; }
+    .white { color:white; }
+    .lnk   { color:#E87722; text-decoration:none; font-size:0.875rem; }
+    .dot   { width:8px;  height:8px;  border-radius:50%; margin-right:6px; }
+    .dot-lg{ width:10px; height:10px; border-radius:50%; margin-right:6px; }
+    .qa-btn{ text-transform:none !important; justify-content:flex-start !important; }
+</style>
+
+<MudText Typo="Typo.h5" Style="color:white; font-weight:700; margin-bottom:4px;">Campaigns</MudText>
+<MudText Typo="Typo.body2" Class="muted" Style="margin-bottom:24px;">Manage and monitor your campaigns</MudText>
+
+<!-- Stat Cards -->
+<MudGrid Spacing="3" Class="mb-4">
+    @foreach (var card in _statCards)
+    {
+        <MudItem xs="12" sm="6" md="2">
+            <MudPaper Class="card" Style="padding:20px;">
+                <div class="d-flex align-center">
+                    <MudIcon Icon="@card.Icon" Style="color:#888; font-size:2.8rem; margin-right:14px;" />
+                    <div>
+                        <MudText Typo="Typo.caption" Class="muted">@card.Label</MudText>
+                        <MudText Typo="Typo.h4" Style="color:white; font-weight:700;">@card.Value</MudText>
+                    </div>
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<!-- All Campaigns -->
+<MudGrid Spacing="3" Class="mb-4">
+    <MudItem xs="12">
+        <MudPaper Class="card" Elevation="0">
+            <div style="padding:16px 16px 0; display:flex; justify-content:space-between;
+                        align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600;">All Campaigns</MudText>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                    <MudTextField @bind-Value="_searchText" Placeholder="Search campaigns..."
+                                  Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Style="min-width:180px;" />
+                    <MudSelect @bind-Value="_statusFilter" Label="Status" Variant="Variant.Outlined"
+                               Margin="Margin.Dense" Style="min-width:120px;">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                        <MudSelectItem Value="@("Paused")">Paused</MudSelectItem>
+                        <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
+                        <MudSelectItem Value="@("Scheduled")">Scheduled</MudSelectItem>
+                    </MudSelect>
+                    <MudSelect @bind-Value="_typeFilter" Label="Type" Variant="Variant.Outlined"
+                               Margin="Margin.Dense" Style="min-width:120px;">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        <MudSelectItem Value="@("Phishing")">Phishing</MudSelectItem>
+                        <MudSelectItem Value="@("Awareness")">Awareness</MudSelectItem>
+                        <MudSelectItem Value="@("Malware")">Malware</MudSelectItem>
+                        <MudSelectItem Value="@("Assessment")">Assessment</MudSelectItem>
+                        <MudSelectItem Value="@("Ransomware")">Ransomware</MudSelectItem>
+                    </MudSelect>
+                </div>
+            </div>
+            <MudTable T="CampaignModel" Items="@_campaigns" Dense="true" Hover="true"
+                      Elevation="0" Style="background-color:transparent;">
+                <HeaderContent>
+                    <MudTh Class="muted">Campaign Name</MudTh>
+                    <MudTh Class="muted">Type</MudTh>
+                    <MudTh Class="muted">Status</MudTh>
+                    <MudTh Class="muted">Target</MudTh>
+                    <MudTh Class="muted">Start Date</MudTh>
+                    <MudTh Class="muted">End Date</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd Style="color:white">@context.Name</MudTd>
+                    <MudTd Class="muted">@context.Type</MudTd>
+                    <MudTd>
+                        <span style="color:@StatusColour(context.Status); font-size:0.8rem; font-weight:600;">
+                            @context.Status
+                        </span>
+                    </MudTd>
+                    <MudTd Class="muted">@context.Target</MudTd>
+                    <MudTd Class="muted">@context.StartDate</MudTd>
+                    <MudTd Class="muted">@context.EndDate</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="muted" Style="text-align:center; padding:20px;">No Campaigns To Display</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<!-- Performance Chart + Status Donut -->
+<MudGrid Spacing="3" Class="mb-4">
+
+    <MudItem xs="12" md="8">
+        <MudPaper Class="card-p" Elevation="0">
+            <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:8px;">Campaign Performance</MudText>
+            <div style="display:flex; gap:20px; margin-bottom:12px; flex-wrap:wrap;">
+                <div class="d-flex align-center">
+                    <div style="width:24px; height:2px; background:#E87722; margin-right:6px;"></div>
+                    <MudText Typo="Typo.caption" Class="muted">Success Rate</MudText>
+                </div>
+                <div class="d-flex align-center">
+                    <div style="width:24px; height:2px; background:#4CAF50; margin-right:6px;"></div>
+                    <MudText Typo="Typo.caption" Class="muted">Click Rate</MudText>
+                </div>
+                <div class="d-flex align-center">
+                    <div style="width:24px; height:2px; background:#2196F3; margin-right:6px;"></div>
+                    <MudText Typo="Typo.caption" Class="muted">Report Rate</MudText>
+                </div>
+            </div>
+            <svg viewBox="0 0 700 180" style="width:100%; height:180px; overflow:visible;">
+                <line x1="50" y1="20"  x2="680" y2="20"  stroke="#2a2a2a" stroke-width="1"/>
+                <line x1="50" y1="55"  x2="680" y2="55"  stroke="#2a2a2a" stroke-width="1"/>
+                <line x1="50" y1="90"  x2="680" y2="90"  stroke="#2a2a2a" stroke-width="1"/>
+                <line x1="50" y1="125" x2="680" y2="125" stroke="#2a2a2a" stroke-width="1"/>
+                <line x1="50" y1="160" x2="680" y2="160" stroke="#2a2a2a" stroke-width="1"/>
+                <text x="40" y="24"  text-anchor="end" fill="#555" font-size="10" font-family="monospace">100%</text>
+                <text x="40" y="59"  text-anchor="end" fill="#555" font-size="10" font-family="monospace">75%</text>
+                <text x="40" y="94"  text-anchor="end" fill="#555" font-size="10" font-family="monospace">50%</text>
+                <text x="40" y="129" text-anchor="end" fill="#555" font-size="10" font-family="monospace">25%</text>
+                <text x="40" y="164" text-anchor="end" fill="#555" font-size="10" font-family="monospace">0%</text>
+                <text x="100"  y="176" text-anchor="middle" fill="#555" font-size="10" font-family="monospace">Jan</text>
+                <text x="205"  y="176" text-anchor="middle" fill="#555" font-size="10" font-family="monospace">Feb</text>
+                <text x="310"  y="176" text-anchor="middle" fill="#555" font-size="10" font-family="monospace">Mar</text>
+                <text x="415"  y="176" text-anchor="middle" fill="#555" font-size="10" font-family="monospace">Apr</text>
+                <text x="520"  y="176" text-anchor="middle" fill="#555" font-size="10" font-family="monospace">May</text>
+                <text x="625"  y="176" text-anchor="middle" fill="#555" font-size="10" font-family="monospace">Jun</text>
+                <polyline points="100,160 205,160 310,160 415,160 520,160 625,160"
+                          fill="none" stroke="#E87722" stroke-width="2" stroke-dasharray="4 3"/>
+                <polyline points="100,160 205,160 310,160 415,160 520,160 625,160"
+                          fill="none" stroke="#4CAF50" stroke-width="2" stroke-dasharray="4 3"/>
+                <polyline points="100,160 205,160 310,160 415,160 520,160 625,160"
+                          fill="none" stroke="#2196F3" stroke-width="2" stroke-dasharray="4 3"/>
+                <text x="365" y="90" text-anchor="middle" fill="#444" font-size="11" font-family="monospace">No campaign data available</text>
+            </svg>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="4">
+        <MudPaper Class="card-p" Elevation="0">
+            <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:16px;">Campaign Status</MudText>
+            <div style="display:flex; align-items:center; justify-content:center; gap:24px; flex-wrap:wrap;">
+                <div style="width:130px; height:130px; border-radius:50%; border:18px solid #333;
+                            display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <div style="color:#AAA; font-size:0.75rem; text-align:center;">No Data</div>
+                </div>
+                <div>
+                    @foreach (var item in _statusLegend)
+                    {
+                        <div class="d-flex align-center" style="margin-bottom:8px;">
+                            <div class="dot-lg" style="background:@item.Color; flex-shrink:0;"></div>
+                            <MudText Typo="Typo.caption" Class="muted">@item.Label</MudText>
+                        </div>
+                    }
+                </div>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+<!-- Types Donut + Quick Actions + Recent Activity -->
+<MudGrid Spacing="3">
+
+    <MudItem xs="12" md="4">
+        <MudPaper Class="card-p" Elevation="0">
+            <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:16px;">Campaign Types</MudText>
+            <div style="display:flex; align-items:center; justify-content:center; gap:24px; flex-wrap:wrap;">
+                <div style="width:130px; height:130px; border-radius:50%; border:18px solid #333;
+                            display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <div style="color:#AAA; font-size:0.75rem; text-align:center;">No Data</div>
+                </div>
+                <div>
+                    @foreach (var item in _typeLegend)
+                    {
+                        <div class="d-flex align-center" style="margin-bottom:8px;">
+                            <div class="dot-lg" style="background:@item.Color; flex-shrink:0;"></div>
+                            <MudText Typo="Typo.caption" Class="muted">@item.Label</MudText>
+                        </div>
+                    }
+                </div>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Quick Actions -->
+    <MudItem xs="12" md="4">
+        <MudPaper Class="card-p" Elevation="0">
+            <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:12px;">Quick Actions</MudText>
+            <div class="d-flex flex-column" style="gap:8px;">
+                <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                           Class="qa-btn" StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="OpenCreateNewCampaign">Create New Campaign</MudButton>
+                <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                           Class="qa-btn" StartIcon="@Icons.Material.Filled.GridView"
+                           OnClick="OpenCampaignTemplates">Campaign Templates</MudButton>
+                <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                           Class="qa-btn" StartIcon="@Icons.Material.Filled.FileUpload"
+                           OnClick="OpenImportCampaign">Import Campaign</MudButton>
+                <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                           Class="qa-btn" StartIcon="@Icons.Material.Filled.ContentCopy"
+                           OnClick="OpenCloneCampaign">Clone Campaign</MudButton>
+                <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                           Class="qa-btn" StartIcon="@Icons.Material.Filled.ListAlt"
+                           OnClick="OpenViewCampaigns">View All Campaigns</MudButton>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Recent Campaign Activity -->
+    <MudItem xs="12" md="4">
+        <MudPaper Class="card-p" Elevation="0">
+            <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:600; margin-bottom:12px;">Recent Activity</MudText>
+            @if (_recentActivity.Count == 0)
+            {
+                <div style="text-align:center; padding:16px; color:#666; font-size:0.875rem;">No Recent Activity</div>        
+            }
+            else
+            {
+                @foreach (var a in _recentActivity)
+                {
+                    <div style="display:flex; justify-content:space-between; align-items:center;
+                                padding:8px 0; border-bottom:1px solid #333;">
+                        <div>
+                            <div class="white" style="font-size:0.85rem;">@a.Name</div>
+                            <div class="muted" style="font-size:0.75rem;">@a.Date</div>
+                        </div>
+                        <span class="muted" style="font-size:0.78rem;">@a.Type</span>
+                    </div>
+                }
+            }
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+@code {
+    private string _searchText   = string.Empty;
+    private string _statusFilter = "All";
+    private string _typeFilter   = "All";
+
+    private record StatCard(string Label, string Value, string Icon);
+    private StatCard[] _statCards =
+    {
+        new("Total Campaigns", "0", Icons.Material.Outlined.Campaign),
+        new("Active",          "0", Icons.Material.Outlined.PlayArrow),
+        new("Paused",          "0", Icons.Material.Outlined.Pause),
+        new("Completed",       "0", Icons.Material.Outlined.Done),
+        new("Scheduled",       "0", Icons.Material.Outlined.Schedule),
+    };
+
+    private record CampaignModel(
+        string Name, string Type, string Status,
+        string Target, string StartDate, string EndDate);
+    private List<CampaignModel> _campaigns = new();
+
+    private record LegendItem(string Label, string Color);
+
+    private LegendItem[] _statusLegend =
+    {
+        new("Active",    "#E87722"),
+        new("Paused",    "#F4A030"),
+        new("Completed", "#4CAF50"),
+        new("Scheduled", "#2196F3"),
+    };
+
+    private LegendItem[] _typeLegend =
+    {
+        new("Phishing",   "#E87722"),
+        new("Awareness",  "#F4A030"),
+        new("Malware",    "#FFB84D"),
+        new("Assessment", "#4CAF50"),
+        new("Ransomware", "#F44336"),
+    };
+
+    private record ActivityItem(string Name, string Type, string Date);
+    private List<ActivityItem> _recentActivity = new();
+
+    protected override async Task OnInitializedAsync()
+    => await LoadCampaignsAsync();
+
+    private async Task LoadCampaignsAsync()
+    {
+    try
+    {
+        var url = $"{Config["TeamServer:BaseUrl"]}/api/v1/campaigns";
+        var list = await Http.GetFromJsonAsync<List<CampaignDto>>(url);
+        if (list is null) return;
+
+        _campaigns = list.Select(c =>
+            new CampaignModel(c.Name, "—", "—", "—", "—", "—")).ToList();
+
+        _statCards[0] = _statCards[0] with { Value = list.Count.ToString() };
+     }
+        catch { }
+     }
+
+    private record CampaignDto(int ID, string Name);
+
+    private static string StatusColour(string status) => status switch
+    {
+        "Active"    => "#E87722",
+        "Completed" => "#4CAF50",
+        "Scheduled" => "#2196F3",
+        _           => "#F4A030",
+    };
+
+    private static readonly DialogOptions _dialogOpts = new()
+    {
+        CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true
+    };
+
+    private Task OpenCreateNewCampaign()
+        => DialogService.ShowAsync<CreateNewCampaignDialog>(string.Empty, new(), _dialogOpts);
+
+    private Task OpenCampaignTemplates()
+        => DialogService.ShowAsync<CampaignTemplatesDialog>(string.Empty, new(), _dialogOpts);
+
+    private Task OpenImportCampaign()
+        => DialogService.ShowAsync<ImportCampaignDialog>(string.Empty, new(), _dialogOpts);
+
+    private Task OpenCloneCampaign()
+        => DialogService.ShowAsync<CloneCampaignDialog>(string.Empty, new(), _dialogOpts);
+
+    private Task OpenViewCampaigns()
+        => DialogService.ShowAsync<ViewCampaignsDialog>(string.Empty, new(), _dialogOpts);
+}
+
+<!-- =============================================End of Code==================================================================== -->
+<!-- Main Page References:
+    
+HttpClient.GetFromJsonAsync (System.Net.Http.Json)
+https://learn.microsoft.com/en-us/dotnet/api/system.net.http.json.httpclientjsonextensions.getfromjsonasync
+
+IConfiguration (appsettings / Config["key"])
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration
+
+Blazor OnInitializedAsync lifecycle
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/lifecycle#component-initialization-oninitializedasync
+
+MudTable
+https://mudblazor.com/components/table
+
+MudSelect & MudSelectItem
+https://mudblazor.com/components/select
+
+MudTextField
+https://mudblazor.com/components/textfield
+
+MudGrid & MudItem
+https://mudblazor.com/components/grid
+
+MudPaper
+https://mudblazor.com/components/paper
+
+MudText & Typo enum
+https://mudblazor.com/components/text
+
+MudButton
+https://mudblazor.com/components/button
+
+MudIcon & Icons.Material
+https://mudblazor.com/components/icon
+
+C# record (positional)
+https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record 
+
+Respective Dialog References:
+
+MudBlazor Dialog Overview
+https://mudblazor.com/components/dialog
+
+IDialogService — ShowAsync, Show, Close
+https://mudblazor.com/api/mudblazor.idialogservice
+
+MudDialog — root component (Actions, Content, TitleContent slots)
+https://mudblazor.com/api/mudblazor.muddialog
+
+MudDialogInstance — Close()/Cancel() from within a dialog
+https://mudblazor.com/api/mudblazor.muddialoginstance
+
+MudDialogProvider — place once in MainLayout
+https://mudblazor.com/api/mudblazor.muddialogprovider
+
+DialogOptions — FullWidth, MaxWidth, CloseOnEscapeKey, BackdropClick
+https://mudblazor.com/api/mudblazor.dialogoptions
+
+DialogParameters — passing typed data into a dialog
+https://mudblazor.com/api/mudblazor.dialogparameters
+
+DialogResult — what a dialog returns on close
+https://mudblazor.com/api/mudblazor.dialogresult
+
+IDialogReference.Result — awaiting the return value
+https://mudblazor.com/components/dialog#dialog-result
+
+MaxWidth enum (ExtraSmall → ExtraExtraLarge)
+https://mudblazor.com/api/mudblazor.maxwidth
+
+MudForm — campaign name / description inputs
+https://mudblazor.com/components/form
+
+MudTextField — name, description fields
+https://mudblazor.com/components/textfield
+
+MudSelect — campaign type / template selector
+https://mudblazor.com/components/select
+
+MudDatePicker — campaign start/end dates
+https://mudblazor.com/components/datepicker
+
+MudTimePicker — campaign schedule times
+https://mudblazor.com/components/timepicker
+
+MudCheckBox — feature toggles inside campaign config
+https://mudblazor.com/components/checkbox
+
+MudTable inside dialog — ViewCampaignsDialog listing
+https://mudblazor.com/components/table
+
+MudFileUpload — ImportCampaignDialog file picker
+https://mudblazor.com/components/fileupload
+
+MudChip — template tags in CampaignTemplatesDialog
+https://mudblazor.com/components/chip
+
+MudDivider — section separator inside dialogs
+https://mudblazor.com/components/divider
+
+MudProgressCircular — loading spinner while fetching
+https://mudblazor.com/components/progress
+
+Scrollable dialog for long content
+https://mudblazor.com/components/dialog#scrollable-dialog
+
+Cloning pattern — pass existing item via DialogParameters, return modified copy
+https://mudblazor.com/components/dialog#pass-data-to-dialog
+
+Blazor [Parameter] on dialog components
+https://learn.microsoft.com/en-us/aspnet/core/blazor/components/index#component-parameters
+
+CascadingParameter MudDialogInstance
+https://mudblazor.com/components/dialog#pass-data-to-dialog
+
+Services References For This Page:
+
+HttpClient.GetFromJsonAsync<List<CampaignDto>>
+https://learn.microsoft.com/en-us/dotnet/api/system.net.http.json.httpclientjsonextensions.getfromjsonasync
+
+IConfiguration indexer — Config["TeamServer:BaseUrl"]
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration
+
+IDialogService.ShowAsync<TDialog>(parameters, options)
+https://mudblazor.com/api/mudblazor.idialogservice
+
+DialogParameters — passing data into dialogs
+https://mudblazor.com/api/mudblazor.dialogparameters
+
+ISnackbar.Add(message, Severity)
+https://mudblazor.com/components/snackbar-->

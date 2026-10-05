@@ -1,0 +1,74 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<style>
+    .sec-lbl {
+        color:#AAAAAA; font-size:0.7rem; font-weight:600;
+        text-transform:uppercase; letter-spacing:0.06em; margin:16px 0 8px;
+    }
+    .tog-row {
+        display:flex; justify-content:space-between; align-items:center;
+        padding:6px 0; border-bottom:1px solid #2a2a2a;
+    }
+    .tog-lbl { color:#ccc; font-size:0.85rem; }
+</style>
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Agent Behaviour</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:16px;" />
+
+        <MudSelect @bind-Value="_mode" T="string" Label="Behaviour Mode"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-2">
+            <MudSelectItem Value="@("stealth")">Stealth</MudSelectItem>
+            <MudSelectItem Value="@("aggressive")">Aggressive</MudSelectItem>
+            <MudSelectItem Value="@("passive")">Passive</MudSelectItem>
+            <MudSelectItem Value="@("custom")">Custom</MudSelectItem>
+        </MudSelect>
+
+        <p class="sec-lbl">Activity Settings</p>
+        <MudSelect @bind-Value="_actLevel" T="string" Label="Activity Level"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-2">
+            <MudSelectItem Value="@("low")">Low</MudSelectItem>
+            <MudSelectItem Value="@("medium")">Medium</MudSelectItem>
+            <MudSelectItem Value="@("high")">High</MudSelectItem>
+        </MudSelect>
+        <div class="tog-row"><span class="tog-lbl">Sleep / Jitter</span>      <MudSwitch T="bool" @bind-Value="_sleepJitter"     Color="Color.Primary" /></div>
+        <div class="tog-row"><span class="tog-lbl">User Interaction</span>    <MudSwitch T="bool" @bind-Value="_userInteract"    Color="Color.Primary" /></div>
+        <div class="tog-row"><span class="tog-lbl">Persistence</span>         <MudSwitch T="bool" @bind-Value="_persistence"     Color="Color.Primary" /></div>
+
+        <p class="sec-lbl">Process Execution</p>
+        <div class="tog-row"><span class="tog-lbl">Process Injection</span>   <MudSwitch T="bool" @bind-Value="_procInject"      Color="Color.Primary" /></div>
+        <div class="tog-row"><span class="tog-lbl">Process Spoofing</span>    <MudSwitch T="bool" @bind-Value="_procSpoof"       Color="Color.Primary" /></div>
+        <div class="tog-row"><span class="tog-lbl">Run on Startup</span>      <MudSwitch T="bool" @bind-Value="_runStartup"      Color="Color.Primary" /></div>
+
+        <p class="sec-lbl">Data Operations</p>
+        <div class="tog-row"><span class="tog-lbl">Data Collection</span>     <MudSwitch T="bool" @bind-Value="_dataCollection"  Color="Color.Primary" /></div>
+        <div class="tog-row"><span class="tog-lbl">Exfiltration</span>        <MudSwitch T="bool" @bind-Value="_exfiltration"    Color="Color.Primary" /></div>
+        <div class="tog-row" style="border-bottom:none;">
+            <span class="tog-lbl">Run on Startup</span>
+            <MudSwitch T="bool" @bind-Value="_runStartupData" Color="Color.Primary" />
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _mode          = "stealth";
+    private string _actLevel      = "low";
+    private bool _sleepJitter     = false;
+    private bool _userInteract    = false;
+    private bool _persistence     = false;
+    private bool _procInject      = false;
+    private bool _procSpoof       = false;
+    private bool _runStartup      = false;
+    private bool _dataCollection  = false;
+    private bool _exfiltration    = false;
+    private bool _runStartupData  = false;
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

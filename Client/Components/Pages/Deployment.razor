@@ -5,6 +5,8 @@
 @using Client.Interpreter
 @using Client.Services
 @using System.Net.Http.Json
+@using System.Diagnostics
+@using System.IO
 @inject HttpClient Http
 @inject IDialogService DialogService
 @inject IJSRuntime JS
@@ -76,6 +78,10 @@
         pointer-events:none;
     }
     #graph-svg { transition:transform 0.2s ease; }
+    .mud-table-body td              { background-color: transparent !important; }
+    .mud-table-row:hover td         { background-color:#2a2a2a !important; }
+    .mud-selected-item td           { background-color:#2a2a2a !important; }
+
 </style>
 
 <!-- Page Title -->
@@ -546,17 +552,18 @@ private record AgentDto(int ID, string Username, DateTime LastCheckIn, int Campa
             case "help":
                 _termOutput +=
                     "<span style='color:#aaa;'>Commands:\n" +
-                    "  help              – show this help\n" +
-                    "  clear             – clear terminal\n" +
-                    "  status            – agent/hub/target summary\n" +
-                    "  agents            – list agents\n" +
-                    "  groups            – list groups\n" +
-                    "  version           – Trinity version info\n" +
-                    "  interact &lt;id&gt;     – target an agent by ID\n" +
-                    "  deselect          – stop targeting current agent\n" +
-                    "  matrix            – initiate matrix sequence\n" +
-                    "  exit matrix       – stop matrix sequence\n" +
-                    "  [any other cmd]   – sent to targeted agent via TeamServer</span>\n\n";
+                    "  help – show this help\n" +
+                    "  clear – clear terminal\n" +
+                    "  status – agent/hub/target summary\n" +
+                    "  agents – list agents\n" +
+                    "  groups – list groups\n" +
+                    "  version – Trinity version info\n" +
+                    "  interact &lt;id&gt; – target an agent by ID\n" +
+                    "  deselect – stop targeting current agent\n" +
+                    "  build – compile the agent\n" +
+                    "  matrix – initiate matrix sequence\n" +
+                    "  exit matrix – stop matrix sequence\n" +
+                    "  [any other cmd] – sent to targeted agent via TeamServer</span>\n\n";
                 break;
 
             case "clear":
@@ -620,6 +627,61 @@ private record AgentDto(int ID, string Username, DateTime LastCheckIn, int Campa
                 await InvokeAsync(StateHasChanged);
                 await JS.InvokeVoidAsync("trinity.matrixStop");
                 return;
+
+                case "build":
+    _termOutput += "<span style='color:#888;'>Building agent…</span>\n";
+    await InvokeAsync(StateHasChanged);
+    await JS.InvokeVoidAsync("trinity.termScroll", "terminal-output");
+    try
+    {
+        
+        var buildDir = @"C:\Users\conna\source\repos\Trinity\Agent\build";
+        if (!Directory.Exists(buildDir))
+        {
+            var configure = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "cmake",
+                    Arguments = "-S . -B build",
+                    WorkingDirectory = @"C:\Users\conna\source\repos\Trinity\Agent",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError  = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                }
+            };
+            configure.Start();
+            _termOutput += Esc(await configure.StandardOutput.ReadToEndAsync()
+                         + await configure.StandardError.ReadToEndAsync()) + "\n";
+            await configure.WaitForExitAsync();
+        }
+
+        
+        var p = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "cmake",
+                Arguments = "--build build --config Release",
+                WorkingDirectory = @"C:\Users\conna\source\repos\Trinity\Agent",
+                RedirectStandardOutput = true,
+                RedirectStandardError  = true,
+                UseShellExecute        = false,
+                CreateNoWindow         = true
+            }
+        };
+        p.Start();
+        var output = await p.StandardOutput.ReadToEndAsync()
+                   + await p.StandardError.ReadToEndAsync();
+        await p.WaitForExitAsync();
+        _termOutput += $"<span style='color:#00ff41;'>{Esc(output)}</span>\n\n";
+    }
+    catch (Exception ex)
+    {
+        _termOutput += $"<span style='color:#f44336;'>[-] Build failed: {Esc(ex.Message)}</span>\n\n";
+    }
+    break;
 
             default:
     if (!_activeAgentId.HasValue)

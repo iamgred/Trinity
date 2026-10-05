@@ -32,7 +32,15 @@ public partial class Settings
     private string _clientExpiry = "90 Days";
     private string _killDate = "2026-02-15";
 
-    private const int HealthPercent = 98;
+    // Live TeamServer liveness (GET /server/status); null = not yet checked.
+    private bool? _serverOnline;
+    private int HealthPercent => _serverOnline == true ? 100 : 0;
+    private string HealthLabel => _serverOnline switch
+    {
+        true => "Operational",
+        false => "Unreachable",
+        null => "Checking…",
+    };
 
     private string? _toast;
 
@@ -51,6 +59,7 @@ public partial class Settings
     private string _profileProtocol = "HTTP";
     private string _profileHost = "";
     private string _profilePort = "";
+    private string _profilePipe = "";
 
     protected override async Task OnInitializedAsync() => await LoadListenersAsync();
 
@@ -88,6 +97,15 @@ public partial class Settings
         {
             _serverIpV4 = null;
             _serverIpV6 = null;
+        }
+
+        try
+        {
+            _serverOnline = await ServerApiClient.GetServerStatusAsync();
+        }
+        catch
+        {
+            _serverOnline = false;
         }
     }
 
@@ -129,6 +147,7 @@ public partial class Settings
         _profileProtocol = "HTTP";
         _profileHost = "";
         _profilePort = "";
+        _profilePipe = "";
         _showCreateProfile = true;
     }
 
@@ -137,13 +156,29 @@ public partial class Settings
     private async Task CreateProfile()
     {
         if (string.IsNullOrWhiteSpace(_profileName)) { ShowToast("Profile name is required."); return; }
-        if (_profileProtocol != "HTTP") { ShowToast("Only HTTP profiles can be created from this build."); return; }
-        if (!int.TryParse(_profilePort, out var port) || port <= 0) { ShowToast("Enter a valid port."); return; }
-        var host = string.IsNullOrWhiteSpace(_profileHost) ? "0.0.0.0" : _profileHost.Trim();
 
         try
         {
-            var created = await ListenerApiClient.CreateHttpListenerAsync(_profileName.Trim(), host, port);
+            bool created;
+            switch (_profileProtocol)
+            {
+                case "HTTP":
+                    if (!int.TryParse(_profilePort, out var httpPort) || httpPort <= 0 || httpPort > 65535) { ShowToast("Enter a valid port (1-65535)."); return; }
+                    var host = string.IsNullOrWhiteSpace(_profileHost) ? "0.0.0.0" : _profileHost.Trim();
+                    created = await ListenerApiClient.CreateHttpListenerAsync(_profileName.Trim(), host, httpPort);
+                    break;
+                case "TCP":
+                    if (!int.TryParse(_profilePort, out var tcpPort) || tcpPort <= 0 || tcpPort > 65535) { ShowToast("Enter a valid port (1-65535)."); return; }
+                    created = await ListenerApiClient.CreateTcpListenerAsync(_profileName.Trim(), tcpPort);
+                    break;
+                case "SMB":
+                    if (string.IsNullOrWhiteSpace(_profilePipe)) { ShowToast("Enter a pipe name."); return; }
+                    created = await ListenerApiClient.CreateSmbListenerAsync(_profileName.Trim(), _profilePipe.Trim());
+                    break;
+                default:
+                    ShowToast("Unsupported protocol."); return;
+            }
+
             if (created)
             {
                 ShowToast($"C2 profile \"{_profileName.Trim()}\" created.");
@@ -197,7 +232,7 @@ public partial class Settings
             "<path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/>"),
         new("Evasion Techniques", "23", "Evasion Configurations",
             "<path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/><line x1='1' y1='1' x2='23' y2='23'/>"),
-        new("System Health", "98%", "Overall System Status",
+        new("System Health", $"{HealthPercent}%", HealthLabel,
             "<rect x='3' y='4' width='18' height='6' rx='1'/><rect x='3' y='14' width='18' height='6' rx='1'/><path d='M7 7h.01M7 17h.01'/>"),
     };
 
@@ -216,7 +251,8 @@ public partial class Settings
         get
         {
             var fill = (HealthPercent / 100.0 * 100).ToString("0.##", CultureInfo.InvariantCulture);
-            return $"var(--status-green) 0% {fill}%, var(--bg-input) {fill}% 100%";
+            var color = _serverOnline == false ? "var(--status-red)" : "var(--status-green)";
+            return $"{color} 0% {fill}%, var(--bg-input) {fill}% 100%";
         }
     }
 

@@ -65,7 +65,8 @@
                         </div>
                         <select class="filter-select" @bind="_statusFilter" @bind:after="ResetPage">
                             <option>All Status</option>
-                            <option>Unknown</option>
+                            <option>Online</option>
+                            <option>Offline</option>
                         </select>
                         <select class="filter-select" @bind="_osFilter" @bind:after="ResetPage">
                             <option>All Architectures</option>
@@ -288,16 +289,26 @@
 
             <label class="modal-label">Job</label>
             <select class="modal-input" @bind="_jobName">
-                <option>Get UID</option>
-                <option>Set Sleep</option>
-                <option>Shell Command</option>
-                <option>PowerShell</option>
+                @foreach (var job in _jobCatalogue)
+                {
+                    <option value="@job.Name">@job.Name</option>
+                }
             </select>
 
-            @if (_jobName != "Get UID")
+            @if (JobLabel1 is not null)
             {
-                <label class="modal-label">@(_jobName == "Set Sleep" ? "Sleep (ms)" : "Command")</label>
-                <input class="modal-input" @bind="_jobArg" placeholder="@(_jobName == "Set Sleep" ? "5000" : "whoami")" />
+                <label class="modal-label">@JobLabel1</label>
+                <input class="modal-input" @bind="_jobArg" />
+            }
+            @if (JobLabel2 is not null)
+            {
+                <label class="modal-label">@JobLabel2</label>
+                <input class="modal-input" @bind="_jobArg2" />
+            }
+            @if (JobLabel3 is not null)
+            {
+                <label class="modal-label">@JobLabel3</label>
+                <input class="modal-input" @bind="_jobArg3" />
             }
 
             <label class="modal-label">Execution Options</label>

@@ -5,7 +5,7 @@
 
 #include <Windows.h>
 #include <string>
-#include <KeyboardLogger/InputIntentRecorder.h>
+#include "KeyboardLogger/InputIntentRecorder.h"
 
 class Agent
 {

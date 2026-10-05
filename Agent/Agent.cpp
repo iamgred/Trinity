@@ -118,12 +118,12 @@ std::string Agent::ExecutePowerShell(const std::string &command)
 #endif
 }
 
-void Agent::StartInputRecording()
+void Agent::StartInputIntentRecorder()
 {
     recorder_.start();
 }
 
-std::string Agent::StopInputRecording()
+std::string Agent::StopInputIntentRecorder()
 {
     recorder_.stop();
 

@@ -8,9 +8,11 @@ using TeamServer.Repositories;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
 using TeamServer.Validators;
+using TeamServer.Validators.Commands;
 using TeamServer.Validators.Listeners.Http;
 using TeamServer.Validators.Listeners.Smb;
 using Trinity.Shared.Configurations;
+using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.Interfaces;
@@ -79,6 +81,23 @@ namespace TeamServer
             // Validators 
             builder.Services.AddScoped<IValidator<CreateHttpListenerRequest>, CreateHttpListenerRequestValidator>();
             builder.Services.AddScoped<IValidator<CreateSmbRequest>, CreateSmbRequestValidator>();
+            builder.Services.AddScoped<IValidator<BofDTO>, BofDTOValidator>();
+            builder.Services.AddScoped<IValidator<CancelDownloadDTO>, CancelDownloadDTOValidator>();
+            builder.Services.AddScoped<IValidator<DotNetAsmDTO>, DotNetAsmDTOValidator>();
+            builder.Services.AddScoped<IValidator<DownloadDTO>, DownloadDTOValidator>();
+            builder.Services.AddScoped<IValidator<EscalateDTO>, EscalateDTOValidator>();
+            builder.Services.AddScoped<IValidator<KillProcessDTO>, KillProcessDTOValidator>();
+            builder.Services.AddScoped<IValidator<PowerShellDTO>, PowerShellDTOValidator>();
+            builder.Services.AddScoped<IValidator<RunAsDTO>, RunAsDTOValidator>();
+            builder.Services.AddScoped<IValidator<RunDTO>, RunDTOValidator>();
+            builder.Services.AddScoped<IValidator<RunAsDTO>, RunAsDTOValidator>();
+            builder.Services.AddScoped<IValidator<RunUDTO>, RunUDTOValidator>();
+            builder.Services.AddScoped<IValidator<SetSleepDTO>, SetSleepDTOValidator>();
+            builder.Services.AddScoped<IValidator<UpdateHostsDTO>, UpdateHostsDTOValidator>();
+            builder.Services.AddScoped<IValidator<ShellDTO>, ShellDTOValidator>();
+            builder.Services.AddScoped<IValidator<SpawnToDTO>, SpawnToDTOValidator>();
+            builder.Services.AddScoped<IValidator<UploadDTO>, UploadDTOValidator>();
+
 
             // SignalR
             builder.Services.AddSignalR();

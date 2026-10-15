@@ -1,4 +1,3 @@
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
@@ -25,6 +24,7 @@ namespace TeamServer
             var builder = WebApplication.CreateBuilder(args);
 
             // Services 
+            /// Scoped
             builder.Services.AddScoped<ListenerService>();
             builder.Services.AddScoped<CommandService>();
             builder.Services.AddScoped<PayloadService>();
@@ -34,21 +34,29 @@ namespace TeamServer
             builder.Services.AddScoped<OperatorService>();
             builder.Services.AddScoped<CampaignService>();
             builder.Services.AddScoped<AdminService>();
+            builder.Services.AddScoped<DatabaseService>();
+
+            // Validators
+            builder.Services.AddValidatorsFromAssemblyContaining<OperatorValidator>();
+
+            /// Signletons
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
             builder.Services.AddSingleton<CommandFactory>();
             builder.Services.AddSingleton<AgentFactory>();
             builder.Services.AddSingleton<TaskResultFactory>();
             builder.Services.AddSingleton<HttpListenerManager>();
-            builder.Services.AddScoped<DatabaseService>();
+
             builder.Services.AddControllers(options =>
             {
                 options.Filters.Add<ValidationFilter>();
             });
+
             builder.Services.AddSwaggerGen(options =>
             {
                 options.EnableAnnotations();
             });
+
             builder.Services.AddDbContextPool<Context>(opt =>
                 opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
@@ -114,4 +122,3 @@ namespace TeamServer
         }
     }
 }
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

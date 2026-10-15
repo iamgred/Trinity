@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: trinity-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=JAMZ
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  teamserver:
+    build:
+      context: .
+      dockerfile: TeamServer/Dockerfile
+    container_name: trinity-teamserver
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - ConnectionStrings__Postgres=Host=postgres;Database=postgres;Username=postgres;Password=JAMZ
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+    volumes:
+      - ./Agent:/Agent:ro
+      - ./Payloads:/app/Payloads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  client:
+    build:
+      context: .
+      dockerfile: Client/Dockerfile
+    container_name: trinity-client
+    restart: unless-stopped
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - TeamServer__BaseUrl=http://teamserver:5000
+    depends_on:
+      - teamserver
+
+volumes:
+  pgdata:

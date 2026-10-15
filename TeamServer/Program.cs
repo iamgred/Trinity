@@ -7,8 +7,9 @@ using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
+using TeamServer.Validators;
 using Trinity.Shared.Configurations;
-using Trinity.Shared.Interfaces;
+using FluentValidation;
 
 namespace TeamServer
 {
@@ -19,6 +20,7 @@ namespace TeamServer
             var builder = WebApplication.CreateBuilder(args);
 
             // Services 
+            /// Scoped
             builder.Services.AddScoped<ListenerService>();
             builder.Services.AddScoped<CommandService>();
             builder.Services.AddScoped<PayloadService>();
@@ -28,13 +30,19 @@ namespace TeamServer
             builder.Services.AddScoped<OperatorService>();
             builder.Services.AddScoped<CampaignService>();
             builder.Services.AddScoped<AdminService>();
+            builder.Services.AddScoped<DatabaseService>();
+
+            // Validators
+            builder.Services.AddValidatorsFromAssemblyContaining<OperatorValidator>();
+
+            /// Signletons
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
             builder.Services.AddSingleton<CommandFactory>();
             builder.Services.AddSingleton<AgentFactory>();
             builder.Services.AddSingleton<TaskResultFactory>();
             builder.Services.AddSingleton<HttpListenerManager>();
-            builder.Services.AddScoped<DatabaseService>();
+
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen(options =>
             {

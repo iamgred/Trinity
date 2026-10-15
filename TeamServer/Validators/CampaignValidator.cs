@@ -1,6 +1,5 @@
 // ================================== { START OF FILE } ================================== //
 using FluentValidation;
-using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Validators

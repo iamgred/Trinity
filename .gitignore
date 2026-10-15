@@ -394,3 +394,6 @@ FodyWeavers.xsd
 .local-backend/
 *.local.sql
 *.local.md
+
+# Agent build artifacts
+Agent/out/

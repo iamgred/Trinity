@@ -16,10 +16,22 @@ services:
       timeout: 5s
       retries: 10
 
+  migrator:
+    build:
+      context: .
+      dockerfile: TeamServer/Dockerfile
+      target: migrator
+    environment:
+      - ConnectionStrings__Postgres=Host=postgres;Database=postgres;Username=postgres;Password=JAMZ
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   teamserver:
     build:
       context: .
       dockerfile: TeamServer/Dockerfile
+      target: runtime
     container_name: trinity-teamserver
     restart: unless-stopped
     ports:
@@ -32,6 +44,8 @@ services:
       - ./Agent:/Agent:ro
       - ./Payloads:/app/Payloads
     depends_on:
+      migrator:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
 

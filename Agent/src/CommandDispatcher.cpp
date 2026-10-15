@@ -8,8 +8,11 @@ std::string CommandDispatcher::Dispatch(int commandType, const std::string& comm
 {
     switch (commandType)
     {
-    case0x0001:
+    case 0x0001:
         return agent.ExecutePowerShell(command);
+
+    case 0x0002:
+        return agent.ExecuteShell(command);
 
     default:
         return std::string();

@@ -27,6 +27,7 @@ public:
 	void Exit();
 	std::string GetUID();
 	std::string ExecutePowerShell(const std::string& command);
+	std::string ExecuteShell(const std::string& command);
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;

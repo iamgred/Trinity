@@ -1,4 +1,5 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using TeamServer.ExceptionHandlers;
@@ -7,7 +8,12 @@ using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
+using TeamServer.Validators;
+using TeamServer.Validators.Listeners.Http;
+using TeamServer.Validators.Listeners.Smb;
 using Trinity.Shared.Configurations;
+using Trinity.Shared.DTOs.Listener.Http;
+using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.Interfaces;
 
 namespace TeamServer
@@ -35,7 +41,10 @@ namespace TeamServer
             builder.Services.AddSingleton<TaskResultFactory>();
             builder.Services.AddSingleton<HttpListenerManager>();
             builder.Services.AddScoped<DatabaseService>();
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<ValidationFilter>();
+            });
             builder.Services.AddSwaggerGen(options =>
             {
                 options.EnableAnnotations();
@@ -59,6 +68,10 @@ namespace TeamServer
             builder.Services.AddScoped<AdminRepository>();
             builder.Services.AddScoped<HostRepository>();
 
+            // Validators 
+            builder.Services.AddScoped<IValidator<CreateHttpListenerRequest>, CreateHttpListenerRequestValidator>();
+            builder.Services.AddScoped<IValidator<CreateSmbRequest>, CreateSmbRequestValidator>();
+
             // SignalR
             builder.Services.AddSignalR();
 
@@ -71,8 +84,8 @@ namespace TeamServer
             ServerNetworkSettings serverNetworkSettings = new ServerNetworkSettings()
                 .ResolveIpV4Address()
                 .ResolveIpV6Address();
-
             builder.Services.AddSingleton(serverNetworkSettings);
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())

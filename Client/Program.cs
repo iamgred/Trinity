@@ -54,7 +54,7 @@ namespace Client
                 app.UseHsts();
             }
 
-            app.UseStatusCodePagesWithReExecute("/not-found");
+            app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
             app.UseAntiforgery();
             app.MapStaticAssets();

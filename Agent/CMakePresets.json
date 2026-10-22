@@ -60,6 +60,17 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "$env{VSINSTALLDIR}Common7/IDE/CommonExtensions/Microsoft/CMake/cmake/Microsoft/SegmentHeap.cmake"
             }
+        },
+        {
+            "name": "mingw-x86_64",
+            "displayName": "MinGW x86_64 (Windows target)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "toolchainFile": "${sourceDir}/cmake/toolchains/mingw-w64-x86_64.cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         }
     ]
 }

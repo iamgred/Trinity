@@ -1,0 +1,18 @@
+Checks: 'bugprone*, -bugprone-easily-swappable-parameters,
+  clang-analyzer*,
+  cert*, -cert-dcl58-cpp,
+  cppcore*, -cppcoreguidelines-pro-bounds-pointer-arithmetic, -cppcoreguidelines-pro-type-reinterpret-cast, -cppcoreguidelines-pro-type-vararg, -cppcoreguidelines-macro-usage,
+    -cppcoreguidelines-non-private-member-variables-in-classes, -cppcoreguidelines-owning-memory, -cppcoreguidelines-avoid-magic-numbers, -cppcoreguidelines-avoid-non-const-global-variables,
+    -cppcoreguidelines-pro-type-static-cast-downcast, -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  misc*, -misc-non-private-member-variables-in-classes,
+  performance*, -performance-no-int-to-ptr,
+  portability*,
+  readability*, -readability-uppercase-literal-suffix, -readability-identifier-length, -readability-magic-numbers, -readability-named-parameter,
+  modernize*, -modernize-use-trailing-return-type, -modernize-avoid-c-arrays,
+  google*, -google-runtime-references, -google-readability-todo,
+  hicpp*, -hicpp-signed-bitwise, -hicpp-vararg, -hicpp-uppercase-literal-suffix,
+  llvm*, -llvm-header-guard, -llvmlibc*,
+  -*-braces-around-statements'
+CheckOptions:
+  - key: readability-identifier-length.IgnoredVariableNames
+    value: '(x|y)'

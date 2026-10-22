@@ -4,11 +4,13 @@
 
 #include "Agent.h"
 #include <stdio.h>
+#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include <windows.h>
 #include <psapi.h>
+#endif
 
 #include <iostream>
 #include <memory>
@@ -262,6 +264,8 @@ std::string Agent::GetInternalIP()
 			pAddresses = pAddresses->Next;
 		}
 	}
+
+	return "idk";
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

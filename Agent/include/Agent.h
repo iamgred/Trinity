@@ -2,7 +2,9 @@
 #include <string>
 #include "CommManager.h"
 #include "TaskQueueManager.h"
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 class Agent {
 public:

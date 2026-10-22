@@ -19,7 +19,10 @@ namespace TeamServer.Services
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IConfiguration _configuration;
 
-        public CMakePayloadBuilder(IWebHostEnvironment webHostEnvironment, IConfiguration configuration)
+        public CMakePayloadBuilder(
+            IWebHostEnvironment webHostEnvironment,
+            IConfiguration configuration
+        )
         {
             _webHostEnvironment = webHostEnvironment;
             _configuration = configuration;
@@ -30,7 +33,11 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="payloadCreationDTO"></param>
         /// <returns></returns>
-        public async Task<Result<string>> BuildAsync(PayloadCreationDTO payloadCreationDTO, string payloadUUID, Listener listener)
+        public async Task<Result<string>> BuildAsync(
+            PayloadCreationDTO payloadCreationDTO,
+            string payloadUUID,
+            Listener listener
+        )
         {
             try
             {
@@ -51,31 +58,29 @@ namespace TeamServer.Services
 
                 Directory.CreateDirectory(buildRoot);
 
-                string outputPath = Path.Combine(
-                    _webHostEnvironment.ContentRootPath,
-                    "Payloads"
-                );
+                string outputPath = Path.Combine(_webHostEnvironment.ContentRootPath, "Payloads");
 
                 Directory.CreateDirectory(outputPath);
 
                 string compiler = GetCompiler(payloadCreationDTO.Architecture);
+                string toolchainName = GetToolchainName(payloadCreationDTO.Architecture);
 
-                if (string.IsNullOrWhiteSpace(compiler))
+                if (string.IsNullOrWhiteSpace(compiler) || string.IsNullOrWhiteSpace(toolchainName))
                 {
                     return PayloadError.GenerationFailed();
                 }
 
-                var config = JsonDocument.Parse(JsonSerializer.Deserialize<HttpConfig>(listener.Config).Hosts.FirstOrDefault().ToString());
+                var listenerHost = JsonSerializer
+                    .Deserialize<HttpConfig>(listener.Config)
+                    ?.Hosts.FirstOrDefault()
+                    ?.ToString();
 
                 // Configure the build environment and generate build files using CMake
                 Result configureResult = await RunProcessAsync(
                     "cmake",
-                    $"-S \"{agentPath}\" " +
-                    $"-B \"{buildRoot}\" " +
-                    "-G Ninja " +
-                    $"-DHOST=\"{config}\"" +
-                    $"-DPAYLOAD_UUID=\"{payloadUUID}\"" +
-                    $"-DCMAKE_CXX_COMPILER=\"{compiler}\" "
+                    $"-S \"{agentPath}\" -B \"{buildRoot}\" -G Ninja "
+                        + $"-DHOST=\"{listenerHost}\" -DPAYLOAD_UUID=\"{payloadUUID}\" "
+                        + $"-DCMAKE_TOOLCHAIN_FILE=\"{agentPath}/cmake/toolchains/{toolchainName}\""
                 );
 
                 if (!configureResult.IsSuccess)
@@ -100,7 +105,8 @@ namespace TeamServer.Services
                     return PayloadError.GenerationFailed();
                 }
 
-                string outputFileName = Path.GetFileNameWithoutExtension(payloadCreationDTO.Name) + ".exe";
+                string outputFileName =
+                    Path.GetFileNameWithoutExtension(payloadCreationDTO.Name) + ".exe";
 
                 string finalOutputPath = Path.Combine(outputPath, outputFileName);
 
@@ -108,8 +114,9 @@ namespace TeamServer.Services
 
                 return finalOutputPath;
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return PayloadError.GenerationFailed();
             }
         }
@@ -131,6 +138,21 @@ namespace TeamServer.Services
         }
 
         /// <summary>
+        /// Resolves the Windows MinGW toolchain for a CPU architecture. 
+        /// </summary>
+        private static string GetToolchainName(string architecture)
+        {
+            string toolchainName = architecture.ToLowerInvariant() switch
+            {// TODO: consider using _configuration pattern similar to GetCompiler
+                "x64" => "mingw-w64-x86_64.cmake",
+                "x86" or "x32" => "mingw-w64-i686.cmake", // TODO: Make toolchain
+                _ => string.Empty,
+            };
+
+            return string.IsNullOrWhiteSpace(toolchainName) ? string.Empty : toolchainName;
+        }
+
+        /// <summary>
         /// Runs a process asynchronously with the specified file name and arguments. It captures the standard output and error streams, waits for the process to exit, and returns a Result indicating success or failure based on the exit code.
         /// </summary>
         /// <param name="fileName"></param>
@@ -146,15 +168,15 @@ namespace TeamServer.Services
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
             };
 
             using (var process = new Process { StartInfo = processStartInfo })
             {
                 process.Start();
 
-                await process.StandardOutput.ReadToEndAsync();
-                await process.StandardError.ReadToEndAsync();
+                var stdout = await process.StandardOutput.ReadToEndAsync();
+                var stderr = await process.StandardError.ReadToEndAsync();
 
                 await process.WaitForExitAsync();
 
@@ -169,7 +191,11 @@ namespace TeamServer.Services
         /// <returns></returns>
         private string FindExecutable(string buildDirectory)
         {
-            string[] executables = Directory.GetFiles(buildDirectory, "*.exe", SearchOption.AllDirectories);
+            string[] executables = Directory.GetFiles(
+                buildDirectory,
+                "*.exe",
+                SearchOption.AllDirectories
+            );
 
             return executables.FirstOrDefault() ?? string.Empty;
         }

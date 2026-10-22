@@ -26,12 +26,29 @@ add_executable (
   "include/TaskQueueManager.h"
 )
 
+if(WIN32)
+    target_link_libraries(Agent PRIVATE
+        winhttp    # WinHttpOpen/Connect/OpenRequest/SendRequest/...
+        iphlpapi   # GetAdaptersAddresses
+        ws2_32     # WSAStartup/WSACleanup/getaddrinfo/inet_ntop
+        psapi      # GetModuleBaseNameA
+    )
+endif()
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 target_include_directories(Agent PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(Agent PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)
+endif()
+
+option(HOST "TeamServer host" "")
+option(PAYLOAD_UUID "Payload UUID" "")
+if(DEFINED HOST)
+    target_compile_definitions(Agent PRIVATE HOST="${HOST}")
+endif()
+if(DEFINED PAYLOAD_UUID)
+    target_compile_definitions(Agent PRIVATE PAYLOAD_UUID="${PAYLOAD_UUID}")
 endif()
 
 # TODO: Add tests and install targets if needed.

@@ -4,3 +4,6 @@ UseTab: Never
 ColumnLimit: 120
 NamespaceIndentation: All
 QualifierAlignment: Left
+# Windows headers (winsock2, windows, iphlpapi, ...) have a required
+# dependency order that clang-format's include sorting would break.
+SortIncludes: false

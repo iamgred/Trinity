@@ -5,13 +5,12 @@
 
 class Agent;
 
-class CommandDispatcher
-{
-public:
-    explicit CommandDispatcher(Agent &agent);
-    std::string Dispatch(int commandType, const std::string &command);
+class CommandDispatcher {
+   public:
+    explicit CommandDispatcher(Agent& agent);
+    std::string Dispatch(int commandType, const std::string& command);
 
-private:
-    Agent &agent;
+   private:
+    Agent& agent;
 };
 // ========================================== { END OF FILE } ========================================== //

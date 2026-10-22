@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Trinity.Shared.Enums.Tasks
 {
-    public enum TaskType
+    public enum TaskType : uint
     {
         NOP = 0,
         INTIAL_CHECKIN = 1,

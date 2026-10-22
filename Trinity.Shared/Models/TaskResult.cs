@@ -10,8 +10,7 @@ namespace Trinity.Shared.Models
     {
         public int ID { get; set; }
         public required int TaskID { get; set; }
-        public required bool isSuccess { get; set; }
-        public required string Response { get; set; } = string.Empty;
+        public required string Result { get; set; } = string.Empty;
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -7,13 +7,7 @@ namespace TeamServer.Services.Factories
 {
     public class TaskResultFactory
     {
-        public TaskResult Create(ResultRequest result)
-        {
-            return new TaskResult { 
-                TaskID = result.taskID,
-                Response = JsonDocument.Parse(JsonSerializer.Serialize(result.output)),
-                isSuccess = result.status.Equals("Successful") ? true : false };
-        }
+ 
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

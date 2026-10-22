@@ -13,7 +13,7 @@ using TeamServer.Data;
 namespace TeamServer.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20261002181430_init")]
+    [Migration("20261022133202_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -378,15 +378,12 @@ namespace TeamServer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
-                    b.Property<JsonDocument>("Response")
+                    b.Property<string>("Response")
                         .IsRequired()
-                        .HasColumnType("jsonb");
+                        .HasColumnType("text");
 
                     b.Property<int>("TaskID")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("isSuccess")
-                        .HasColumnType("boolean");
 
                     b.HasKey("ID");
 

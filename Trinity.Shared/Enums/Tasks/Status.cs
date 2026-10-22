@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Trinity.Shared.Enums.Tasks
 {
-    public enum TaskStatus : uint
+    public enum Status : int
     {
         NO_FLAG = 0,
         ERROR = 1,

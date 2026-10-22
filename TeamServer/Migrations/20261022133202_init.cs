@@ -238,8 +238,7 @@ namespace TeamServer.Migrations
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TaskID = table.Column<int>(type: "integer", nullable: false),
-                    isSuccess = table.Column<bool>(type: "boolean", nullable: false),
-                    Response = table.Column<JsonDocument>(type: "jsonb", nullable: false)
+                    Response = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {

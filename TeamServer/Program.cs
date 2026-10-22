@@ -2,6 +2,8 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using TeamServer.ExceptionHandlers;
+using TeamServer.Handlers.CheckinHandler;
+using TeamServer.Handlers.CheckinHandler.Strategies;
 using TeamServer.Interface;
 using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
@@ -37,6 +39,12 @@ namespace TeamServer
             builder.Services.AddScoped<CampaignService>();
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<DatabaseService>();
+
+            // Handlers 
+            builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();
+            builder.Services.AddScoped<SuccessStrategy>();
+            builder.Services.AddScoped<RunningStrategy>();
+            builder.Services.AddScoped<ErrorStrategy>();
 
             // Validators
             builder.Services.AddValidatorsFromAssemblyContaining<OperatorValidator>();
@@ -97,7 +105,6 @@ namespace TeamServer
             builder.Services.AddScoped<IValidator<ShellDTO>, ShellDTOValidator>();
             builder.Services.AddScoped<IValidator<SpawnToDTO>, SpawnToDTOValidator>();
             builder.Services.AddScoped<IValidator<UploadDTO>, UploadDTOValidator>();
-
 
             // SignalR
             builder.Services.AddSignalR();

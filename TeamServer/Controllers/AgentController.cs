@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Text.Json;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Checkin;
+using Trinity.Shared.DTOs.Task;
 
 namespace TeamServer.Controllers
 {
@@ -59,7 +60,7 @@ namespace TeamServer.Controllers
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("base64/initial/checkin")]
-        public IActionResult GetIntialBase64([FromBody] IntialCheckInRequest request, [FromQuery] string uuid)
+        public IActionResult GetIntialBase64([FromBody] string request, [FromQuery] string uuid)
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
@@ -76,7 +77,7 @@ namespace TeamServer.Controllers
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("base64/full/checkin")]
-        public IActionResult GetFullBase64([FromBody] ResultRequest request, [FromQuery] string uuid)
+        public IActionResult GetFullBase64([FromBody] List<TaskResp<string>> request, [FromQuery] string uuid)
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);

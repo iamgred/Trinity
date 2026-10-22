@@ -39,7 +39,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
             if (response != null)
             {
                 task.StatusID = (int)Status.SUCCESS;
-                task.Result = new TaskResult { TaskID = task.ID, Response = response.Data };
+                task.Result = new TaskResult { TaskID = task.ID, Result = response.Data };
                 await _taskRepo.CommitAsync();
             }
         }

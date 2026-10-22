@@ -19,6 +19,7 @@ namespace Trinity.Shared.Models
         public TaskStatus Status { get; set; }
         public required DateTime CreatedAt { get; set; }
         public TaskResult Result { get; set; }
+        public Error? Error { get; set; }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

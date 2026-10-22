@@ -36,14 +36,9 @@ namespace TeamServer.Handlers.CheckinHandler
         public async Task HandleResponseAsync(JsonElement element)
         {
             var status = (Status)element.GetProperty("Status").GetInt32();
-
             _handlers.TryGetValue(status, out var strategy);
-            if (strategy == null)
-            {
-                throw new ArgumentException("Invalid status provided in task header!");
-            }
 
-            await strategy(element);
+            await strategy!(element);
         }
     }
 }

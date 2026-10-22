@@ -1,0 +1,28 @@
+services:
+  teamserver-debug:
+    image: trinity-teamserver:debug
+    build:
+      context: .
+      dockerfile: TeamServer/Dockerfile
+      target: debug
+      args:
+        BUILD_CONFIGURATION: Debug
+    container_name: trinity-teamserver-debug
+    restart: unless-stopped
+    entrypoint: ["tail", "-f", "/dev/null"]
+    cap_add:
+      - SYS_PTRACE
+    ports:
+      - "5002:5000"
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Database=postgres;Username=postgres;Password=${POSTGRES_PASSWORD:-JAMZ}"
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+    volumes:
+      - ./Agent:/Agent:ro
+      - ./Payloads:/app/Payloads
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy

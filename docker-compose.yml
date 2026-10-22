@@ -4,8 +4,8 @@ services:
     container_name: trinity-postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_PASSWORD=JAMZ
-      - POSTGRES_DB=postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-JAMZ}
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -22,7 +22,7 @@ services:
       dockerfile: TeamServer/Dockerfile
       target: migrator
     environment:
-      - ConnectionStrings__Postgres=Host=postgres;Database=postgres;Username=postgres;Password=JAMZ
+      ConnectionStrings__Postgres: "Host=postgres;Database=postgres;Username=postgres;Password=${POSTGRES_PASSWORD:-JAMZ}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,9 +37,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - ConnectionStrings__Postgres=Host=postgres;Database=postgres;Username=postgres;Password=JAMZ
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5000
+      ConnectionStrings__Postgres: "Host=postgres;Database=postgres;Username=postgres;Password=${POSTGRES_PASSWORD:-JAMZ}"
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
     volumes:
       - ./Agent:/Agent:ro
       - ./Payloads:/app/Payloads
@@ -48,6 +48,12 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/api/v1/server/status > /dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
 
   client:
     build:
@@ -56,13 +62,14 @@ services:
     container_name: trinity-client
     restart: unless-stopped
     ports:
-      - "5001:8080"
+      - "5001:5001"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
-      - TeamServer__BaseUrl=http://teamserver:5000
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5001
+      TeamServer__BaseUrl: http://teamserver:5000
     depends_on:
-      - teamserver
+      teamserver:
+        condition: service_healthy
 
 volumes:
   pgdata:

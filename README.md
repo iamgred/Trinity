@@ -6,23 +6,47 @@ we are not hosting this, as its a containerized system meant to be portable.
 
 # Project Requirement
 ## Running the project
-1. Start the stack (detached mode is recommended so your terminal isn't tied up)
-   - run `docker compose up -d`
-   - Or, to build and start in one step:
-     - run `docker compose up -d --build`
-2. Verify everything is running
-   - run `docker compose ps` 
-3. Access the services
-   - http://localhost:5001
-   - Or any port that `docker compose ps` returns for the client
+The stack uses a default local development database password when no override is provided. To set a private password, copy `.env.example` to `.env` and change `POSTGRES_PASSWORD`. Shell environment variables are prioritised over `.env` entries. Postgres applies this password only when initializing an empty data volume. Changing it later does not rotate the password in an existing database; update the database role explicitly, or reset the volume if its data can be discarded.
+
+`bash` Example:
+```bash
+cp .env.example .env
+sed -i 's/please-replace-this-postgres-password/your-own-secure-local-postgres-password/g' .env
+```
+
+### Docker
+1. Start the stack:  
+    `docker compose up -d`
+2. Rebuild and start:  
+    `docker compose up -d --build`
+3. Check service health:  
+    `docker compose ps`
+4. Open the client at http://localhost:5001.
+
+### Debugging Containerised TeamServer (VS Code)
+The debug-only container runs idle until VS Code launches the API under the debugger. It leaves the regular TeamServer available on port 5000 and serves the debug instance on port 5002.
+
+Start the debug container with:  
+`docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d --build teamserver-debug`
+
+After the stack and debug container have been started once, rebuild only the debug service after a TeamServer code edit:  
+`docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d --no-deps --build teamserver-debug`
+
+The `--no-deps` form assumes Postgres is already running and migrations have already completed. The Dockerfile keeps package restore, runtime system packages, and `vsdbg` in cached layers, and excludes migration-bundle generation from a debug-only build. Source changes still need to be compiled into the image, but should not reinstall those dependencies. In VS Code, use Restart after rebuilding to launch the updated API.
+
+In VS Code, start `Launch TeamServer in debug container`, then open Swagger at http://localhost:5002. The debug override adds `vsdbg` and `SYS_PTRACE`; this should be used only for local development. 
+
+The debug image's pinned Linux x64 `vsdbg` archive was validated with C# Dev Kit (`ms-dotnettools.csdevkit`) 3.40.215 and the C# extension (`ms-dotnettools.csharp`) 2.160.4. The archive URL and SHA-256 are pinned in `TeamServer/Dockerfile` to match that C# extension. When upgrading the extension, update and verify the debugger archive and checksum together.
+
 ## Clean Up
-When you're done, stop and remove the containers, network, and (optionally) volumes/images so nothing lingers on your machine.
-1. Stop and remove containers + network
-  - run `docker compose down`
-2. Stop and remove containers + network + named volumes
-  - run `docker compose down -v`
-3. Also remove the images built for this project
-  - `docker compose down --rmi all -v`
+When done, stop and remove the containers and network. To remove the local database too, include `-v`; this deletes the database volume.
+
+For the **normal** stack run:  
+`docker compose down`  
+If the **debug** override was used, to remove both TeamServer containers run:  
+`docker compose -f docker-compose.yml -f docker-compose.debug.yml down`  
+Add `-v` to either command to delete the database volume; add `--rmi all` to also remove project images.
+
 # Video Links Used In Presentation for Code Walkthrough
 - Presentation: https://www.youtube.com/watch?v=M2PHoHGGW1Y
 - System Demo: https://www.youtube.com/watch?v=vw6UiIC5VX4

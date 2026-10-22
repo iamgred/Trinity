@@ -1,0 +1,12 @@
+.git
+.gitignore
+.vs
+**/.vs
+**/bin
+**/obj
+**/TestResults
+**/test-results
+**/PayloadBuilds
+.env
+.env.*
+!.env.example

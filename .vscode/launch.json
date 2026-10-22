@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch TeamServer in debug container",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "/app/TeamServer.dll",
+      "cwd": "/app",
+      "args": [],
+      "stopAtEntry": false,
+      "logging": {
+        "diagnosticsLog": {
+          "protocolMessages": true
+        }
+      },
+      "pipeTransport": {
+        "pipeProgram": "docker",
+        "pipeArgs": ["exec", "-i", "trinity-teamserver-debug"],
+        "debuggerPath": "/vsdbg/vsdbg",
+        "pipeCwd": "${workspaceFolder}",
+        "quoteArgs": false
+      },
+      "sourceFileMap": {
+        "/src": "${workspaceFolder}"
+      }
+    }
+  ]
+}

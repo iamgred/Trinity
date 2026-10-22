@@ -28,9 +28,9 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
             var taskID = element.GetProperty("TaskID").GetInt32();
             var task = await _taskRepo.GetByIdAsync(taskID) ?? throw new ArgumentNullException("Task does not exist!");
 
-            var response = JsonSerializer.Deserialize<TaskResp<Trinity.Shared.Models.Error>>(element);
+            var response = JsonSerializer.Deserialize<TaskResp<Trinity.Shared.DTOs.Task.Error>>(element);
             task.Status = Status.ERROR;
-            task.Error = response!.Data;
+            task.Error = new Trinity.Shared.Models.Error { TaskID = response!.TaskID, ErrorCode = response!.Data.ErrorCode, Message = response!.Data.Message};
 
             await _taskRepo.CommitAsync();
         }

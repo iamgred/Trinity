@@ -9,7 +9,7 @@ namespace Trinity.Shared.Models
     {
         public int ID { get; set; }
         public int TaskID { get; set; }
-        public uint ErrorCode { get; set; }
+        public int ErrorCode { get; set; }
         public string Message { get; set; } = String.Empty;
     }
 }

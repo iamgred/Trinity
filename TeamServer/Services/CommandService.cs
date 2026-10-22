@@ -2,6 +2,7 @@
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
@@ -44,7 +45,7 @@ namespace TeamServer.Services
         /// <param name="type">Type of command used to create the task.</param>
         /// <param name="agentID">Identifier of the agent that will own the queued task.</param>
         /// <returns>A Result indicating success, or an error result when the specified agent is not found.</returns>
-        public async Task<Result> QueueTaskAsync(ICommand command, CommandTypes type, int agentID)
+        public async Task<Result> QueueTaskAsync(ICommand command, TaskType type, int agentID)
         {
             var agent = await _agentRepo.GetAgentByIDAsync(agentID);
             if (agent == null)

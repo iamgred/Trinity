@@ -17,6 +17,7 @@ using Trinity.Shared.Configurations;
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Smb;
+using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
 
 namespace TeamServer
@@ -67,8 +68,10 @@ namespace TeamServer
                 options.EnableAnnotations();
             });
 
-            builder.Services.AddDbContextPool<Context>(opt =>
-                opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+            builder.Services.AddDbContextPool<Context>(opt => opt.UseNpgsql(
+                builder.Configuration.GetConnectionString("Postgres"),
+                o => o.MapEnum<Status>("status")
+                      .MapEnum<TaskType>("taskType")));
 
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();

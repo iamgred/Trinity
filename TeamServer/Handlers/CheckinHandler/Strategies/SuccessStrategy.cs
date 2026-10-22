@@ -38,7 +38,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
             var response = JsonSerializer.Deserialize<TaskResp<string>>(element);
             if (response != null)
             {
-                task.StatusID = (int)Status.SUCCESS;
+                task.Status = Status.SUCCESS;
                 task.Result = new TaskResult { TaskID = task.ID, Result = response.Data };
                 await _taskRepo.CommitAsync();
             }

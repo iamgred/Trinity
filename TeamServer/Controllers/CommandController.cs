@@ -5,6 +5,7 @@ using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Enums.Tasks;
 //using Trinity.Shared.DTOs.Commands;
 namespace TeamServer.Controllers
 {
@@ -36,7 +37,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/powershell")]
         public async Task<IActionResult> QueuePowerShellCommand([FromRoute] int agentId, PowerShellDTO powershellDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(powershellDTO, CommandTypes.Powershell, agentId);
+            var response = await this._commandService.QueueTaskAsync(powershellDTO, TaskType.POWERSHELL, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -50,7 +51,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/shell")]
         public async Task<IActionResult> QueueShellCommand([FromRoute] int agentId, ShellDTO shellDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(shellDTO, CommandTypes.Shell, agentId);
+            var response = await this._commandService.QueueTaskAsync(shellDTO, TaskType.SHELL, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -58,7 +59,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/runas")]
         public async Task<IActionResult> QueueRunAsCommand([FromRoute] int agentId, RunAsDTO runAsDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(runAsDTO, CommandTypes.RunAs, agentId);
+            var response = await this._commandService.QueueTaskAsync(runAsDTO, TaskType.PROCESS, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -66,7 +67,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/run")]
         public async Task<IActionResult> QueueRunCommand([FromRoute] int agentId, RunDTO runDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(runDTO, CommandTypes.Run, agentId);
+            var response = await this._commandService.QueueTaskAsync(runDTO, TaskType.PROCESS, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -74,7 +75,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/runu")]
         public async Task<IActionResult> QueueRunUCommand([FromRoute] int agentId, RunUDTO runUDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(runUDTO, CommandTypes.RunU, agentId);
+            var response = await this._commandService.QueueTaskAsync(runUDTO, TaskType.PROCESS, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -82,7 +83,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/killprocess")]
         public async Task<IActionResult> QueueKillCommand([FromRoute] int agentId, KillProcessDTO killProcessDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(killProcessDTO, CommandTypes.Kill, agentId);
+            var response = await this._commandService.QueueTaskAsync(killProcessDTO, TaskType.PROCESS, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -90,7 +91,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/escalate")]
         public async Task<IActionResult> QueueEscalateCommand([FromRoute] int agentId, EscalateDTO escalateDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(escalateDTO, CommandTypes.Escalate, agentId);
+            var response = await this._commandService.QueueTaskAsync(escalateDTO, TaskType.ESCALATE, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -98,7 +99,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/spawn/dotnetassembly")]
         public async Task<IActionResult> QueueDotNetAsmCommand([FromRoute] int agentId, DotNetAsmDTO dotNetAsmDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(dotNetAsmDTO, CommandTypes.ExecuteAssembly, agentId);
+            var response = await this._commandService.QueueTaskAsync(dotNetAsmDTO, TaskType.NET_ASM, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -106,7 +107,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/bof")]
         public async Task<IActionResult> QueueBofCommand([FromRoute] int agentId, BofDTO bofDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(bofDTO, CommandTypes.BOF, agentId);
+            var response = await this._commandService.QueueTaskAsync(bofDTO, TaskType.OBJECT_FILE, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -114,7 +115,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/filedownload")]
         public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentId, DownloadDTO downloadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(downloadDTO, CommandTypes.Download, agentId);
+            var response = await this._commandService.QueueTaskAsync(downloadDTO, TaskType.DOWNLOAD, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -122,7 +123,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/cancelFileDownload")]
         public async Task<IActionResult> QueueCancelFileDownloadCommand([FromRoute] int agentId, CancelDownloadDTO cancelDownloadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(cancelDownloadDTO, CommandTypes.CancelDownload, agentId);
+            var response = await this._commandService.QueueTaskAsync(cancelDownloadDTO, TaskType.DOWNLOAD, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -130,7 +131,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/upload")]
         public async Task<IActionResult> QueueUploadCommand([FromRoute] int agentId, UploadDTO uploadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(uploadDTO, CommandTypes.Upload, agentId);
+            var response = await this._commandService.QueueTaskAsync(uploadDTO, TaskType.UPLOAD, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -138,7 +139,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/spawnto")]
         public async Task<IActionResult> QueueSpawnToCommand([FromRoute] int agentId, SpawnToDTO spawnToDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(spawnToDTO, CommandTypes.SpawnTo, agentId);
+            var response = await this._commandService.QueueTaskAsync(spawnToDTO, TaskType.SET, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -146,7 +147,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/updatehosts")]
         public async Task<IActionResult> QueueUpdateHostsCommand([FromRoute] int agentId, UpdateHostsDTO updateHostsDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(updateHostsDTO, CommandTypes.UpdateHosts, agentId);
+            var response = await this._commandService.QueueTaskAsync(updateHostsDTO, TaskType.SET, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -154,7 +155,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/setsleep")]
         public async Task<IActionResult> QueueSetSleepCommand([FromRoute] int agentId, SetSleepDTO setSleepDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(setSleepDTO, CommandTypes.SetSleep, agentId);
+            var response = await this._commandService.QueueTaskAsync(setSleepDTO, TaskType.SET, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -162,7 +163,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/kill")]
         public async Task<IActionResult> QueueKillAgentCommand([FromRoute] int agentId, KillAgentDTO killAgentDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(killAgentDTO, CommandTypes.KillAgent, agentId);
+            var response = await this._commandService.QueueTaskAsync(killAgentDTO, TaskType.KILL, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
         /// <summary>
@@ -174,7 +175,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentId}/execute/getuid")]
         public async Task<IActionResult> QueueGetUIDCommand([FromRoute] int agentId, GetUIDDTO getUIDDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(getUIDDTO, CommandTypes.GetUID, agentId);
+            var response = await this._commandService.QueueTaskAsync(getUIDDTO, TaskType.GET_UID, agentId);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
     }

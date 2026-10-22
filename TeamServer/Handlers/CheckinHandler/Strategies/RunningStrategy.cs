@@ -34,7 +34,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
             var taskID = element.GetProperty("TaskID").GetInt32();
             var task = await _taskRepo.GetByIdAsync(taskID) ?? throw new ArgumentNullException("Task does not exist!");
 
-            task.StatusID = (int)Status.RUNNING;
+            task.Status = Status.RUNNING;
             await _taskRepo.CommitAsync();
         }
     }

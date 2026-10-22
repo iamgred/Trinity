@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Trinity.Shared.Enums.Tasks;
 
 #nullable disable
 
@@ -15,6 +16,10 @@ namespace TeamServer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:Enum:status", "dispatched,error,more_to_follow,no_flag,no_more_to_follow,queued,running,success")
+                .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,kill,nop,object_file,powershell,process,set,shell,upload");
+
             migrationBuilder.CreateTable(
                 name: "Admins",
                 columns: table => new
@@ -170,20 +175,20 @@ namespace TeamServer.Migrations
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     AgentID = table.Column<int>(type: "integer", nullable: false),
-                    CommandType = table.Column<byte>(type: "smallint", nullable: false),
+                    CommandType = table.Column<TaskType>(type: "\"taskType\"", nullable: false),
                     Command = table.Column<JsonDocument>(type: "jsonb", nullable: false),
-                    StatusID = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Status = table.Column<Status>(type: "status", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TaskStatusID = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tasks", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_Tasks_TaskStatus_StatusID",
-                        column: x => x.StatusID,
+                        name: "FK_Tasks_TaskStatus_TaskStatusID",
+                        column: x => x.TaskStatusID,
                         principalTable: "TaskStatus",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(
@@ -232,13 +237,34 @@ namespace TeamServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Errors",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TaskID = table.Column<int>(type: "integer", nullable: false),
+                    ErrorCode = table.Column<int>(type: "integer", nullable: false),
+                    Message = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Errors", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_Errors_Tasks_TaskID",
+                        column: x => x.TaskID,
+                        principalTable: "Tasks",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TaskResult",
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TaskID = table.Column<int>(type: "integer", nullable: false),
-                    Response = table.Column<string>(type: "text", nullable: false)
+                    Result = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -295,6 +321,12 @@ namespace TeamServer.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Errors_TaskID",
+                table: "Errors",
+                column: "TaskID",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Listeners_ProtocolID",
                 table: "Listeners",
                 column: "ProtocolID");
@@ -306,9 +338,9 @@ namespace TeamServer.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tasks_StatusID",
+                name: "IX_Tasks_TaskStatusID",
                 table: "Tasks",
-                column: "StatusID");
+                column: "TaskStatusID");
         }
 
         /// <inheritdoc />
@@ -322,6 +354,9 @@ namespace TeamServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "CampaignBridges");
+
+            migrationBuilder.DropTable(
+                name: "Errors");
 
             migrationBuilder.DropTable(
                 name: "Hosts");

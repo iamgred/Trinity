@@ -4,6 +4,7 @@ using System.Text.Json;
 using Trinity.Shared.Models;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Interfaces;
+using Trinity.Shared.Enums.Tasks;
 
 namespace TeamServer.Services.Factories
 {
@@ -15,9 +16,9 @@ namespace TeamServer.Services.Factories
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public Trinity.Shared.Models.Task Create(int agentID, CommandTypes type, ICommand command, int status)
+        public Trinity.Shared.Models.Task Create(int agentID, TaskType type, ICommand command, int status)
         {
-            return new Trinity.Shared.Models.Task { AgentID = agentID, Command = JsonDocument.Parse(JsonSerializer.Serialize(command, command.GetType())), CommandType = type, CreatedAt = DateTime.UtcNow, StatusID = status };
+            return new Trinity.Shared.Models.Task { AgentID = agentID, Status = Status.QUEUED, Command = JsonDocument.Parse(JsonSerializer.Serialize(command, command.GetType())), CommandType = type, CreatedAt = DateTime.UtcNow };
         }
     }
 }

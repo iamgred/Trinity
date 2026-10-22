@@ -1,7 +1,10 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Text.Json;
 using TeamServer.Repositories;
+using Trinity.Shared.DTOs.Task;
+using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
+using Trinity.Shared.Models;
 
 namespace TeamServer.Handlers.CheckinHandler.Strategies
 {
@@ -20,14 +23,16 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task ProcessResponseAsync(JsonElement element)
+        public async System.Threading.Tasks.Task ProcessResponseAsync(JsonElement element)
         {
             var taskID = element.GetProperty("TaskID").GetInt32();
             var task = await _taskRepo.GetByIdAsync(taskID) ?? throw new ArgumentNullException("Task does not exist!");
 
-            // Add error to task 
-            // Update task status to failed/error status 
-            // Save 
+            var response = JsonSerializer.Deserialize<TaskResp<Trinity.Shared.Models.Error>>(element);
+            task.Status = Status.ERROR;
+            task.Error = response!.Data;
+
+            await _taskRepo.CommitAsync();
         }
     }
 }

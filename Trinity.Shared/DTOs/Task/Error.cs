@@ -5,11 +5,6 @@ using System.Text;
 
 namespace Trinity.Shared.DTOs.Task
 {
-    public class TaskHeader
-    {
-        public required int TaskID { get; set; }
-        public required int TaskType { get; set; }
-        public required int Status { get; set; }
-    }
+    public record Error(int Code, string Message);
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

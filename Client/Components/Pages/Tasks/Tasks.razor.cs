@@ -1,19 +1,28 @@
 using System.Globalization;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using Client.Services;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using Trinity.Shared.DTOs.Task;
 
 namespace Client.Components.Pages.Tasks;
-//All of this is mock data for UI testing, can be removed without issue
 public partial class Tasks
 {
     private class TaskRow
     {
         public string Name = "";
         public string Client = "";
-        public string Campaign = "";
-        public string Priority = "Medium";
+        public string Campaign = "Not provided";
+        public string Priority = "Not provided";
         public string Status = "Pending";
-        public string Assignee = "";
-        public string DueDate = "31/01/2026";
+        public string Assignee = "Not provided";
+        public string DueDate = "Not provided";
         public int Progress;
+        public int AgentId;
+        public string CommandType = "";
+        public DateTime Timestamp;
     }
 
     private record UpcomingRow(string Priority, string Name, string Client, string Campaign, string Assignee, string DueDate, string Badge, string BadgeColor);
@@ -27,53 +36,95 @@ public partial class Tasks
 
     private string _search = "";
     private string _statusFilter = "All Status";
-    private string _priorityFilter = "All Priority";
-    private string _assigneeFilter = "All Assignees";
     private int _page = 1;
     private const int PageSize = 6;
 
     private string? _toast;
+    private string? _loadError;
+    private bool _isLoading;
+
+    private string _detailIdInput = "";
+    private GetTaskDetailsResponse? _detail;
+    private string? _detailError;
+    private bool _detailLoading;
+
+    [Inject]
+    private TaskApiClient TaskApiClient { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private TeamServerConnection Connection { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    private void GoToLogin() => Navigation.NavigateTo("/login");
 
     private bool _showCreate, _showAssign, _showSchedule;
     private TaskRow _form = new();
     private string _assignName = "";
     private string _scheduleDate = "";
 
-    protected override void OnInitialized()
-    {
-        _tasks.AddRange(new[]
-        {
-            new TaskRow { Name="Create Security Report", Client="CLIENT-001", Campaign="Phishing Simulation",     Priority="High",   Status="Completed",   Assignee="John Doe",       Progress=100 },
-            new TaskRow { Name="Malware Analysis",        Client="CLIENT-003", Campaign="Malware Simulation",      Priority="Medium", Status="In Progress", Assignee="Steven Strange", Progress=65 },
-            new TaskRow { Name="Vulnerability Scan",      Client="CLIENT-002", Campaign="Vulnerability Assessment",Priority="High",   Status="In Progress", Assignee="Carlos Sainz",   Progress=40 },
-            new TaskRow { Name="Review Access Logs",      Client="CLIENT-002", Campaign="Security Audit",          Priority="High",   Status="Completed",   Assignee="Jane Smith",     Progress=100 },
-            new TaskRow { Name="Penetration Test",        Client="CLIENT-004", Campaign="Security Assessment",     Priority="Medium", Status="Pending",     Assignee="Elton John",     Progress=0 },
-            new TaskRow { Name="Policy Documentation",    Client="CLIENT-006", Campaign="Compliance Review",       Priority="Low",    Status="In Progress", Assignee="Siya Kholisi",   Progress=30 },
-            new TaskRow { Name="Employee Training",       Client="CLIENT-001", Campaign="Security Training",       Priority="High",   Status="Pending",     Assignee="Edward Kenway",  Progress=0 },
-            new TaskRow { Name="Update Firewall",         Client="CLIENT-005", Campaign="Security Assessment",     Priority="Low",    Status="In Progress", Assignee="Trevor Belmont", Progress=55 },
-            new TaskRow { Name="Backup Critical Data",    Client="CLIENT-005", Campaign="Data Protection",         Priority="Medium", Status="Pending",     Assignee="Tony Stark",     Progress=0 },
-        });
+    protected override async Task OnInitializedAsync() => await LoadTasksAsync();
 
-        _upcoming.AddRange(new[]
+    private async Task LoadTasksAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+        _tasks.Clear();
+        _upcoming.Clear();
+
+        try
         {
-            new UpcomingRow("High",   "Malware Analysis",       "CLIENT-003", "Malware Simulation",          "Trevor Belmont", "31/01/2026", "Due Tomorrow", "red"),
-            new UpcomingRow("Medium", "Create Security Report", "CLIENT-002", "Security Awareness Training", "Edward Kenway",  "31/01/2026", "2 Days Left",  "yellow"),
-            new UpcomingRow("High",   "Review Access Logs",     "CLIENT-002", "Security Audit",              "Tony Stark",     "31/01/2026", "2 Days Left",  "yellow"),
-            new UpcomingRow("Low",    "Backup Critical Data",   "CLIENT-005", "Data Protection",             "Siya Kholisi",   "31/01/2026", "4 Days Left",  "green"),
-        });
+            var tasks = await TaskApiClient.GetTasksAsync();
+            _tasks.AddRange(tasks
+                .OrderByDescending(task => task.timeStamp)
+                .Select(ToTaskRow));
+            _page = 1;
+        }
+        catch (InvalidOperationException exception)
+        {
+            _loadError = exception.Message;
+        }
+        catch (HttpRequestException exception)
+        {
+            _loadError = $"Could not load task records from TeamServer: {exception.Message}";
+        }
+        catch (TaskCanceledException exception)
+        {
+            _loadError = $"The TeamServer task request timed out: {exception.Message}";
+        }
+        catch (JsonException exception)
+        {
+            _loadError = $"TeamServer returned an invalid task response: {exception.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
-    private IEnumerable<string> Assignees => _tasks.Select(t => t.Assignee).Distinct().OrderBy(a => a);
+    private static TaskRow ToTaskRow(TaskResponse task) => new()
+    {
+        Name = task.commandType,
+        Client = $"Agent {task.agentID}",
+        Status = task.status,
+        AgentId = task.agentID,
+        CommandType = task.commandType,
+        Timestamp = task.timeStamp
+    };
+
+    private IEnumerable<string> Assignees => [];
+    private IEnumerable<string> Statuses => _tasks.Select(t => t.Status).Distinct().OrderBy(status => status);
 
     private IEnumerable<TaskRow> Filtered => _tasks.Where(t =>
         (string.IsNullOrWhiteSpace(_search)
             || t.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
             || t.Client.Contains(_search, StringComparison.OrdinalIgnoreCase)
-            || t.Campaign.Contains(_search, StringComparison.OrdinalIgnoreCase)
-            || t.Assignee.Contains(_search, StringComparison.OrdinalIgnoreCase))
-        && (_statusFilter == "All Status" || t.Status == _statusFilter)
-        && (_priorityFilter == "All Priority" || t.Priority == _priorityFilter)
-        && (_assigneeFilter == "All Assignees" || t.Assignee == _assigneeFilter));
+            || t.Status.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        && (_statusFilter == "All Status" || t.Status.Equals(_statusFilter, StringComparison.OrdinalIgnoreCase)));
 
     private int FilteredCount => Filtered.Count();
     private int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredCount / (double)PageSize));
@@ -84,6 +135,8 @@ public partial class Tasks
     {
         get
         {
+            if (_isLoading) return "Loading task records...";
+            if (_loadError is not null) return "Task records unavailable";
             if (FilteredCount == 0) return "No tasks to show";
             var start = (CurrentPage - 1) * PageSize + 1;
             var end = Math.Min(CurrentPage * PageSize, FilteredCount);
@@ -95,6 +148,61 @@ public partial class Tasks
     private void GoToPage(int p) => _page = Math.Clamp(p, 1, TotalPages);
     private void SelectRow(TaskRow row) => _selected = row == _selected ? null : row;
 
+    private async Task LookupTaskDetailAsync()
+    {
+        _detailError = null;
+        _detail = null;
+
+        if (!int.TryParse(_detailIdInput?.Trim(), out var id) || id <= 0)
+        {
+            _detailError = "Enter a numeric task ID.";
+            return;
+        }
+
+        _detailLoading = true;
+        try
+        {
+            _detail = await TaskApiClient.GetTaskDetailAsync(id);
+            if (_detail is null)
+            {
+                _detailError = $"No task found with ID {id}.";
+            }
+        }
+        catch (InvalidOperationException exception)
+        {
+            _detailError = exception.Message;
+        }
+        catch (HttpRequestException exception)
+        {
+            _detailError = $"Could not load task detail from TeamServer: {exception.Message}";
+        }
+        catch (TaskCanceledException exception)
+        {
+            _detailError = $"The TeamServer task-detail request timed out: {exception.Message}";
+        }
+        catch (JsonException exception)
+        {
+            _detailError = $"TeamServer returned an invalid task-detail response: {exception.Message}";
+        }
+        finally
+        {
+            _detailLoading = false;
+        }
+    }
+
+    private static string FormatCommand(JsonDocument? command)
+    {
+        if (command is null) return "No command payload returned.";
+        try
+        {
+            return JsonSerializer.Serialize(command, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch
+        {
+            return command.RootElement.ToString();
+        }
+    }
+
     private static string PriorityColor(string priority) => priority switch
     {
         "High" => "red",
@@ -105,55 +213,53 @@ public partial class Tasks
 
     private static string StatusColor(string status) => status switch
     {
-        "Completed" => "green",
-        "In Progress" => "blue",
-        "Pending" => "yellow",
+        "Successful" => "green",
+        "Failure" => "red",
+        "Running" or "Pending" => "blue",
+        "Queued" => "yellow",
         _ => "gray",
     };
 
     private List<StatVm> BuildStats()
     {
         int total = _tasks.Count;
-        int completed = _tasks.Count(t => t.Status == "Completed");
-        int inProgress = _tasks.Count(t => t.Status == "In Progress");
-        int pending = _tasks.Count(t => t.Status == "Pending");
-        int overdue = _tasks.Count(t => t.Status != "Completed" && t.Priority == "High");
+        int completed = _tasks.Count(t => t.Status.Equals("Successful", StringComparison.OrdinalIgnoreCase));
+        int failed = _tasks.Count(t => t.Status.Equals("Failure", StringComparison.OrdinalIgnoreCase));
+        int running = _tasks.Count(t => t.Status.Equals("Running", StringComparison.OrdinalIgnoreCase));
+        int queued = _tasks.Count(t => t.Status.Equals("Queued", StringComparison.OrdinalIgnoreCase));
 
         return new List<StatVm>
         {
-            new("Total Tasks", total.ToString(), "16% from last 24h", true,
+            new("Total Tasks", total.ToString(), "From TeamServer", true,
                 "<rect x='8' y='2' width='8' height='4' rx='1'/><path d='M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3'/>"),
-            new("Completed Tasks", completed.ToString(), "24% from last 24h", true,
+            new("Successful Tasks", completed.ToString(), "Reported status", true,
                 "<path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/><polyline points='22 4 12 14.01 9 11.01'/>"),
-            new("In Progress", inProgress.ToString(), "12% from last 24h", true,
+            new("Running", running.ToString(), "Reported status", true,
                 "<circle cx='12' cy='12' r='9'/><polyline points='12 7 12 12 15 14'/>"),
-            new("Pending Tasks", pending.ToString(), "5% from last 24h", true,
+            new("Queued", queued.ToString(), "Reported status", true,
                 "<rect x='6' y='5' width='4' height='14' rx='1'/><rect x='14' y='5' width='4' height='14' rx='1'/>"),
-            new("Overdue Tasks", overdue.ToString(), "33% from last 24h", false,
+            new("Failed Tasks", failed.ToString(), "Reported status", false,
                 "<circle cx='12' cy='12' r='9'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/>"),
         };
     }
 
-    private List<SliceVm> BuildPriorityBreakdown()
-    {
-        int total = Math.Max(1, _tasks.Count);
-        var order = new[] { ("High", "red"), ("Medium", "yellow"), ("Low", "green") };
-        return order.Select(o =>
-        {
-            int count = _tasks.Count(t => t.Priority == o.Item1);
-            return new SliceVm(o.Item1, count, (int)Math.Round(count * 100.0 / total), o.Item2);
-        }).ToList();
-    }
+    private List<SliceVm> BuildPriorityBreakdown() => [];
 
     private List<SliceVm> BuildOverviewBreakdown()
     {
-        int total = Math.Max(1, _tasks.Count);
-        var order = new[] { ("Completed", "green"), ("In Progress", "blue"), ("Pending", "yellow") };
-        return order.Select(o =>
-        {
-            int count = _tasks.Count(t => t.Status == o.Item1);
-            return new SliceVm(o.Item1, count, (int)Math.Round(count * 100.0 / total), o.Item2);
-        }).ToList();
+        return BuildBreakdown(_tasks.GroupBy(task => task.Status)
+            .Select(group => (group.Key, group.Count(), StatusColor(group.Key))));
+    }
+
+    private List<SliceVm> BuildBreakdown(IEnumerable<(string Name, int Count, string Color)> items)
+    {
+        var slices = items.ToArray();
+        var total = Math.Max(1, slices.Sum(item => item.Count));
+        return slices.Select(item => new SliceVm(
+            item.Name,
+            item.Count,
+            (int)Math.Round(item.Count * 100.0 / total),
+            item.Color)).ToList();
     }
 
     private static readonly Dictionary<string, string> _colorVar = new()
@@ -260,13 +366,50 @@ public partial class Tasks
     {
         _search = "";
         _statusFilter = "All Status";
-        _priorityFilter = "All Priority";
-        _assigneeFilter = "All Assignees";
         _page = 1;
         ShowToast("Showing all tasks");
     }
 
-    private void ExportTasks() => ShowToast($"Exported {FilteredCount} tasks to CSV (mock)");
+    private async Task ExportTasks()
+    {
+        var rows = Filtered.ToList();
+        if (rows.Count == 0)
+        {
+            ShowToast("There are no task records to export.");
+            return;
+        }
+
+        var csv = new StringBuilder();
+        AppendCsvRow(csv, "Timestamp", "Agent ID", "Command Type", "Status");
+        foreach (var row in rows)
+        {
+            AppendCsvRow(csv,
+                row.Timestamp.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
+                row.AgentId.ToString(CultureInfo.InvariantCulture),
+                row.CommandType,
+                row.Status);
+        }
+
+        try
+        {
+            await using var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/clients.js");
+            await module.InvokeVoidAsync("downloadCsv", "task-records.csv", csv.ToString());
+        }
+        catch (JSException exception)
+        {
+            _toast = $"Task record CSV download failed: {exception.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private static void AppendCsvRow(StringBuilder csv, params string[] values) =>
+        csv.AppendJoin(',', values.Select(EscapeCsvValue)).AppendLine();
+
+    private static string EscapeCsvValue(string value)
+    {
+        var safeValue = value.TrimStart() is ['=', '+', '-', '@', ..] ? $"'{value}" : value;
+        return $"\"{safeValue.Replace("\"", "\"\"")}\"";
+    }
 
     private async void ShowToast(string msg)
     {

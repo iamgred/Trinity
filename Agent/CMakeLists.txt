@@ -14,31 +14,21 @@ project (Agent)
 # Add source to this project's executable.
 add_executable (
   Agent 
-  "Agent.cpp" 
-  "Agent.h"
-  "CommManager.cpp"
-  "CommManager.h"
-  "base64.hpp"
-  "CommandDispatcher.cpp"
-  "CommandDispatcher.h"
-  "SleepObf.cpp"
-  "AgentModule.cpp"
-  "AgentModule.h"
-  "TaskQueueManager.cpp"
-  "TaskQueueManager.h"
-  "KeyboardLogger/InputIntentRecorder.cpp"
-  "KeyboardLogger/InputIntentRecorder.h"
-  "KeyboardLogger/IntentEvent.h"
-  "KeyboardLogger/KeyboardEvent.cpp"
-  "KeyboardLogger/KeyboardHook.cpp"
-  "KeyboardLogger/KeyboardHook.h"
-  "KeyboardLogger/KeyboardInterpreter.cpp"
-  "KeyboardLogger/KeyboardInterpreter.h"
-  "KeyboardLogger/KeyboardState.cpp"
-  "KeyboardLogger/KeyboardState.h"
+  "src/main.cpp" 
+  "src/CommManager.cpp"
+  "include/CommManager.h"
+  "include/base64.hpp"
+  "src/CommandDispatcher.cpp"
+  "include/CommandDispatcher.h"
+  "src/Agent.cpp"
+  "include/Agent.h"
+  "src/TaskQueueManager.cpp"
+  "include/TaskQueueManager.h"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)
+target_include_directories(Agent PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(Agent PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)

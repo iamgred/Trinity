@@ -1,10 +1,16 @@
 using System.Globalization;
+using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using Client.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
+using Trinity.Shared.DTOs.Agent;
+using Trinity.Shared.DTOs.Task;
 
 namespace Client.Components.Pages.Clients;
 
-//All of this is mock data for UI testing, can be removed without issue
 public partial class Clients
 {
     private class ClientRow
@@ -16,6 +22,8 @@ public partial class Clients
         public string LastSeen = "just now";
         public string User = "";
         public bool IsNew;
+        public int AgentId;
+        public bool IsSample;
     }
 
     private record Event(string When, string Text, string Color);
@@ -29,43 +37,194 @@ public partial class Clients
 
     private string _search = "";
     private string _statusFilter = "All Status";
-    private string _osFilter = "All OS";
+    private string _osFilter = "All Architectures";
     private int _page = 1;
     private const int PageSize = 6;
 
     private string? _toast;
+    private string? _loadError;
+    private string? _taskLoadError;
+    private bool _isLoading;
+
+    [Inject]
+    private AgentApiClient AgentApiClient { get; set; } = default!;
+
+    [Inject]
+    private TaskApiClient TaskApiClient { get; set; } = default!;
+
+    [Inject]
+    private TeamServerConnection Connection { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    [Inject]
+    private CommandApiClient CommandApiClient { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
+    private void GoToLogin() => Navigation.NavigateTo("/login");
 
     private bool _showAdd, _showAnnounce, _showExecute, _showShell;
     private ClientRow _form = new();
     private string _announceText = "";
-    private string _jobName = "Data Collection";
+    private string _jobName = "Get UID";
+    private string _jobArg = "";
+    private string _jobArg2 = "";
+    private string _jobArg3 = "";
+    private int _jobTargetId;
+    private bool _jobImmediate = true;
+
+    // Job catalogue: display name -> the command path suffix sent to the TeamServer.
+    private static readonly (string Name, string Path)[] _jobCatalogue =
+    {
+        ("Get UID",          "execute/getuid"),
+        ("Set Sleep",        "execute/setsleep"),
+        ("Shell Command",    "spawn/shell"),
+        ("PowerShell",       "spawn/powershell"),
+        ("Run",              "spawn/run"),
+        ("Run As",           "spawn/runas"),
+        ("Run U",            "spawn/runu"),
+        ("Kill Process",     "spawn/killprocess"),
+        ("Escalate (UAC)",   "spawn/escalate"),
+        (".NET Assembly",    "spawn/dotnetassembly"),
+        ("BOF",              "execute/bof"),
+        ("File Download",    "execute/filedownload"),
+        ("Cancel Download",  "execute/cancelFileDownload"),
+        ("Upload",           "execute/upload"),
+        ("Spawn To",         "execute/spawnto"),
+        ("Update Hosts",     "execute/updatehosts"),
+        ("Kill Agent",       "execute/kill"),
+    };
+
+    // Per-job input labels; null entries hide that field. Index 0/1/2 -> _jobArg/_jobArg2/_jobArg3.
+    private static (string?, string?, string?) JobLabels(string job) => job switch
+    {
+        "Set Sleep"       => ("Sleep (ms)", null, null),
+        "Shell Command"   => ("Command", null, null),
+        "PowerShell"      => ("Cmdlet", "Arguments", null),
+        "Run"             => ("Program", "Arguments", null),
+        "Run As"          => (@"DOMAIN\user", "Command", "Arguments"),
+        "Run U"           => ("PID", "Command", "Arguments"),
+        "Kill Process"    => ("PID", null, null),
+        "Escalate (UAC)"  => ("Registry key", "Target binary", null),
+        ".NET Assembly"   => ("Assembly (base64 or path)", "Arguments", null),
+        "BOF"             => ("BOF (base64)", "Entrypoint", "Arguments"),
+        "File Download"   => ("Remote path", null, null),
+        "Cancel Download" => ("Task ID", null, null),
+        "Upload"          => ("Path", null, null),
+        "Spawn To"        => ("Path", null, null),
+        "Update Hosts"    => ("Hosts (comma-separated)", null, null),
+        _ => (null, null, null), // Get UID, Kill Agent: no input
+    };
+
+    private string? JobLabel1 => JobLabels(_jobName).Item1;
+    private string? JobLabel2 => JobLabels(_jobName).Item2;
+    private string? JobLabel3 => JobLabels(_jobName).Item3;
     private string _shellInput = "";
     private readonly List<string> _shellLog = new() { "Trinity remote shell (mock). Type a command and press Run." };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync() => await RefreshDataAsync();
+
+    private async Task RefreshDataAsync()
     {
-        _clients.AddRange(new[]
-        {
-            new ClientRow { Name="CLIENT-001", Ip="192.168.1.10", Os="Windows 10",   Status="Online",   LastSeen="2m ago",  User="John Doe" },
-            new ClientRow { Name="CLIENT-002", Ip="192.168.1.11", Os="Windows 11",   Status="Online",   LastSeen="5m ago",  User="Steven Strange" },
-            new ClientRow { Name="CLIENT-003", Ip="192.168.1.12", Os="Ubuntu 22.04", Status="Online",   LastSeen="12m ago", User="Carlos Sainz" },
-            new ClientRow { Name="CLIENT-004", Ip="192.168.1.13", Os="macOS 13",     Status="Offline",  LastSeen="2h ago",  User="Jane Smith" },
-            new ClientRow { Name="CLIENT-005", Ip="192.168.1.14", Os="Windows 10",   Status="Offline",  LastSeen="3h ago",  User="Elton John" },
-            new ClientRow { Name="CLIENT-006", Ip="192.168.1.15", Os="Windows 11",   Status="Inactive", LastSeen="1d ago",  User="Siya Kholisi" },
-            new ClientRow { Name="CLIENT-007", Ip="192.168.1.16", Os="Ubuntu 20.04", Status="Online",   LastSeen="2d ago",  User="Edward Kenway" },
-            new ClientRow { Name="CLIENT-008", Ip="192.168.1.17", Os="Windows 10",   Status="Offline",  LastSeen="1m ago",  User="Trevor Belmont" },
-            new ClientRow { Name="CLIENT-009", Ip="192.168.1.18", Os="macOS 12",     Status="Inactive", LastSeen="37m ago", User="Tony Stark" },
-        });
+        await LoadAgentsAsync();
+        await LoadTasksAsync();
+    }
 
-        _timeline.AddRange(new[]
-        {
-            new Event("2m ago",  "CLIENT-001 connected from 192.168.1.10", "green"),
-            new Event("13m ago", "CLIENT-002 executed job \"Data Collection\"", "green"),
-            new Event("20m ago", "CLIENT-003 file \"report.pdf\" uploaded", "yellow"),
-            new Event("1h ago",  "CLIENT-004 disconnected unexpectedly", "red"),
-        });
+    private async Task LoadAgentsAsync()
+    {
+        _isLoading = true;
+        _loadError = null;
+        _clients.Clear();
+        _selected = null;
 
-        BuildLandDots();
+        try
+        {
+            var agents = await AgentApiClient.GetAgentsAsync();
+            _clients.AddRange(agents.OrderBy(agent => agent.agentID).Select(ToClientRow));
+            _page = 1;
+        }
+        catch (InvalidOperationException exception)
+        {
+            _loadError = exception.Message;
+        }
+        catch (HttpRequestException exception)
+        {
+            _loadError = $"Could not load agents from TeamServer: {exception.Message}";
+        }
+        catch (TaskCanceledException exception)
+        {
+            _loadError = $"The TeamServer agent request timed out: {exception.Message}";
+        }
+        catch (JsonException exception)
+        {
+            _loadError = $"TeamServer returned an invalid agent response: {exception.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private static ClientRow ToClientRow(AgentResponse agent)
+    {
+        var isSample = agent.username.StartsWith("sample-user-", StringComparison.OrdinalIgnoreCase)
+            && agent.externalIP.StartsWith("203.0.113.", StringComparison.Ordinal);
+        return new ClientRow
+        {
+            Name = isSample ? $"SAMPLE-CLIENT-{agent.agentID:000}" : $"CLIENT-{agent.agentID:000}",
+            Ip = agent.externalIP,
+            Os = agent.arch,
+            Status = ComputeStatus(agent.lastCheckIn, agent.sleep),
+            LastSeen = agent.lastCheckIn.ToLocalTime().ToString("g"),
+            User = agent.username,
+            AgentId = agent.agentID,
+            IsSample = isSample
+        };
+    }
+
+    // Derives Online/Offline from check-in recency. The TeamServer has no explicit status,
+    // so an agent counts as online if it checked in within ~2.5 sleep intervals (sleep is
+    // treated as seconds, floored at 60s so very short sleeps don't flap).
+    private static string ComputeStatus(DateTime lastCheckIn, int sleep)
+    {
+        var window = TimeSpan.FromSeconds(Math.Max(sleep, 60) * 2.5);
+        var age = DateTime.UtcNow - lastCheckIn.ToUniversalTime();
+        return age <= window ? "Online" : "Offline";
+    }
+
+    private async Task LoadTasksAsync()
+    {
+        _taskLoadError = null;
+        _timeline.Clear();
+        try
+        {
+            var tasks = await TaskApiClient.GetTasksAsync();
+            var names = _clients.ToDictionary(client => client.AgentId, client => client.Name);
+            _timeline.AddRange(tasks.OrderByDescending(task => task.timeStamp).Take(20)
+                .Select(task => new Event(
+                    task.timeStamp.ToLocalTime().ToString("g"),
+                    $"{names.GetValueOrDefault(task.agentID, $"Agent {task.agentID}")} · {task.commandType} · {task.status}",
+                    task.status.Equals("Failure", StringComparison.OrdinalIgnoreCase) ? "red" : "green")));
+        }
+        catch (InvalidOperationException exception)
+        {
+            _taskLoadError = exception.Message;
+        }
+        catch (HttpRequestException exception)
+        {
+            _taskLoadError = $"Could not load task history from TeamServer: {exception.Message}";
+        }
+        catch (TaskCanceledException exception)
+        {
+            _taskLoadError = $"The TeamServer task request timed out: {exception.Message}";
+        }
+        catch (JsonException exception)
+        {
+            _taskLoadError = $"TeamServer returned an invalid task response: {exception.Message}";
+        }
     }
 
     private IEnumerable<ClientRow> Filtered => _clients.Where(c =>
@@ -74,9 +233,10 @@ public partial class Clients
             || c.Ip.Contains(_search, StringComparison.OrdinalIgnoreCase)
             || c.User.Contains(_search, StringComparison.OrdinalIgnoreCase))
         && (_statusFilter == "All Status" || c.Status == _statusFilter)
-        && (_osFilter == "All OS" || c.Os.StartsWith(_osFilter, StringComparison.OrdinalIgnoreCase)));
+        && (_osFilter == "All Architectures" || c.Os.StartsWith(_osFilter, StringComparison.OrdinalIgnoreCase)));
 
     private int FilteredCount => Filtered.Count();
+    private int SampleCount => _clients.Count(client => client.IsSample);
     private int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredCount / (double)PageSize));
     private int CurrentPage => Math.Clamp(_page, 1, TotalPages);
     private IEnumerable<ClientRow> PageItems => Filtered.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
@@ -85,6 +245,8 @@ public partial class Clients
     {
         get
         {
+            if (_isLoading) return "Loading agents...";
+            if (_loadError is not null) return "Agents unavailable";
             if (FilteredCount == 0) return "No clients to show";
             var start = (CurrentPage - 1) * PageSize + 1;
             var end = Math.Min(CurrentPage * PageSize, FilteredCount);
@@ -99,43 +261,39 @@ public partial class Clients
     private static string StatusColor(string status) => status switch
     {
         "Online" => "green",
-        "Offline" => "red",
-        _ => "yellow",
+        "Offline" => "gray",
+        _ => "gray",
     };
 
     private List<StatVm> BuildStats()
     {
         int total = _clients.Count;
-        int online = _clients.Count(c => c.Status == "Online");
-        int offline = _clients.Count(c => c.Status == "Offline");
-        int inactive = _clients.Count(c => c.Status == "Inactive");
-        int nu = _clients.Count(c => c.IsNew);
+        int online = _clients.Count(client => client.Status == "Online");
+        int offline = total - online;
 
         return new List<StatVm>
         {
-            new("Total Clients",   total.ToString(),    "14% from last 24h", true,
+            new("Total Clients",   total.ToString(),    "From TeamServer", true,
                 "<circle cx='12' cy='8' r='4.5'/><path d='M4 21v-1a7 7 0 0 1 7-7h2a7 7 0 0 1 7 7v1'/>"),
-            new("Online Clients",  online.ToString(),   "20% from last 24h", true,
+            new("Online Clients",  online.ToString(),   "Checked in recently", true,
                 "<rect x='2' y='3' width='20' height='14' rx='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/>"),
-            new("Offline Clients", offline.ToString(),  "11% from last 24h", false,
+            new("Offline Clients", offline.ToString(),  "No recent check-in", false,
                 "<rect x='2' y='3' width='20' height='14' rx='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/><circle cx='19.5' cy='4.5' r='2.6' fill='#E5484D' stroke='#1C1C1F' stroke-width='1.6'/>"),
-            new("New Clients",     nu.ToString(),       "50% from last 24h", true,
+            new("New Clients",     "Not provided",       "TeamServer does not provide this count", true,
                 "<circle cx='10' cy='7' r='4'/><path d='M3 21v-1a6 6 0 0 1 6-6h2'/><line x1='19' y1='11' x2='19' y2='17'/><line x1='16' y1='14' x2='22' y2='14'/>"),
-            new("Inactive Clients",inactive.ToString(), "20% from last 24h", false,
+            new("Inactive Clients","Not provided", "TeamServer does not provide this count", false,
                 "<circle cx='10' cy='7' r='4'/><path d='M3 21v-1a6 6 0 0 1 6-6h3'/><circle cx='18' cy='16' r='4.5'/><path d='M18 14v2l1.3 1'/>"),
         };
     }
 
     private static readonly (string Name, string Color)[] _families =
     {
-        ("Windows 10", "green"), ("Windows 11", "blue"), ("Ubuntu", "yellow"), ("macOS", "red"), ("Other", "gray")
+        ("x64", "blue"), ("x86", "green"), ("Other", "gray")
     };
 
-    private static string Family(string os) =>
-        os.StartsWith("Windows 10") ? "Windows 10" :
-        os.StartsWith("Windows 11") ? "Windows 11" :
-        os.StartsWith("Ubuntu")     ? "Ubuntu" :
-        os.StartsWith("macOS")      ? "macOS" : "Other";
+    private static string Family(string architecture) =>
+        architecture.Equals("x64", StringComparison.OrdinalIgnoreCase) ? "x64" :
+        architecture.Equals("x86", StringComparison.OrdinalIgnoreCase) ? "x86" : "Other";
 
     private List<OsVm> BuildOsBreakdown()
     {
@@ -232,16 +390,93 @@ public partial class Clients
 
     private void OpenExecute()
     {
-        if (_selected is null) { ShowToast("Select a client in the table first"); return; }
+        if (_clients.Count == 0) { ShowToast("No clients available to target."); return; }
+        _jobTargetId = _selected?.AgentId ?? _clients[0].AgentId;
+        _jobName = "Get UID";
+        _jobArg = "";
+        _jobArg2 = "";
+        _jobArg3 = "";
+        _jobImmediate = true;
         _showExecute = true;
     }
 
-    private void RunJob()
+    // Builds the request body for the selected job from the argument fields.
+    private object BuildJobBody()
     {
-        if (_selected is null) return;
-        AddTimeline($"{_selected.Name} executed job \"{_jobName}\"", "green");
-        ShowToast($"Job \"{_jobName}\" queued on {_selected.Name}");
-        _showExecute = false;
+        int ParseInt(string s, int fallback = 0) => int.TryParse(s, out var v) ? v : fallback;
+
+        return _jobName switch
+        {
+            "Get UID"         => new { },
+            "Kill Agent"      => new { },
+            "Set Sleep"       => new { Sleep = ParseInt(_jobArg, 5000) },
+            "Shell Command"   => new { Command = _jobArg },
+            "PowerShell"      => new { Commandlet = _jobArg, Arguements = _jobArg2 },
+            "Run"             => new { Program = _jobArg, Arguements = _jobArg2 },
+            "Run As"          => BuildRunAsBody(),
+            "Run U"           => new { PID = ParseInt(_jobArg), Command = _jobArg2, Arguements = _jobArg3 },
+            "Kill Process"    => new { PID = ParseInt(_jobArg) },
+            "Escalate (UAC)"  => new { RegKey = _jobArg, TargetBinary = _jobArg2 },
+            ".NET Assembly"   => new { Assembly = _jobArg, Arguments = _jobArg2 },
+            "BOF"             => new { Bof = _jobArg, Entrypoint = _jobArg2, Arguements = _jobArg3 },
+            "File Download"   => new { Path = _jobArg },
+            "Cancel Download" => new { TaskID = _jobArg },
+            "Upload"          => new { Path = _jobArg },
+            "Spawn To"        => new { Path = _jobArg },
+            "Update Hosts"    => new { Hosts = _jobArg.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() },
+            _ => new { },
+        };
+    }
+
+    // Run As takes a DOMAIN\user pair; split it, defaulting the domain to "." when omitted.
+    private object BuildRunAsBody()
+    {
+        var parts = _jobArg.Split('\\', 2);
+        var (domain, user) = parts.Length == 2 ? (parts[0], parts[1]) : (".", _jobArg);
+        return new { Domain = domain, User = user, Command = _jobArg2, Arguements = _jobArg3 };
+    }
+
+    private async Task RunJob()
+    {
+        var agentId = _jobTargetId;
+        var targetName = _clients.FirstOrDefault(client => client.AgentId == agentId)?.Name ?? $"Agent {agentId}";
+
+        if (!_jobImmediate)
+        {
+            ShowToast("Scheduled execution is not supported by the TeamServer; choose Immediate.");
+            return;
+        }
+
+        var pathSuffix = _jobCatalogue.FirstOrDefault(job => job.Name == _jobName).Path;
+        if (string.IsNullOrEmpty(pathSuffix))
+        {
+            ShowToast($"Unknown job \"{_jobName}\".");
+            return;
+        }
+
+        try
+        {
+            var queued = await CommandApiClient.QueueCommandAsync(agentId, pathSuffix, BuildJobBody());
+
+            if (queued)
+            {
+                AddTimeline($"{targetName} · queued {_jobName}", "green");
+                ShowToast($"Queued \"{_jobName}\" on {targetName}");
+                _showExecute = false;
+            }
+            else
+            {
+                ShowToast($"TeamServer rejected the {_jobName} command.");
+            }
+        }
+        catch (InvalidOperationException exception)
+        {
+            ShowToast(exception.Message);
+        }
+        catch (HttpRequestException exception)
+        {
+            ShowToast($"Could not reach the TeamServer: {exception.Message}");
+        }
     }
 
     private void LockClient()
@@ -285,14 +520,42 @@ public partial class Clients
     {
         _search = "";
         _statusFilter = "All Status";
-        _osFilter = "All OS";
+        _osFilter = "All Architectures";
         _page = 1;
         ShowToast("Showing all clients");
     }
 
-    private void ExportClients()
+    private async Task ExportClients()
     {
-        ShowToast($"Exported {FilteredCount} clients to CSV (mock)");
+        if (FilteredCount == 0) { ShowToast("No clients to export."); return; }
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Name,IP Address,Architecture,Status,Last Seen,User");
+        foreach (var c in Filtered)
+        {
+            sb.AppendLine(string.Join(",", new[] { c.Name, c.Ip, c.Os, c.Status, c.LastSeen, c.User }.Select(CsvField)));
+        }
+
+        try
+        {
+            var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/clients.js");
+            await module.InvokeVoidAsync("downloadCsv", $"trinity-clients-{DateTime.Now:yyyyMMdd-HHmmss}.csv", sb.ToString());
+            ShowToast($"Exported {FilteredCount} clients to CSV.");
+        }
+        catch (JSException exception)
+        {
+            ShowToast($"CSV export failed: {exception.Message}");
+        }
+    }
+
+    // Quotes a CSV field when it contains a comma, quote, or newline.
+    private static string CsvField(string value)
+    {
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+        {
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 
     private void AddTimeline(string text, string color) => _timeline.Insert(0, new Event("just now", text, color));
@@ -333,28 +596,9 @@ public partial class Clients
         (85, 38, 6, 4),
     };
 
-    private static readonly Marker[] MapMarkers =
-    {
-        new(22, 16, "green"), new(30, 34, "green"), new(50, 14, "green"),
-        new(52, 30, "yellow"), new(68, 18, "orange"), new(85, 38, "green"),
-    };
+    private static readonly Marker[] MapMarkers = [];
 
-    //All of this is mock data for UI testing, can be removed without issue
     private void BuildLandDots()
     {
-        for (double y = 1; y < 50; y += 2)
-        for (double x = 1; x < 100; x += 2)
-        {
-            foreach (var c in _continents)
-            {
-                var dx = (x - c.Cx) / c.Rx;
-                var dy = (y - c.Cy) / c.Ry;
-                if (dx * dx + dy * dy <= 1)
-                {
-                    LandDots.Add((x, y));
-                    break;
-                }
-            }
-        }
     }
 }

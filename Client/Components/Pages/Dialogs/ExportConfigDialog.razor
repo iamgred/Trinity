@@ -1,0 +1,43 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Export Config</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudSelect @bind-Value="_format" T="string" Label="Export Format"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-4">
+            <MudSelectItem Value="@("json")">JSON</MudSelectItem>
+            <MudSelectItem Value="@("xml")">XML</MudSelectItem>
+            <MudSelectItem Value="@("yaml")">YAML</MudSelectItem>
+        </MudSelect>
+        <div style="background-color:#1A1A1A; border:2px dashed #444; border-radius:6px;
+                    padding:48px 24px; text-align:center;">
+            <MudIcon Icon="@Icons.Material.Outlined.CloudUpload"
+                     Style="color:#E87722; font-size:3.5rem; display:block; margin:0 auto 12px;" />
+            <p style="color:#AAAAAA; font-size:0.875rem; margin:0 0 6px;">Config will be exported here</p>
+            <p style="color:#555; font-size:0.75rem; margin:0;">
+                Format: <span style="color:#E87722;">@_format.ToUpperInvariant()</span>
+            </p>
+        </div>
+        <div style="text-align:center; margin:14px 0 4px;">
+            <span style="color:#555; font-size:0.8rem;">or choose save location</span>
+        </div>
+        <div style="display:flex; justify-content:center;">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FolderOpen"
+                       Style="text-transform:none; min-width:110px;">Browse</MudButton>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Export</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _format = "json";
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

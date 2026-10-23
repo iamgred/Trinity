@@ -1,0 +1,26 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Export Data</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <div style="border:2px dashed #E87722; border-radius:6px; padding:40px 24px;
+                    text-align:center; background-color:#1A1A1A;">
+            <MudIcon Icon="@Icons.Material.Outlined.CloudUpload"
+                     Style="color:#E87722; font-size:3rem; display:block; margin:0 auto 12px;" />
+            <p style="color:#AAAAAA; font-size:0.875rem; margin-bottom:20px;">Drag and drop files here to export</p>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="min-width:120px;">Browse Files</MudButton>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

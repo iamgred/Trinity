@@ -1,0 +1,35 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">View Files</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:16px;" />
+        @for (int i = 1; i <= 7; i++)
+        {
+            int idx = i;
+            <div style="display:flex; justify-content:space-between; align-items:center;
+                        padding:10px 0; border-bottom:1px solid #2a2a2a;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <MudIcon Icon="@Icons.Material.Outlined.InsertDriveFile" Style="color:#888;" />
+                    <span style="color:white; font-size:0.875rem;">File @idx</span>
+                </div>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                           Style="text-transform:none; border-radius:12px; min-width:64px;"
+                           OnClick="@(() => ViewFile(idx))">View</MudButton>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private void ViewFile(int fileNumber) { /* TODO: open file viewer */ }
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

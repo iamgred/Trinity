@@ -1,0 +1,57 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Test Beacon</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudSelect @bind-Value="_beacon" T="string" Label="Select Beacon"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("none")">— No beacons configured —</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_testProto" T="string" Label="Test Protocol"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-4">
+            <MudSelectItem Value="@("ping")">Ping</MudSelectItem>
+            <MudSelectItem Value="@("http")">HTTP GET</MudSelectItem>
+            <MudSelectItem Value="@("https")">HTTPS GET</MudSelectItem>
+            <MudSelectItem Value="@("dns")">DNS Lookup</MudSelectItem>
+        </MudSelect>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.PlayArrow"
+                   Style="text-transform:none; margin-bottom:16px;"
+                   OnClick="RunTest" Disabled="@_running">
+            @(_running ? "Running…" : "Run Test")
+        </MudButton>
+        <p style="color:#AAAAAA; font-size:0.75rem; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Results Output</p>
+        <div style="background-color:#0a0a0a; border:1px solid #333; border-radius:4px;
+                    padding:12px; min-height:100px; font-family:'Courier New',monospace;
+                    font-size:0.75rem; color:#00ff41; white-space:pre-wrap;">@_results</div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _beacon = "none";
+    private string _testProto = "ping";
+    private bool _running = false;
+    private string _results = "// No test run yet.\n// Select a beacon and click Run Test.";
+
+    private async Task RunTest()
+    {
+        _running = true;
+        _results = $"[{DateTime.Now:HH:mm:ss}] Running {_testProto.ToUpperInvariant()} on '{_beacon}'...\n";
+        StateHasChanged();
+        await Task.Delay(800);
+        // TODO: replace with hub call → var result = await _hub.InvokeAsync<string>("TestBeacon", _beacon, _testProto);
+        _results += $"[{DateTime.Now:HH:mm:ss}] Backend not connected — stub response.\n";
+        _running = false;
+        StateHasChanged();
+    }
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

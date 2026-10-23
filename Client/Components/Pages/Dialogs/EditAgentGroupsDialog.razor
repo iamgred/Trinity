@@ -1,0 +1,40 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Edit Agent Groups</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudSelect @bind-Value="_selectedGroup" T="string" Label="Select Group to Edit"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("none")">— No groups configured —</MudSelectItem>
+        </MudSelect>
+        <MudTextField @bind-Value="_groupName" Label="Group Name" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Class="mb-3" />
+        <p style="color:#AAAAAA; font-size:0.75rem; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Select Agents</p>
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:16px;">
+            <MudTextField @bind-Value="_agents" Variant="Variant.Outlined"
+                          Margin="Margin.Dense" Placeholder="Agent names, comma-separated…" Style="flex:1;" />
+            <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                       Style="border-color:#555; color:#aaa; text-transform:none; white-space:nowrap;">Browse</MudButton>
+        </div>
+        <MudSelect @bind-Value="_job" T="string" Label="Job Assignment"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-2">
+            <MudSelectItem Value="@("none")">— No jobs configured —</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Save Changes</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _selectedGroup = "none";
+    private string _groupName = string.Empty;
+    private string _agents = string.Empty;
+    private string _job = "none";
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

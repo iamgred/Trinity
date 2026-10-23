@@ -1,0 +1,47 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Generate Link</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudSelect @bind-Value="_fileOrFolder" T="string" Label="Select File or Folder"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-4">
+            <MudSelectItem Value="@("none")">— No files available —</MudSelectItem>
+        </MudSelect>
+        <p style="color:#AAAAAA; font-size:0.75rem; margin-bottom:6px;
+                  text-transform:uppercase; letter-spacing:0.05em;">Generate Link</p>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <MudTextField @bind-Value="_generatedLink" Variant="Variant.Outlined"
+                          Margin="Margin.Dense" Placeholder="Generated link will appear here…"
+                          Style="flex:1;" ReadOnly="true" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       Style="text-transform:none; white-space:nowrap;"
+                       OnClick="GenerateLink">Generate</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       Style="text-transform:none;"
+                       Disabled="@string.IsNullOrEmpty(_generatedLink)"
+                       OnClick="CopyLink">Copy</MudButton>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _fileOrFolder  = "none";
+    private string _generatedLink = string.Empty;
+    private void GenerateLink() => _generatedLink = "https://trinity.local/share/placeholder";
+    private async Task CopyLink()
+    {
+        if (!string.IsNullOrEmpty(_generatedLink))
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", _generatedLink);
+    }
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

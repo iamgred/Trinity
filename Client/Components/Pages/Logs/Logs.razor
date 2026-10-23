@@ -1,16 +1,28 @@
 @page "/logs"
 @layout TrinityLayout
-@inject NavigationManager Navigation
 
 <PageTitle>Trinity · Logs</PageTitle>
 
 <div class="logs-page">
 
-    <div class="mock-banner">Mock data — for UI shell only (in-memory, not persisted)</div>
+    @if (_loadError is not null)
+    {
+        <div class="mock-banner" role="status">
+            <span>@_loadError</span>
+            @if (Connection.BaseAddress is null)
+            {
+                <button type="button" class="export-btn" @onclick="GoToLogin">Go to Login</button>
+            }
+            else
+            {
+                <button type="button" class="export-btn" @onclick="LoadTasksAsync">Retry</button>
+            }
+        </div>
+    }
 
     <section class="header">
         <h1>Logs</h1>
-        <p class="subtitle">View and analyse all system and user activity logs</p>
+        <p class="subtitle">View and analyse task history returned by TeamServer</p>
     </section>
 
     <section class="stats-row">
@@ -25,7 +37,6 @@
                 <div class="stat-body">
                     <div class="label">@stat.Label</div>
                     <div class="value">@stat.Value</div>
-                    <div class="trend @(stat.Up ? "up" : "down")">@(stat.Up ? "↗" : "↘") @stat.Trend</div>
                 </div>
             </div>
         }
@@ -45,10 +56,10 @@
                         </div>
                         <select class="filter-select" @bind="_levelFilter" @bind:after="ResetPage">
                             <option>All Levels</option>
-                            <option>INFO</option>
-                            <option>WARN</option>
-                            <option>ERROR</option>
-                            <option>CRITICAL</option>
+                            @foreach (var level in Levels)
+                            {
+                                <option>@level</option>
+                            }
                         </select>
                         <select class="filter-select" @bind="_sourceFilter" @bind:after="ResetPage">
                             <option>All Sources</option>
@@ -61,6 +72,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                             Export
                         </button>
+                        <button type="button" class="export-btn" @onclick="LoadTasksAsync">Refresh</button>
                     </div>
                 </div>
 
@@ -68,8 +80,8 @@
                     <thead>
                         <tr>
                             <th>Timestamp</th>
-                            <th>Type</th>
-                            <th>Source</th>
+                            <th>Status</th>
+                            <th>Command Type</th>
                             <th>Event</th>
                             <th>Client/User</th>
                             <th>IP Address</th>
@@ -112,12 +124,12 @@
 
             <div class="bottom-row">
                 <section class="top-clients-section t-card">
-                    <h2>Top Clients by Log Count</h2>
+                    <h2>Top Agents by Task Count</h2>
                     <table class="top-clients-table">
                         <thead>
                             <tr>
-                                <th>Client Name</th>
-                                <th>Log Count</th>
+                                <th>Agent</th>
+                                <th>Task Count</th>
                                 <th class="pct-head">Percentage</th>
                             </tr>
                         </thead>
@@ -147,7 +159,7 @@
                     <div class="actions-grid">
                         @foreach (var a in Actions)
                         {
-                            <button type="button" class="action-btn" @onclick="a.OnClick">
+                            <button type="button" class="action-btn" disabled="@(a.Label is not ("Export Logs" or "View Log Settings"))" title="This operation is not available through the TeamServer API." @onclick="a.OnClick">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                     @((MarkupString)a.Icon)
                                 </svg>
@@ -164,7 +176,7 @@
 
             <section class="panel-donut t-card">
                 <div class="panel-head">
-                    <h2>Log Level Distribution</h2>
+                    <h2>Task Status Distribution</h2>
                 </div>
                 <div class="donut-body">
                     <div class="donut">
@@ -189,7 +201,7 @@
 
             <section class="panel-donut t-card">
                 <div class="panel-head">
-                    <h2>Log Sources</h2>
+                    <h2>Command Type Distribution</h2>
                 </div>
                 <div class="donut-body">
                     <div class="donut">
@@ -214,7 +226,7 @@
 
             <section class="critical-section t-card">
                 <div class="panel-head">
-                    <h2>Recent Critical Logs</h2>
+                    <h2>Recent Failed Tasks</h2>
                 </div>
                 <ul class="critical-list">
                     @foreach (var c in _criticalLogs)
@@ -231,7 +243,7 @@
                         </li>
                     }
                 </ul>
-                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all critical logs (mock)"))">View all critical logs →</a>
+                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => { _levelFilter = "Failure"; ResetPage(); })">View failed tasks →</a>
             </section>
 
         </div>

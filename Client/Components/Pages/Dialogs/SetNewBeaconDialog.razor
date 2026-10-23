@@ -1,0 +1,60 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Set New Beacon</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudTextField @bind-Value="_name" Label="Beacon Name" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Class="mb-3" />
+        <MudTextField @bind-Value="_desc" Label="Beacon Description" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Lines="2" Class="mb-4" />
+        <MudGrid Spacing="2" Class="mb-3">
+            <MudItem xs="4">
+                <MudSelect @bind-Value="_protocol" T="string" Label="Protocol"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true">
+                    <MudSelectItem Value="@("HTTP")">HTTP</MudSelectItem>
+                    <MudSelectItem Value="@("HTTPS")">HTTPS</MudSelectItem>
+                    <MudSelectItem Value="@("DNS")">DNS</MudSelectItem>
+                    <MudSelectItem Value="@("SMB")">SMB</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="5">
+                <MudTextField @bind-Value="_host" Label="Host / IP" Variant="Variant.Outlined"
+                              Margin="Margin.Dense" FullWidth="true" />
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField @bind-Value="_port" Label="Port" Variant="Variant.Outlined"
+                              Margin="Margin.Dense" FullWidth="true" />
+            </MudItem>
+        </MudGrid>
+        <MudTextField @bind-Value="_uriPath" Label="URI Path" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Placeholder="/api/beacon" Class="mb-3" />
+        <MudSelect @bind-Value="_interval" T="string" Label="Check-in Interval"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-2">
+            <MudSelectItem Value="@("10s")">Every 10 seconds</MudSelectItem>
+            <MudSelectItem Value="@("30s")">Every 30 seconds</MudSelectItem>
+            <MudSelectItem Value="@("60s")">Every 1 minute</MudSelectItem>
+            <MudSelectItem Value="@("5m")">Every 5 minutes</MudSelectItem>
+            <MudSelectItem Value="@("15m")">Every 15 minutes</MudSelectItem>
+            <MudSelectItem Value="@("1h")">Every 1 hour</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _name = string.Empty;
+    private string _desc = string.Empty;
+    private string _protocol = "HTTPS";
+    private string _host = string.Empty;
+    private string _port = "443";
+    private string _uriPath = string.Empty;
+    private string _interval = "60s";
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

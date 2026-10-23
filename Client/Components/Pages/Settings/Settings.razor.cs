@@ -1,12 +1,14 @@
 using System.Globalization;
+using System.Net.Http;
+using Client.Services;
+using Microsoft.AspNetCore.Components;
 
 namespace Client.Components.Pages.Settings;
-//All of this is mock data for UI testing, can be removed without issue
 public partial class Settings
 {
     private record StatVm(string Label, string Value, string Sub, string Icon);
     private record Channel(string Profile, string Transport, string Local, string Port, int Clients);
-    private record Profile(string Name, string Protocol, string Local, string Port, string Status, string StatusColor);
+    private record Profile(int Id, string Name, string Protocol, string Local, string Port, string Status, string StatusColor);
     private record Policy(string Name, string Desc, string Badge, string BadgeColor);
     private record ActionVm(string Label, string Icon, Action OnClick);
 
@@ -30,9 +32,173 @@ public partial class Settings
     private string _clientExpiry = "90 Days";
     private string _killDate = "2026-02-15";
 
-    private const int HealthPercent = 98;
+    // Live TeamServer liveness (GET /server/status); null = not yet checked.
+    private bool? _serverOnline;
+    private int HealthPercent => _serverOnline == true ? 100 : 0;
+    private string HealthLabel => _serverOnline switch
+    {
+        true => "Operational",
+        false => "Unreachable",
+        null => "Checking…",
+    };
 
     private string? _toast;
+
+    [Inject]
+    private ListenerApiClient ListenerApiClient { get; set; } = default!;
+
+    [Inject]
+    private ServerApiClient ServerApiClient { get; set; } = default!;
+
+    private bool _liveListeners;
+    private string? _serverIpV4;
+    private string? _serverIpV6;
+
+    private bool _showCreateProfile;
+    private string _profileName = "";
+    private string _profileProtocol = "HTTP";
+    private string _profileHost = "";
+    private string _profilePort = "";
+    private string _profilePipe = "";
+
+    protected override async Task OnInitializedAsync() => await LoadListenersAsync();
+
+    private async Task LoadListenersAsync()
+    {
+        try
+        {
+            var listeners = await ListenerApiClient.GetListenersAsync();
+            if (listeners.Count > 0)
+            {
+                _channels.Clear();
+                _profiles.Clear();
+                foreach (var listener in listeners)
+                {
+                    // Live listener data from GET /api/v1/listeners (name + protocol only).
+                    _channels.Add(new Channel(listener.name, listener.protocol, "Not provided", "Not provided", 0));
+                    _profiles.Add(new Profile(listener.id, listener.name, listener.protocol, "Not provided", "Not provided", "Unknown", "gray"));
+                }
+                _liveListeners = true;
+            }
+        }
+        catch
+        {
+            // Not connected or endpoint unavailable: keep the sample tables.
+            _liveListeners = false;
+        }
+
+        try
+        {
+            var ip = await ServerApiClient.GetServerIpAsync();
+            _serverIpV4 = ip?.ipV4;
+            _serverIpV6 = ip?.ipV6;
+        }
+        catch
+        {
+            _serverIpV4 = null;
+            _serverIpV6 = null;
+        }
+
+        try
+        {
+            _serverOnline = await ServerApiClient.GetServerStatusAsync();
+        }
+        catch
+        {
+            _serverOnline = false;
+        }
+    }
+
+    private async Task RestartProfile(int id)
+    {
+        if (id <= 0) return;
+        try
+        {
+            var ok = await ListenerApiClient.RestartListenerAsync(id);
+            ShowToast(ok ? "Listener restarted." : "TeamServer could not restart the listener.");
+        }
+        catch (InvalidOperationException exception) { ShowToast(exception.Message); }
+        catch (HttpRequestException exception) { ShowToast($"Could not reach the TeamServer: {exception.Message}"); }
+    }
+
+    private async Task DeleteProfile(int id)
+    {
+        if (id <= 0) return;
+        try
+        {
+            var ok = await ListenerApiClient.DeleteListenerAsync(id);
+            if (ok)
+            {
+                ShowToast("C2 profile deleted.");
+                await LoadListenersAsync();
+            }
+            else
+            {
+                ShowToast("TeamServer could not delete the profile.");
+            }
+        }
+        catch (InvalidOperationException exception) { ShowToast(exception.Message); }
+        catch (HttpRequestException exception) { ShowToast($"Could not reach the TeamServer: {exception.Message}"); }
+    }
+
+    private void OpenCreateProfile()
+    {
+        _profileName = "";
+        _profileProtocol = "HTTP";
+        _profileHost = "";
+        _profilePort = "";
+        _profilePipe = "";
+        _showCreateProfile = true;
+    }
+
+    private void CloseCreateProfile() => _showCreateProfile = false;
+
+    private async Task CreateProfile()
+    {
+        if (string.IsNullOrWhiteSpace(_profileName)) { ShowToast("Profile name is required."); return; }
+
+        try
+        {
+            bool created;
+            switch (_profileProtocol)
+            {
+                case "HTTP":
+                    if (!int.TryParse(_profilePort, out var httpPort) || httpPort <= 0 || httpPort > 65535) { ShowToast("Enter a valid port (1-65535)."); return; }
+                    var host = string.IsNullOrWhiteSpace(_profileHost) ? "0.0.0.0" : _profileHost.Trim();
+                    created = await ListenerApiClient.CreateHttpListenerAsync(_profileName.Trim(), host, httpPort);
+                    break;
+                case "TCP":
+                    if (!int.TryParse(_profilePort, out var tcpPort) || tcpPort <= 0 || tcpPort > 65535) { ShowToast("Enter a valid port (1-65535)."); return; }
+                    created = await ListenerApiClient.CreateTcpListenerAsync(_profileName.Trim(), tcpPort);
+                    break;
+                case "SMB":
+                    if (string.IsNullOrWhiteSpace(_profilePipe)) { ShowToast("Enter a pipe name."); return; }
+                    created = await ListenerApiClient.CreateSmbListenerAsync(_profileName.Trim(), _profilePipe.Trim());
+                    break;
+                default:
+                    ShowToast("Unsupported protocol."); return;
+            }
+
+            if (created)
+            {
+                ShowToast($"C2 profile \"{_profileName.Trim()}\" created.");
+                _showCreateProfile = false;
+                await LoadListenersAsync();
+            }
+            else
+            {
+                ShowToast("TeamServer rejected the profile. Check the port and try again.");
+            }
+        }
+        catch (InvalidOperationException exception)
+        {
+            ShowToast(exception.Message);
+        }
+        catch (HttpRequestException exception)
+        {
+            ShowToast($"Could not reach the TeamServer: {exception.Message}");
+        }
+    }
 
     private readonly List<Channel> _channels = new()
     {
@@ -43,9 +209,9 @@ public partial class Settings
 
     private readonly List<Profile> _profiles = new()
     {
-        new("HTTPS Beacon", "HTTPS",  "10.0.0.5", "443",  "Active",   "green"),
-        new("WebDAV",       "HTTP",   "10.0.0.5", "80",   "Standby",  "yellow"),
-        new("Custom (RAW)", "Custom", "10.0.0.5", "9001", "Inactive", "red"),
+        new(0, "HTTPS Beacon", "HTTPS",  "10.0.0.5", "443",  "Active",   "green"),
+        new(0, "WebDAV",       "HTTP",   "10.0.0.5", "80",   "Standby",  "yellow"),
+        new(0, "Custom (RAW)", "Custom", "10.0.0.5", "9001", "Inactive", "red"),
     };
 
     private readonly List<Policy> _policies = new()
@@ -58,7 +224,7 @@ public partial class Settings
 
     private List<StatVm> BuildStats() => new()
     {
-        new("C2 Profiles", "18", "Communication Profiles",
+        new("C2 Profiles", _liveListeners ? _profiles.Count.ToString() : "18", "Communication Profiles",
             "<path d='M5 12.55a11 11 0 0 1 14.08 0'/><path d='M1.42 9a16 16 0 0 1 21.16 0'/><path d='M8.53 16.11a6 6 0 0 1 6.95 0'/><line x1='12' y1='20' x2='12.01' y2='20'/>"),
         new("AI Agent Policies", "8", "AI Behaviour Policies",
             "<circle cx='12' cy='8' r='4'/><path d='M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1'/>"),
@@ -66,7 +232,7 @@ public partial class Settings
             "<path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/>"),
         new("Evasion Techniques", "23", "Evasion Configurations",
             "<path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/><line x1='1' y1='1' x2='23' y2='23'/>"),
-        new("System Health", "98%", "Overall System Status",
+        new("System Health", $"{HealthPercent}%", HealthLabel,
             "<rect x='3' y='4' width='18' height='6' rx='1'/><rect x='3' y='14' width='18' height='6' rx='1'/><path d='M7 7h.01M7 17h.01'/>"),
     };
 
@@ -85,7 +251,8 @@ public partial class Settings
         get
         {
             var fill = (HealthPercent / 100.0 * 100).ToString("0.##", CultureInfo.InvariantCulture);
-            return $"var(--status-green) 0% {fill}%, var(--bg-input) {fill}% 100%";
+            var color = _serverOnline == false ? "var(--status-red)" : "var(--status-green)";
+            return $"{color} 0% {fill}%, var(--bg-input) {fill}% 100%";
         }
     }
 
@@ -93,7 +260,7 @@ public partial class Settings
     {
         new ActionVm("Create New C2 Profile",
             "<path d='M5 12.55a11 11 0 0 1 14.08 0'/><path d='M1.42 9a16 16 0 0 1 21.16 0'/><path d='M8.53 16.11a6 6 0 0 1 6.95 0'/><line x1='12' y1='20' x2='12.01' y2='20'/>",
-            () => ShowToast("Opened new C2 profile wizard (mock)")),
+            OpenCreateProfile),
         new ActionVm("Create AI Policy",
             "<circle cx='12' cy='8' r='4'/><path d='M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1'/>",
             () => ShowToast("Opened new AI policy editor (mock)")),

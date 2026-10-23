@@ -1,0 +1,42 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Create New Report</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudTextField @bind-Value="_reportName" Label="Report Name" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Class="mb-4" />
+        <MudSelect @bind-Value="_reportType" Label="Report Type" Variant="Variant.Outlined"
+                   Margin="Margin.Dense" FullWidth="true" Class="mb-4">
+            <MudSelectItem Value="@("PDF")">PDF</MudSelectItem>
+            <MudSelectItem Value="@("DOCX")">DOCX</MudSelectItem>
+            <MudSelectItem Value="@("CSV")">CSV</MudSelectItem>
+            <MudSelectItem Value="@("Excel")">Excel</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_fields" Label="Select Fields" Variant="Variant.Outlined"
+                   Margin="Margin.Dense" FullWidth="true" Class="mb-4">
+            <MudSelectItem Value="@("All")">All</MudSelectItem>
+            <MudSelectItem Value="@("Basic")">Basic</MudSelectItem>
+            <MudSelectItem Value="@("Advanced")">Advanced</MudSelectItem>
+            <MudSelectItem Value="@("Custom")">Custom</MudSelectItem>
+        </MudSelect>
+        <MudTextField @bind-Value="_desc" Label="Description" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Lines="4" Class="mb-2" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" Style="border-color:#E87722; color:#E87722; min-width:100px;">Generate</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _reportName = string.Empty;
+    private string _reportType = "PDF";
+    private string _fields = "All";
+    private string _desc = string.Empty;
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

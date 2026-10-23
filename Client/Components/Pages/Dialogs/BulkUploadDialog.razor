@@ -1,0 +1,67 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Bulk Upload</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+
+        <!-- Upload icon area (click to browse) -->
+        <div style="background-color:#1A1A1A; border:2px dashed #444; border-radius:6px;
+                    padding:48px 24px; text-align:center; cursor:pointer;" @onclick="TriggerBrowse">
+            <MudIcon Icon="@Icons.Material.Outlined.CloudUpload"
+                     Style="color:#E87722; font-size:4rem; display:block; margin:0 auto 12px;" />
+            <p style="color:#AAAAAA; font-size:0.875rem; margin:0 0 6px;">
+                Select files to upload
+            </p>
+            <p style="color:#555; font-size:0.75rem; margin:0;">
+                Multiple files supported
+            </p>
+        </div>
+
+        <!-- Browse button -->
+        <div style="text-align:center; margin-top:14px;">
+            <InputFile id="bulk-upload-file-input" OnChange="OnFilesSelected" multiple style="display:none;" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FolderOpen"
+                       Style="text-transform:none; min-width:110px;"
+                       OnClick="TriggerBrowse">Browse</MudButton>
+        </div>
+
+        <!-- Selected file list -->
+        @if (_fileNames.Count > 0)
+        {
+            <div style="margin-top:12px; max-height:120px; overflow-y:auto;">
+                @foreach (var name in _fileNames)
+                {
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                        <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile"
+                                 Style="color:#E87722; font-size:1rem;" />
+                        <span style="color:#ccc; font-size:0.85rem;">@name</span>
+                    </div>
+                }
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Style="min-width:100px;" Disabled="@(_fileNames.Count == 0)">Upload</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private List<string> _fileNames = new();
+
+    private async Task TriggerBrowse()
+        => await JS.InvokeVoidAsync("eval", "document.getElementById('bulk-upload-file-input').click()");
+
+    private void OnFilesSelected(InputFileChangeEventArgs e)
+        => _fileNames = e.GetMultipleFiles(100).Select(f => f.Name).ToList();
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

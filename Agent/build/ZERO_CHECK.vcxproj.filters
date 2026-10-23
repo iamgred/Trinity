@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\conna\source\repos\Trinity\Agent\build\CMakeFiles\83034d6a3848956286c7209861d0cfe8\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{A51F4455-21CD-3E71-9B37-FAD9A11E43B1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

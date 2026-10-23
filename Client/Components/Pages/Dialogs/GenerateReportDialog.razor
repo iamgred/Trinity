@@ -1,0 +1,49 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Generate Report</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudSelect @bind-Value="_docType" T="string" Label="Document Type"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("pdf")">PDF</MudSelectItem>
+            <MudSelectItem Value="@("docx")">DOCX</MudSelectItem>
+            <MudSelectItem Value="@("csv")">CSV</MudSelectItem>
+            <MudSelectItem Value="@("xlsx")">Excel (XLSX)</MudSelectItem>
+            <MudSelectItem Value="@("html")">HTML</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_agentGroup" T="string" Label="Agent Group"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("none")">— No groups configured —</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_job" T="string" Label="Job"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("none")">— No jobs configured —</MudSelectItem>
+        </MudSelect>
+        <MudTextField @bind-Value="_ip" Label="IP Address" Variant="Variant.Outlined"
+                      Margin="Margin.Dense" FullWidth="true" Placeholder="192.168.1.1" Class="mb-3" />
+        <p style="color:#AAAAAA; font-size:0.75rem; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Export To</p>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <MudTextField @bind-Value="_exportPath" Variant="Variant.Outlined"
+                          Margin="Margin.Dense" Placeholder="Choose save location…" Style="flex:1;" />
+            <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                       Style="border-color:#555; color:#aaa; text-transform:none; white-space:nowrap;">Browse</MudButton>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Generate</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _docType = "pdf";
+    private string _agentGroup = "none";
+    private string _job = "none";
+    private string _ip = string.Empty;
+    private string _exportPath = string.Empty;
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

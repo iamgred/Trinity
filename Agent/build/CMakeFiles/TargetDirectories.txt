@@ -1,0 +1,3 @@
+C:/Users/conna/source/repos/Trinity/Agent/build/CMakeFiles/Agent.dir
+C:/Users/conna/source/repos/Trinity/Agent/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/conna/source/repos/Trinity/Agent/build/CMakeFiles/ZERO_CHECK.dir

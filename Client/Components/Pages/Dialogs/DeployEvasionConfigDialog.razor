@@ -1,0 +1,36 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Deploy Evasion Config</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <MudSelect @bind-Value="_config" T="string" Label="Select Config"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-3">
+            <MudSelectItem Value="@("none")">— No configs available —</MudSelectItem>
+            <MudSelectItem Value="@("default")">Default Evasion</MudSelectItem>
+            <MudSelectItem Value="@("stealth")">Stealth Profile</MudSelectItem>
+            <MudSelectItem Value="@("custom")">Custom</MudSelectItem>
+        </MudSelect>
+        <MudSelect @bind-Value="_evasionType" T="string" Label="Evasion Type"
+                   Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" Class="mb-2">
+            <MudSelectItem Value="@("amsi")">AMSI Bypass</MudSelectItem>
+            <MudSelectItem Value="@("etw")">ETW Patching</MudSelectItem>
+            <MudSelectItem Value="@("sandbox")">Sandbox Detection</MudSelectItem>
+            <MudSelectItem Value="@("av")">AV Evasion</MudSelectItem>
+            <MudSelectItem Value="@("all")">All Techniques</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Style="min-width:100px;">Deploy</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _config = "none";
+    private string _evasionType = "amsi";
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

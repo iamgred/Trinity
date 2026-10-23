@@ -1,0 +1,51 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="color:white; font-weight:700;">Import Config</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
+        <div style="background-color:#1A1A1A; border:2px dashed #444; border-radius:6px;
+                    padding:48px 24px; text-align:center; cursor:pointer;"
+             @onclick="TriggerBrowse">
+            <MudIcon Icon="@Icons.Material.Outlined.CloudDownload"
+                     Style="color:#E87722; font-size:3.5rem; display:block; margin:0 auto 12px;" />
+            <p style="color:#AAAAAA; font-size:0.875rem; margin:0 0 6px;">Drag &amp; drop config file here</p>
+            <p style="color:#555; font-size:0.75rem; margin:0;">Supported: .json  .xml  .yaml  .yml</p>
+        </div>
+        <div style="text-align:center; margin:14px 0 4px;">
+            <span style="color:#555; font-size:0.8rem;">or</span>
+        </div>
+        <div style="display:flex; justify-content:center;">
+            <InputFile id="import-file-input" OnChange="OnFile" style="display:none;"
+                       accept=".json,.xml,.yaml,.yml" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FolderOpen"
+                       Style="text-transform:none; min-width:110px;"
+                       OnClick="TriggerBrowse">Browse</MudButton>
+        </div>
+        @if (!string.IsNullOrEmpty(_fileName))
+        {
+            <div style="margin-top:14px; display:flex; align-items:center; gap:8px;">
+                <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Style="color:#E87722;" />
+                <span style="color:#ccc; font-size:0.85rem;">@_fileName</span>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Style="min-width:100px;" Disabled="@string.IsNullOrEmpty(_fileName)">Import</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    private string _fileName = string.Empty;
+    private async Task TriggerBrowse()
+        => await JS.InvokeVoidAsync("eval", "document.getElementById('import-file-input').click()");
+    private void OnFile(InputFileChangeEventArgs e) { _fileName = e.File.Name; }
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

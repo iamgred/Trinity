@@ -1,0 +1,56 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <MudIcon Icon="@Icons.Material.Filled.ListAlt" Style="color:#E87722;" />
+            <MudText Typo="Typo.h6" Style="color:white; font-weight:600;">View All Campaigns</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:12px;" />
+        <div style="padding:4px 0;">
+            @for (int i = 1; i <= 5; i++)
+            {
+                var num = i;
+                <div style="display:flex; align-items:center; justify-content:space-between;
+                            padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.07);">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Campaign"
+                                 Style="color:#E87722; font-size:1.3rem;" />
+                        <div>
+                            <MudText Typo="Typo.body2" Style="color:white; font-weight:500;">Campaign @num</MudText>
+                            <MudText Typo="Typo.caption" Class="muted">Phishing · Active</MudText>
+                        </div>
+                    </div>
+                    <MudButton Variant="Variant.Filled" Size="Size.Small"
+                               Style="background:#E87722; color:white; text-transform:none; border-radius:12px; min-width:70px;"
+                               OnClick="@(() => ViewCampaign(num))">
+                        View
+                    </MudButton>
+                </div>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <div style="display:flex; justify-content:flex-end; width:100%; padding:4px 0 0 0;">
+            <MudButton Variant="Variant.Filled"
+                       Style="background:#E87722; color:white; text-transform:none; border-radius:24px; min-width:120px;"
+                       OnClick="@Confirm">
+                Confirm
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private void ViewCampaign(int campaignNumber)
+    {
+        // TODO: navigate to / open specific campaign
+    }
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}

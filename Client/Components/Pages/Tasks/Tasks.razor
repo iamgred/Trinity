@@ -5,7 +5,20 @@
 
 <div class="tasks-page">
 
-    <div class="mock-banner">Mock data — for UI shell only (in-memory, not persisted)</div>
+    @if (_loadError is not null)
+    {
+        <div class="mock-banner" role="status">
+            <span>@_loadError</span>
+            @if (Connection.BaseAddress is null)
+            {
+                <button type="button" class="export-btn" @onclick="GoToLogin">Go to Login</button>
+            }
+            else
+            {
+                <button type="button" class="export-btn" @onclick="LoadTasksAsync">Retry</button>
+            }
+        </div>
+    }
 
     <section class="header">
         <h1>Tasks</h1>
@@ -24,7 +37,6 @@
                 <div class="stat-body">
                     <div class="label">@stat.Label</div>
                     <div class="value">@stat.Value</div>
-                    <div class="trend @(stat.Up ? "up" : "down")">@(stat.Up ? "↗" : "↘") @stat.Trend</div>
                 </div>
             </div>
         }
@@ -44,22 +56,16 @@
                         </div>
                         <select class="filter-select" @bind="_statusFilter" @bind:after="ResetPage">
                             <option>All Status</option>
-                            <option>Completed</option>
-                            <option>In Progress</option>
-                            <option>Pending</option>
-                        </select>
-                        <select class="filter-select" @bind="_priorityFilter" @bind:after="ResetPage">
-                            <option>All Priority</option>
-                            <option>High</option>
-                            <option>Medium</option>
-                            <option>Low</option>
-                        </select>
-                        <select class="filter-select" @bind="_assigneeFilter" @bind:after="ResetPage">
-                            <option>All Assignees</option>
-                            @foreach (var a in Assignees)
+                            @foreach (var status in Statuses)
                             {
-                                <option>@a</option>
+                                <option>@status</option>
                             }
+                        </select>
+                        <select class="filter-select" disabled title="TeamServer does not provide task priority">
+                            <option>All Priority</option>
+                        </select>
+                        <select class="filter-select" disabled title="TeamServer does not provide task assignees">
+                            <option>All Assignees</option>
                         </select>
                         <button type="button" class="export-btn" @onclick="ExportTasks">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
@@ -72,17 +78,25 @@
                     <thead>
                         <tr>
                             <th>Task Name</th>
-                            <th>Client</th>
+                            <th>Agent</th>
                             <th>Campaign</th>
                             <th>Priority</th>
                             <th>Status</th>
                             <th>Assignee</th>
-                            <th>Due Date</th>
+                            <th>Timestamp</th>
                             <th class="progress-col">Progress</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (!PageItems.Any())
+                        @if (_isLoading)
+                        {
+                            <tr><td colspan="8" class="empty-row">Loading task records...</td></tr>
+                        }
+                        else if (_loadError is not null)
+                        {
+                            <tr><td colspan="8" class="empty-row">Task records could not be loaded.</td></tr>
+                        }
+                        else if (!PageItems.Any())
                         {
                             <tr><td colspan="8" class="empty-row">No tasks match your filters.</td></tr>
                         }
@@ -101,13 +115,11 @@
                                     @row.Status
                                 </td>
                                 <td>@row.Assignee</td>
-                                <td>@row.DueDate</td>
+                                <td>@row.Timestamp.ToLocalTime().ToString("g")</td>
                                 <td class="progress-col">
-                                    <div class="progress-cell">
-                                        <div class="progress-track">
-                                            <div class="progress-fill fill-@StatusColor(row.Status)" style="width:@(row.Progress)%"></div>
-                                        </div>
-                                        <span class="progress-pct">@(row.Progress)%</span>
+                                    <div class="progress-cell" title="TeamServer does not provide task progress">
+                                        <div class="progress-track"></div>
+                                        <span class="progress-pct">—</span>
                                     </div>
                                 </td>
                             </tr>
@@ -133,6 +145,10 @@
                 <h2>Upcoming Tasks</h2>
                 <table class="upcoming-table">
                     <tbody>
+                        @if (_upcoming.Count == 0)
+                        {
+                            <tr><td colspan="7" class="empty-row">TeamServer does not provide due dates or upcoming-task data.</td></tr>
+                        }
                         @foreach (var u in _upcoming)
                         {
                             <tr>
@@ -159,6 +175,36 @@
 
         <div class="col-side">
 
+            <section class="panel-detail t-card">
+                <div class="panel-head">
+                    <h2>Task Detail</h2>
+                </div>
+                <p class="detail-hint">Look up a task's command payload by its ID (the task list does not include IDs yet).</p>
+                <div class="detail-lookup">
+                    <input type="number" min="1" class="modal-input" placeholder="Task ID" @bind="_detailIdInput" @bind:event="oninput"
+                           @onkeydown="@(async e => { if (e.Key == "Enter") await LookupTaskDetailAsync(); })" />
+                    <button type="button" class="export-btn" disabled="@_detailLoading" @onclick="LookupTaskDetailAsync">
+                        @(_detailLoading ? "Loading…" : "Look up")
+                    </button>
+                </div>
+
+                @if (_detailError is not null)
+                {
+                    <p class="detail-error" role="alert">@_detailError</p>
+                }
+                else if (_detail is not null)
+                {
+                    <dl class="detail-fields">
+                        <div><dt>Task ID</dt><dd>@_detail.taskID</dd></div>
+                        <div><dt>Agent</dt><dd>Agent @_detail.agentID</dd></div>
+                        <div><dt>Command Type</dt><dd>@_detail.commandType</dd></div>
+                        <div><dt>Timestamp</dt><dd>@_detail.timestamp.ToLocalTime().ToString("g")</dd></div>
+                    </dl>
+                    <div class="detail-command-label">Command payload</div>
+                    <pre class="detail-command">@FormatCommand(_detail.command)</pre>
+                }
+            </section>
+
             <section class="panel-donut t-card">
                 <div class="panel-head">
                     <h2>Tasks by Priority</h2>
@@ -167,19 +213,15 @@
                     <div class="donut">
                         <div class="donut-ring" style="background: conic-gradient(@Gradient(BuildPriorityBreakdown()));"></div>
                         <div class="donut-center">
-                            <span class="donut-num">@_tasks.Count</span>
-                            <span class="donut-label">Total</span>
+                            <span class="donut-num">—</span>
+                            <span class="donut-label">Unavailable</span>
                         </div>
                     </div>
                     <ul class="donut-legend">
-                        @foreach (var s in BuildPriorityBreakdown())
-                        {
-                            <li>
-                                <span class="legend-dot status-@s.Color"></span>
-                                <span class="legend-label">@s.Name</span>
-                                <span class="legend-value">@s.Count (@s.Percent%)</span>
-                            </li>
-                        }
+                        <li>
+                            <span class="legend-dot status-gray"></span>
+                            <span class="legend-label">Priority data unavailable</span>
+                        </li>
                     </ul>
                 </div>
             </section>
@@ -216,7 +258,7 @@
                 <div class="actions-grid">
                     @foreach (var a in Actions)
                     {
-                        <button type="button" class="action-btn" @onclick="a.OnClick">
+                        <button type="button" class="action-btn" disabled="@(a.Label != "View All Tasks")" title="TeamServer does not support this action from the Tasks page." @onclick="a.OnClick">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 @((MarkupString)a.Icon)
                             </svg>

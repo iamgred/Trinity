@@ -29,7 +29,6 @@ namespace TeamServer
             var builder = WebApplication.CreateBuilder(args);
 
             // Services 
-            /// Scoped
             builder.Services.AddScoped<ListenerService>();
             builder.Services.AddScoped<CommandService>();
             builder.Services.AddScoped<PayloadService>();
@@ -50,13 +49,15 @@ namespace TeamServer
             // Validators
             builder.Services.AddValidatorsFromAssemblyContaining<OperatorValidator>();
 
-            /// Signletons
+            /// Singletons
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
             builder.Services.AddSingleton<CommandFactory>();
             builder.Services.AddSingleton<AgentFactory>();
             builder.Services.AddSingleton<TaskResultFactory>();
             builder.Services.AddSingleton<HttpListenerManager>();
+            builder.Services.AddSingleton<IHostFactory, HostFactory>();
+            builder.Services.AddSingleton<ITaskRequestFactory, TaskRequestFactory>();
 
             builder.Services.AddControllers(options =>
             {

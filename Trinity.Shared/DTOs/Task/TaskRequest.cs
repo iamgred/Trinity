@@ -10,6 +10,7 @@ namespace Trinity.Shared.DTOs.Task
     {
         public required int TaskID { get; set; }
         public required int TaskType { get; set; }
+        public required int TaskCode { get; set; }
         public required int Status { get; set; }
         public required JsonDocument Command { get; set; }
     }

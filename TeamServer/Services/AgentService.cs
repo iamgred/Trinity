@@ -1,9 +1,5 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Buffers;
-using System.Data;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using TeamServer.NotificationDispatchers;
@@ -12,18 +8,11 @@ using TeamServer.Services.Factories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Agent;
 using Trinity.Shared.DTOs.Checkin;
-using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums;
-using Trinity.Shared.Models;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
-using Trinity.Shared.Enums.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static Trinity.Shared.Constants.CheckinRequestOffsets;
 using static Trinity.Shared.Constants.SectionLayout;
-using TeamServer.Handlers.CheckinHandler;
-using Trinity.Shared.Interfaces;
-
-
 
 namespace TeamServer.Services
 {
@@ -38,13 +27,16 @@ namespace TeamServer.Services
         private readonly PayloadRepository _payloadRepo;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly ICheckinResponseHandler _responseHandler;
+        private readonly IHostFactory _hostFactory;
+        private readonly ITaskRequestFactory _taskRequestFactory;
 
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public AgentService(AgentRepository agentRepository, TaskRepository taskRepository, 
-            AgentFactory agentFactory, TaskResultRepository taskResultRepository, TaskResultFactory taskResultFactory, 
+        public AgentService(AgentRepository agentRepository, TaskRepository taskRepository,
+            AgentFactory agentFactory, TaskResultRepository taskResultRepository, TaskResultFactory taskResultFactory,
             HostRepository hostRepository, PayloadRepository payloadRepository, IHubContext<NotificationHub> hubContext,
-            ICheckinResponseHandler checkinResponseHandler)
+            ICheckinResponseHandler checkinResponseHandler, IHostFactory hostFactory,
+            ITaskRequestFactory taskRequestFactory)
         {
             _agentRepo = agentRepository;
             _agentFactory = agentFactory;
@@ -55,17 +47,23 @@ namespace TeamServer.Services
             _payloadRepo = payloadRepository;
             _hubContext = hubContext;
             _responseHandler = checkinResponseHandler;
+            _hostFactory = hostFactory;
+            _taskRequestFactory = taskRequestFactory;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        // Checkin 
+        /// <summary>
+        /// Processes an agent check-in using a base64-encoded blob and returns the result.
+        /// </summary>
+        /// <param name="blob">A base64-encoded string containing agent check-in data.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a Result with the formatted
+        /// check-in response.</returns>
         public async Task<Result<string>> Checkin(string blob)
         {
             // Decode base64
             var decodedBytes = Util.Base64Decode(blob);
             // Get the UUID
             var blobSpan = new ReadOnlyMemory<byte>(decodedBytes);
-
             var uuid = Encoding.UTF8.GetString(blobSpan.Slice(RequestStartIndex, UUIDOffset).Span);
             var response = blobSpan.Slice(36, blobSpan.Length - UUIDOffset);
 
@@ -77,18 +75,6 @@ namespace TeamServer.Services
 
             var request = await ProcessFullyEstablishedCheckin(agent.ID, response);
             return FormatRequest(uuid, request);
-        }
-
-        private string CreateBase64Blob(string uuid)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(uuid);
-            return System.Convert.ToBase64String(bytes);
-        }
-
-        private string FormatRequest(string uuid, string request)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(uuid + request);
-            return Convert.ToBase64String(bytes);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -107,19 +93,7 @@ namespace TeamServer.Services
             await _agentRepo.CreateAgentAsync(agent);
             await _agentRepo.CommitAsync();
 
-            var host = new Trinity.Shared.Models.Host
-            {
-                AgentID = agent.ID,
-                CPUCount = data!.CPUCount,
-                DiskSize = data.DiskSize,
-                FreeDisk = data.FreeDisk,
-                OS = data.OS,
-                HostName = data.user,
-                MACAddress = data.macAddress,
-                Motherboard = data.motherboard,
-                RAM = data.RAM
-            };
-
+            var host = _hostFactory.CreateHost(agent.ID, ref data!);
             await _hostRepo.AddHostAsync(host);
             await _hostRepo.CommitAsync();
 
@@ -128,7 +102,7 @@ namespace TeamServer.Services
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// Stores task responses from the agent and retrieves queued tasks for dispatch,
+        /// Stores task responses from the agent and retrieves queued task for dispatch.
         /// </summary>
         /// <param name="agentID"></param>
         /// <param name="requestBody"></param>
@@ -147,24 +121,28 @@ namespace TeamServer.Services
             }
 
             var task = await _taskRepo.GetTaskFromQueueAsync(agentID);
-            var request = String.Empty;
-
-            if (task != null)
-            {
-                request = JsonSerializer.Serialize(new TaskRequest { TaskID = task.ID, TaskType = (int) task.CommandType, Command = task.Command, Status = (int) Status.DISPATCHED });
-
-            }
-
-            return request;
+            return _taskRequestFactory.Create(task);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        // GetAgents => filters : campaign
         public async Task<Result<List<AgentResponse>>> GetAgentsAsync()
         {
             return await _agentRepo.GetAgentsAsync();
         }
 
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        private string CreateBase64Blob(string uuid)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(uuid);
+            return System.Convert.ToBase64String(bytes);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        private string FormatRequest(string uuid, string request)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(uuid + request);
+            return Convert.ToBase64String(bytes);
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

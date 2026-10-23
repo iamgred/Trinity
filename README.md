@@ -47,6 +47,17 @@ If the **debug** override was used, to remove both TeamServer containers run:
 `docker compose -f docker-compose.yml -f docker-compose.debug.yml down`  
 Add `-v` to either command to delete the database volume; add `--rmi all` to also remove project images.
 
+# Agent C++ VS Code Development Setup 
+1. Install VS Code extensions
+    - `ms-vscode.cmake-tools` 
+    - `llvm-vs-code-extensions.vscode-clangd`
+    - Possibly Microsoft's C/C++ Extension Pack (which should include `ms-vscode.cmake-tools`)
+2. Compile Agent to generate the `Agent/out/build/mingw-x86_64/compile_commands.json` (required by clangd):
+    ```bash
+    (cd Agent; [ ! -d out ] || rm -rfv out && cmake --preset mingw-x86_64 && cmake --build out/build/mingw-x86_64)
+    ```
+
+
 # Video Links Used In Presentation for Code Walkthrough
 - Presentation: https://www.youtube.com/watch?v=M2PHoHGGW1Y
 - System Demo: https://www.youtube.com/watch?v=vw6UiIC5VX4

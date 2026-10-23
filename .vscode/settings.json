@@ -24,7 +24,7 @@
 
     // clangd (provides clang-tidy diagnostics in the editor)
     "clangd.arguments": [
-        "--compile-commands-dir=${workspaceFolder}/Agent/build",
+        "--compile-commands-dir=${workspaceFolder}/Agent/out/build/mingw-x86_64",
         "--enable-config",
         "--header-insertion=never",
         "--clang-tidy"

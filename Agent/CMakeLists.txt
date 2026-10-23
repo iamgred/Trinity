@@ -71,7 +71,7 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)
 endif()
 
-option(HOST "TeamServer host" "")
+option(HOST "Listener host" "")
 option(PAYLOAD_UUID "Payload UUID" "")
 if(DEFINED HOST)
     target_compile_definitions(Agent PRIVATE HOST="${HOST}")

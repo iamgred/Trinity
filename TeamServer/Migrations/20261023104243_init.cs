@@ -18,6 +18,7 @@ namespace TeamServer.Migrations
         {
             migrationBuilder.AlterDatabase()
                 .Annotation("Npgsql:Enum:status", "dispatched,error,more_to_follow,no_flag,no_more_to_follow,queued,running,success")
+                .Annotation("Npgsql:Enum:taskCode", "cancel_download,download,kill_process,no_code,run,run_as,run_u,sleep,spawn_to,update_hosts")
                 .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,kill,nop,object_file,powershell,process,set,shell,upload");
 
             migrationBuilder.CreateTable(
@@ -176,6 +177,7 @@ namespace TeamServer.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     AgentID = table.Column<int>(type: "integer", nullable: false),
                     CommandType = table.Column<TaskType>(type: "\"taskType\"", nullable: false),
+                    Code = table.Column<TaskCode>(type: "\"taskCode\"", nullable: false),
                     Command = table.Column<JsonDocument>(type: "jsonb", nullable: false),
                     Status = table.Column<Status>(type: "status", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),

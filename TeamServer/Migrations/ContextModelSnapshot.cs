@@ -23,6 +23,7 @@ namespace TeamServer.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status", new[] { "dispatched", "error", "more_to_follow", "no_flag", "no_more_to_follow", "queued", "running", "success" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskCode", new[] { "cancel_download", "download", "kill_process", "no_code", "run", "run_as", "run_u", "sleep", "spawn_to", "update_hosts" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskType", new[] { "download", "escalate", "get_uid", "intial_checkin", "kill", "nop", "object_file", "powershell", "process", "set", "shell", "upload" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
@@ -375,6 +376,9 @@ namespace TeamServer.Migrations
 
                     b.Property<int>("AgentID")
                         .HasColumnType("integer");
+
+                    b.Property<TaskCode>("Code")
+                        .HasColumnType("\"taskCode\"");
 
                     b.Property<JsonDocument>("Command")
                         .IsRequired()

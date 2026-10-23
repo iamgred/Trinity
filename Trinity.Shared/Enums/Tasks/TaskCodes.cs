@@ -5,68 +5,19 @@ using System.Text;
 
 namespace Trinity.Shared.Enums.Tasks
 {
-    public enum NopTaskCodes : uint
+    public enum TaskCode : int
     {
-        NO_CODE = 0
+        NO_CODE                 = 0,
+        SLEEP                   = 1,
+        SPAWN_TO                = 2,
+        UPDATE_HOSTS            = 3,
+        RUN                     = 4,
+        RUN_AS                  = 5,
+        RUN_U                   = 6,
+        KILL_PROCESS            = 7,
+        DOWNLOAD                = 8,
+        CANCEL_DOWNLOAD         = 9
     }
 
-    public enum IntialCheckinTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
-
-    public enum KillTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
-
-    public enum PowerShellTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
-
-    public enum ProcessTaskCodes : uint
-    {
-        RUN = 0,
-        RUN_AS = 1,
-        RUN_UNDER = 2,
-        KILL_PROCESS = 3
-    }
-
-    public enum DownloadTaskCodes : uint
-    {
-        DOWNLOAD = 0,
-        CANCEL_DOWNLOAD = 1
-    }
-
-    public enum UploadTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
-
-    public enum ShellTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
-
-    public enum EscalateTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
-
-    public enum NetAsmTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
-
-    public enum ObjectFileTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
-
-    public enum GetUIDTaskCodes : uint
-    {
-        NO_CODE = 0
-    }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -45,7 +45,7 @@ namespace TeamServer.Services
         /// <param name="type">Type of command used to create the task.</param>
         /// <param name="agentID">Identifier of the agent that will own the queued task.</param>
         /// <returns>A Result indicating success, or an error result when the specified agent is not found.</returns>
-        public async Task<Result> QueueTaskAsync(ICommand command, TaskType type, int agentID)
+        public async Task<Result> QueueTaskAsync(int agentID, TaskType type, TaskCode code, ICommand command)
         {
             var agent = await _agentRepo.GetAgentByIDAsync(agentID);
             if (agent == null)
@@ -53,8 +53,8 @@ namespace TeamServer.Services
                 return AgentError.NotFound(agentID);
             }
 
-            var statusID = await _statusRepo.GetTaskStatusID("Queued");
-            var task = _commandFactory.Create(agentID, type, command, statusID);
+
+            var task = _commandFactory.Create(agentID, type, code, command);
             await _commandRepo.QueueAsync(task);
             await _commandRepo.CommitAsync();
 

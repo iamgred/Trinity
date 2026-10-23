@@ -15,6 +15,7 @@ namespace Trinity.Shared.Models
         public int ID { get; set; }
         public required int AgentID { get; set; }
         public required TaskType CommandType { get; set; }
+        public required TaskCode Code { get; set; }
         public required JsonDocument Command { get; set; }
         public required Status Status { get; set; }
         public required DateTime CreatedAt { get; set; }

@@ -71,7 +71,8 @@ namespace TeamServer
             builder.Services.AddDbContextPool<Context>(opt => opt.UseNpgsql(
                 builder.Configuration.GetConnectionString("Postgres"),
                 o => o.MapEnum<Status>("status")
-                      .MapEnum<TaskType>("taskType")));
+                      .MapEnum<TaskType>("taskType")
+                      .MapEnum<TaskCode>("taskCode")));
 
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();

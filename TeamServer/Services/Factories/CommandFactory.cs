@@ -16,9 +16,9 @@ namespace TeamServer.Services.Factories
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public Trinity.Shared.Models.Task Create(int agentID, TaskType type, ICommand command, int status)
+        public Trinity.Shared.Models.Task Create(int agentID, TaskType type, TaskCode code, ICommand command)
         {
-            return new Trinity.Shared.Models.Task { AgentID = agentID, Status = Status.QUEUED, Command = JsonDocument.Parse(JsonSerializer.Serialize(command, command.GetType())), CommandType = type, CreatedAt = DateTime.UtcNow };
+            return new Trinity.Shared.Models.Task { AgentID = agentID, Status = Status.QUEUED, Command = JsonDocument.Parse(JsonSerializer.Serialize(command, command.GetType())), CommandType = type, Code = code, CreatedAt = DateTime.UtcNow };
         }
     }
 }

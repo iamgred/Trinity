@@ -9,7 +9,7 @@ namespace TeamServer.Validators.Commands
         public SetSleepDTOValidator()
         {
             RuleFor(x => x.Sleep).NotEmpty();
-            RuleFor(x => x.Jitter).NotEmpty().InclusiveBetween(1, 100);
+            RuleFor(x => x.Jitter).NotEmpty();
         }
     }
 }

@@ -14,7 +14,7 @@ using Trinity.Shared.Enums.Tasks;
 namespace TeamServer.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20261023104243_init")]
+    [Migration("20261025211917_init")]
     partial class init
     {
         /// <inheritdoc />

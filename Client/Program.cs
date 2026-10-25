@@ -50,6 +50,13 @@ namespace Client
 
             builder.Services.AddScoped<ICommandInterpreter, CommandInterpreter>();
             builder.Services.AddScoped<PowerShellStrategy>();
+            builder.Services.AddScoped<ShellStrategy>();
+            builder.Services.AddScoped<RunAsStrategy>();
+            builder.Services.AddScoped<RunStrategy>();
+            builder.Services.AddScoped<RunUStrategy>();
+            builder.Services.AddScoped<KillProcessStrategy>();
+            builder.Services.AddScoped<EscalateStrategy>();
+            builder.Services.AddScoped<DotNetAsmStrategy>();
             builder.Services.AddRefitClient<ICommandAPI>()
                 .ConfigureHttpClient(client =>
                 {

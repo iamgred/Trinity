@@ -13,6 +13,10 @@ namespace Client.Interpreter.Strategies
         private readonly ICommandAPI _client;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Initializes a new instance of the PowerShellStrategy class using the specified command API client.
+        /// </summary>
+        /// <param name="client">The command API client used for executing commands.</param>
         public PowerShellStrategy(ICommandAPI client)
         {
             _client = client;

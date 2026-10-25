@@ -57,6 +57,14 @@ namespace Client
             builder.Services.AddScoped<KillProcessStrategy>();
             builder.Services.AddScoped<EscalateStrategy>();
             builder.Services.AddScoped<DotNetAsmStrategy>();
+            builder.Services.AddScoped<DownloadStrategy>();
+            builder.Services.AddScoped<CancelDownloadStrategy>();
+            builder.Services.AddScoped<UploadStrategy>();
+            builder.Services.AddScoped<SpawnToStrategy>();
+            builder.Services.AddScoped<UpdateHostsStrategy>();
+            builder.Services.AddScoped<UpdateHostsStrategy>();
+            builder.Services.AddScoped<KillStrategy>();
+            builder.Services.AddScoped<GetUIDStrategy>();
             builder.Services.AddRefitClient<ICommandAPI>()
                 .ConfigureHttpClient(client =>
                 {

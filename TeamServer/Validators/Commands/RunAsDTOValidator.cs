@@ -8,7 +8,7 @@ namespace TeamServer.Validators.Commands
     {
         public RunAsDTOValidator()
         {
-            RuleFor(x => x.User).NotEmpty();
+            RuleFor(x => x.DomainUser).NotEmpty();
         }
     }
 }

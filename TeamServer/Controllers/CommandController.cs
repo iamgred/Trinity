@@ -1,12 +1,8 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Controllers;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
-using Trinity.Shared.Enums;
 using Trinity.Shared.Enums.Tasks;
-using Trinity.Shared.Interfaces;
-using Trinity.Shared.Models;
 //using Trinity.Shared.DTOs.Commands;
 namespace TeamServer.Controllers
 {
@@ -81,7 +77,7 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("{agentID}/spawn/killprocess")]
+        [HttpPost("{agentID}/execute/killprocess")]
         public async Task<IActionResult> QueueKillCommand([FromRoute] int agentID, KillProcessDTO killProcessDTO)
         {
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.PROCESS, TaskCode.KILL_PROCESS, killProcessDTO);
@@ -89,7 +85,7 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("{agentID}/spawn/escalate")]
+        [HttpPost("{agentID}/execute/escalate")]
         public async Task<IActionResult> QueueEscalateCommand([FromRoute] int agentID, EscalateDTO escalateDTO)
         {
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.PROCESS, TaskCode.NO_CODE, escalateDTO);
@@ -97,7 +93,7 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("{agentID}/spawn/dotnetassembly")]
+        [HttpPost("{agentID}/execute/dotnetassembly")]
         public async Task<IActionResult> QueueDotNetAsmCommand([FromRoute] int agentID, DotNetAsmDTO dotNetAsmDTO)
         {
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.NET_ASM, TaskCode.NO_CODE, dotNetAsmDTO);
@@ -121,7 +117,7 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("{agentID}/execute/cancelFileDownload")]
+        [HttpPost("{agentID}/execute/cancelfiledownload")]
         public async Task<IActionResult> QueueCancelFileDownloadCommand([FromRoute] int agentID, CancelDownloadDTO cancelDownloadDTO)
         {
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.PROCESS, TaskCode.NO_CODE, cancelDownloadDTO);
@@ -137,7 +133,7 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("{agentID}/execute/spawnto")]
+        [HttpPost("{agentID}/set/spawnto")]
         public async Task<IActionResult> QueueSpawnToCommand([FromRoute] int agentID, SpawnToDTO spawnToDTO)
         {
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.PROCESS, TaskCode.SPAWN_TO, spawnToDTO);
@@ -145,7 +141,7 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("{agentID}/execute/updatehosts")]
+        [HttpPost("{agentID}/set/updatehosts")]
         public async Task<IActionResult> QueueUpdateHostsCommand([FromRoute] int agentID, UpdateHostsDTO updateHostsDTO)
         {
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.SET, TaskCode.UPDATE_HOSTS, updateHostsDTO);
@@ -153,7 +149,7 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("{agentID}/execute/setsleep")]
+        [HttpPost("{agentID}/set/sleep")]
         public async Task<IActionResult> QueueSetSleepCommand([FromRoute] int agentID, SetSleepDTO setSleepDTO)
         {
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.PROCESS, TaskCode.SLEEP, setSleepDTO);

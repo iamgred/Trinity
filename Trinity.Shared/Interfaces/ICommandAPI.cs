@@ -6,7 +6,7 @@ namespace Trinity.Shared.Interfaces
     public interface ICommandAPI
     {
         [Get("/api/v1/commands/{agentID}/spawn/powershell")]
-        Task<string> QueuePowerShellCommandAsync(int agentID, [Body] PowerShellDTO dto);
+        Task<CommandCreationResponse> QueuePowerShellCommandAsync(int agentID, [Body] PowerShellDTO dto);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

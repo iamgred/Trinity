@@ -8,7 +8,7 @@ namespace Client.Interpreter.Strategies
 {
     public class EscalateStrategy : ICommandStrategy
     {
-        public readonly string Keyword = "kill";
+        public readonly string Keyword = "escalate";
         private readonly ICommandAPI _client;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

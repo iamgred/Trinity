@@ -40,7 +40,7 @@ namespace Client.Interpreter.Strategies
             {
                 if (!Uri.TryCreate(host, UriKind.Absolute, out var uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
                 {
-                    // return invalid host error 
+                    return CommandError.InvalidHost(Keyword, host);
                 }
             }
 

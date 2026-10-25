@@ -36,12 +36,11 @@ namespace Client.Interpreter.Strategies
                 return CommandError.TooFewArgs(Keyword);
             }
 
-            var cmdMatch = Regex.Match(command, @"(\S*)");
-            var argMatch = Regex.Match(command, @"^(\S*)(\s.*\S)");
+            var match = Regex.Match(command, @"^(\S*)(\s.*\S)?");
             var dto = new PowerShellDTO
             {
-                Commandlet = cmdMatch.Groups[1].Value,
-                Arguements = argMatch.Groups.Count == 3 ? argMatch.Groups[2].Value.Trim() : string.Empty
+                Commandlet = match.Groups[1].Value,
+                Arguements = match.Groups[2].Value.Trim()
             };
 
             return await _client.QueuePowerShellCommandAsync(agentID, dto);

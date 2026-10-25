@@ -8,7 +8,7 @@ namespace Client.Interpreter.Strategies
 {
     public class CancelDownloadStrategy : ICommandStrategy
     {
-        public readonly string Keyword = "download";
+        public readonly string Keyword = "cancel";
         private readonly ICommandAPI _client;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

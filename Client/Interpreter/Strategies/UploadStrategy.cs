@@ -38,8 +38,7 @@ namespace Client.Interpreter.Strategies
             var path = command.Split();
             if (path.Length > 1)
             {
-                // Too many arguements
-                return CommandError.TooFewArgs(Keyword);
+                return CommandError.TooManyArgs(Keyword);
             }
 
             var dto = new UploadDTO

@@ -47,9 +47,8 @@ namespace Trinity.Shared.Interfaces
         [Post("/api/v1/commands/{agentID}/execute/kill")]
         Task<CommandCreationResponse> QueueKillAgentCommandAsync(int agentID);
 
-        [Post("/api/v1/commands/{agentID}/execute/getUUID")]
+        [Post("/api/v1/commands/{agentID}/execute/getuid")]
         Task<CommandCreationResponse> QueueGetUIDCommandAsync(int agentID);
-
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

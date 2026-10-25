@@ -38,10 +38,10 @@ namespace Client.Interpreter.Strategies
             var args = command.Split();
             if (args.Length > 2)
             {
-                // return too many args error
+                return CommandError.TooManyArgs(Keyword);
             }
 
-            if (int.TryParse(args[0], out var sleep) && int.TryParse(args[1], out var jitter))
+            if (uint.TryParse(args[0], out var sleep) && uint.TryParse(args[1], out var jitter))
             {
                 var dto = new SetSleepDTO
                 {
@@ -51,7 +51,7 @@ namespace Client.Interpreter.Strategies
                 return await _client.QueueSetSleepCommandAsync(agentID, dto);
             }
 
-            return CommandError.TooFewArgs(Keyword); // Invalid arguement type must be integer 
+            return CommandError.TooManyArgs(Keyword);
         }
     }
 }

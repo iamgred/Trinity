@@ -9,7 +9,7 @@ namespace Client.Interpreter.Strategies
 {
     public class RunUStrategy : ICommandStrategy
     {
-        public readonly string Keyword = "runU";
+        public readonly string Keyword = "runu";
         private readonly ICommandAPI _client;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

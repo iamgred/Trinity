@@ -2,6 +2,7 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h" 
+#include "Task.h"
 
 #define SUCCESSFUL "Successful"
 #define FAILURE "Failure"
@@ -50,21 +51,21 @@ bool TaskQueueManager::HasPendingTask()
 
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-void TaskQueueManager::StoreTaskResult(Response response)
+void TaskQueueManager::StoreTaskResult(Response& response)
 {
-	taskResults.push(response);
+	std::string json = std::visit([](const auto& responseEnvelope) {
+		return responseEnvelope.StructToJson();
+		}, response);
+
+	taskResults.push(json);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 std::string TaskQueueManager::GetTaskResult()
 {
-	Response response = taskResults.front();
+	std::string response = taskResults.front();
 	taskResults.pop();
-	std::string jsonOutput = std::visit([](const auto& res){
-		return res.StructToJson();
-		}, response);
-
-	return jsonOutput;
+	return response;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

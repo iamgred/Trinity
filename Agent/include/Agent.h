@@ -1,3 +1,4 @@
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 #pragma once
 #include <string>
 #include "CommManager.h"
@@ -25,10 +26,11 @@ public:
 
 	// Agent base commands
 	void Exit();
-	std::string GetUID();
-	Response ExecutePowerShell(const TaskRequest<CommandPowershell>& psRequest);
+	Response GetUID(const int& taskID, const bool& isTrue);
+	Response ExecutePowerShell(const int& taskID, const CommandPowershell& psRequest);
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;
 	std::string CaptureCommandOutput(const std::string& cmd);
 };
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

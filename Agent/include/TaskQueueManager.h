@@ -14,12 +14,12 @@ public:
 	TaskQueueManager();
 	bool HasPendingResult();
 	bool HasPendingTask();
-	void StoreTaskResult(Response);
+	void StoreTaskResult(Response& response);
 	std::string GetTaskResult();
 	void QueueTask(std::string);
 	Request GetNextTask();
 	Request ParseTaskRequest(const std::string& rawJson);
 private:
-	std::queue<Response> taskResults;
+	std::queue<std::string> taskResults;
 	std::queue<std::string> taskQueue;
 };

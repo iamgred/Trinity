@@ -34,7 +34,7 @@
 
 //  Statuses 
 #define NO_FLAG 			0
-#define ERROR				1
+#define TASK_ERROR			1
 #define SUCCESS				2
 #define DISPATCHED			3
 #define QUEUED				4

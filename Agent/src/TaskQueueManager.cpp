@@ -1,49 +1,33 @@
 #include "TaskQueueManager.h"
-#include "CheckinModels.h"
-#include <string>
-#include <queue>
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h" 
 
 #define SUCCESSFUL "Successful"
 #define FAILURE "Failure"
 
-CheckinResponse ParseCommand(const std::string& rawJson)
+Request TaskQueueManager::ParseTaskRequest(const std::string& rawJson)
 {
-	CheckinResponse response;
-	std::string typeVal;
-	rapidjson::Document doc;
 
-	if (doc.Parse(rawJson.c_str()).HasParseError() || !doc.IsObject())
+	rapidjson::Document doc = {};
+	doc.Parse(rawJson.c_str());
+
+	int taskID = doc["taskID"].GetInt();
+	int type = doc["type"].GetInt();
+	int code = doc["code"].GetInt();
+	int status = doc["status"].GetInt();
+	const rapidjson::Value& node = doc["data"];
+
+	switch (type)
 	{
-		std::cerr << "[x] Error: Failed to parse raw JSON string...\n";
-		return response;
-	}
-
-	if (doc.HasMember("commandType") && doc["commandType"].IsInt())
-	{
-		response.type = doc["commandType"].GetInt();
-	}
-	else
-	{
-		std::cerr << "[x] Error: Type node is missing...\n";
-		return response;
-	}
-
-	if (doc.HasMember("ID") && doc["ID"].IsInt()) response.id = doc["ID"].GetInt();
-	if (doc.HasMember("timestamp") && doc["timestamp"].IsString()) response.timestamp = doc["timestamp"].GetString();
-
-	if (doc.HasMember("command") && doc["command"].IsObject())
-	{
-		const rapidjson::Value& node = doc["command"];
-
-		switch (response.type)
-		{
-		case 1:
-			if (node.HasMember("Commandlet") && node["Commandlet"].IsString()) response.powerShellCommand.commandlet = node["Commandlet"].GetString();
-			if (node.HasMember("Arguements") && node["Arguements"].IsString()) response.powerShellCommand.arguements = node["Arguements"].GetString();
+		case POWERSHELL:
+			auto cmd = node["Commandlet"].GetString();
+			auto arg = node["Arguements"].GetString();
+			return CreateTaskRequest<CommandPowershell>(taskID, type, code, status, CommandPowershell { cmd, arg });
 			break;
-		}
 	}
-	return response;
+	TaskRequest<bool> test;
+	return test;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -64,32 +48,23 @@ bool TaskQueueManager::HasPendingTask()
 	return taskQueue.size() > 0;
 }
 
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string GetTaskStatusMessage(bool isSuccessful)
-{
-	switch (isSuccessful)
-	{
-	case true:
-		return SUCCESSFUL;
-		break;
-	default:
-		return FAILURE;
-	}
-}
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-void TaskQueueManager::StoreTaskResult(int taskID, bool isSuccessful, std::string output)
+void TaskQueueManager::StoreTaskResult(Response response)
 {
-	ResultRequest result = { taskID, GetTaskStatusMessage(isSuccessful), output};
-	taskResults.push(result);
+	taskResults.push(response);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 std::string TaskQueueManager::GetTaskResult()
 {
-	std::string result = taskResults.front().StructToJson();
+	Response response = taskResults.front();
 	taskResults.pop();
-	return result;
+	std::string jsonOutput = std::visit([](const auto& res){
+		return res.StructToJson();
+		}, response);
+
+	return jsonOutput;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -100,9 +75,9 @@ void TaskQueueManager::QueueTask(std::string blob)
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-CheckinResponse TaskQueueManager::GetNextTask()
+Request TaskQueueManager::GetNextTask()
 {
 	std::string taskBlob = taskQueue.front();
 	taskQueue.pop();
-	return ParseCommand(taskBlob);
+	return ParseTaskRequest(taskBlob);
 }

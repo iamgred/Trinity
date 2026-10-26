@@ -24,6 +24,8 @@ add_executable (
   "include/Agent.h"
   "src/TaskQueueManager.cpp"
   "include/TaskQueueManager.h"
+  "include/Task.h"
+  "include/Command.h"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)

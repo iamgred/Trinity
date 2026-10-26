@@ -26,7 +26,7 @@ public:
 	// Agent base commands
 	void Exit();
 	std::string GetUID();
-	std::string ExecutePowerShell(const std::string& command);
+	Response ExecutePowerShell(const TaskRequest<CommandPowershell>& psRequest);
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;

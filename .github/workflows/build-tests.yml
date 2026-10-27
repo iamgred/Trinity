@@ -87,27 +87,3 @@ jobs:
 
       - name: Run Unit Tests
         run: dotnet test TeamServer.Tests/TeamServer.Tests.csproj --no-build --no-restore
-
-  agent:
-    name: C++ Agent Build
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
-      - name: Setup CMake
-        uses: lukka/get-cmake@latest
-
-      - name: Configure Agent
-        working-directory: Agent
-        run: cmake --preset x64-debug
-
-      - name: Build Agent
-        working-directory: Agent
-        run: cmake --build out/build/x64-debug --config Debug

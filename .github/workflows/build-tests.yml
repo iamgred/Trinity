@@ -1,0 +1,45 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  dotnet:
+    name: .NET Build and Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore .NET projects
+        run: |
+          dotnet restore Trinity.Shared/Trinity.Shared.csproj
+          dotnet restore TeamServer/TeamServer.csproj
+          dotnet restore Client/Client.csproj
+          dotnet restore TeamServer.Tests/TeamServer.Tests.csproj
+
+      - name: Build Trinity.Shared
+        run: dotnet build Trinity.Shared/Trinity.Shared.csproj --no-restore
+
+      - name: Build TeamServer
+        run: dotnet build TeamServer/TeamServer.csproj --no-restore
+
+      - name: Build Client
+        run: dotnet build Client/Client.csproj --no-restore
+
+      - name: Build TeamServer.Tests
+        run: dotnet build TeamServer.Tests/TeamServer.Tests.csproj --no-restore
+
+      - name: Run Unit Tests
+        run: dotnet test TeamServer.Tests/TeamServer.Tests.csproj --no-build --no-restore

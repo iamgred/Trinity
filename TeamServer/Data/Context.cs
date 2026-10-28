@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
 using System.Text.Json;
-using Trinity.Shared.Errors;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
@@ -22,7 +21,6 @@ namespace TeamServer.Data
         public DbSet<Operator> Operators { get; set; }
         public DbSet<CampaignBridge> CampaignBridges { get; set; }
         public DbSet<Trinity.Shared.Models.TaskStatus> TaskStatus { get; set; }
-        public DbSet<Trinity.Shared.Models.Error> Errors { get; set; }
         public Context()
         {
         }

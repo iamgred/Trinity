@@ -1,80 +1,92 @@
-﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using Client.Interpreter.Strategies;
+﻿
+using System.Text.RegularExpressions;
 using Trinity.Shared.DTOs.Command;
-using Trinity.Shared.Errors;
-using Trinity.Shared.Interfaces;
-using Trinity.Shared.Results;
+//using Trinity.Shared.DTOs.Commands;
 
 namespace Client.Interpreter
 {
-    public class CommandInterpreter : ICommandInterpreter
-    {
-        private readonly Dictionary<string, Func<int, string?, Task<Result<CommandCreationResponse>>>> _strategyCache;
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Initializes a new instance of the CommandInterpreter class with the specified command strategies.
-        /// </summary>
-        /// <param name="psStrategy">The PowerShell command strategy.</param>
-        /// <param name="shellStrategy">The shell command strategy.</param>
-        /// <param name="runAsStrategy">The run-as command strategy.</param>
-        /// <param name="runStrategy">The run command strategy.</param>
-        /// <param name="runUStrategy">The run-u command strategy.</param>
-        /// <param name="killProcessStrategy">The kill process command strategy.</param>
-        /// <param name="escalateStrategy">The escalate command strategy.</param>
-        /// <param name="dotNetAsmStrategy">The .NET assembly command strategy.</param>
-        /// <param name="downloadStrategy">The download command strategy.</param>
-        /// <param name="cancelDownloadStrategy">The cancel download command strategy.</param>
-        /// <param name="uploadStrategy">The upload command strategy.</param>
-        /// <param name="spawnToStrategy">The spawn-to command strategy.</param>
-        /// <param name="updateHostsStrategy">The update hosts command strategy.</param>
-        /// <param name="killStrategy">The kill command strategy.</param>
-        /// <param name="getUIDStrategy">The get UID command strategy.</param>
-        public CommandInterpreter(PowerShellStrategy psStrategy, ShellStrategy shellStrategy, RunAsStrategy runAsStrategy,
-            RunStrategy runStrategy, RunUStrategy runUStrategy, KillProcessStrategy killProcessStrategy, EscalateStrategy escalateStrategy,
-            DotNetAsmStrategy dotNetAsmStrategy, DownloadStrategy downloadStrategy, CancelDownloadStrategy cancelDownloadStrategy,
-            UploadStrategy uploadStrategy, SpawnToStrategy spawnToStrategy, UpdateHostsStrategy updateHostsStrategy,
-            KillStrategy killStrategy, GetUIDStrategy getUIDStrategy)
+    // BASIC USSAGE 
+    /*
+     *       CommandStrategyInterpreter interpreter = new CommandStrategyInterpreter();
+            var commanddto = interpreter.ProcessRawInput("powershell test");
+            var test = interpreter.GetCommandEndpoint(commanddto);
+     */
+
+    // Have to create a strategy for each command 
+    // specify the keyword for instance shell
+    public class PowerShellDtoStrategy
+    {
+        public string Keyword => "powershell";
+        public PowerShellDTO Execute(string script)
         {
-            _strategyCache = new Dictionary<string, Func<int, string?, Task<Result<CommandCreationResponse>>>>(StringComparer.OrdinalIgnoreCase)
+            if (string.IsNullOrWhiteSpace(script))
             {
-                { psStrategy.Keyword, (agentID, command) => psStrategy.ProcessCommandAsync(agentID, command) },
-                { shellStrategy.Keyword, (agentID, command) => shellStrategy.ProcessCommandAsync(agentID, command) },
-                { runStrategy.Keyword, (agentID, command) => runAsStrategy.ProcessCommandAsync(agentID, command) },
-                { runStrategy.Keyword, (agentID, command) => runStrategy.ProcessCommandAsync(agentID, command) },
-                { runUStrategy.Keyword, (agentID, command) => runUStrategy.ProcessCommandAsync(agentID, command) },
-                { killProcessStrategy.Keyword, (agentID, command) => killProcessStrategy.ProcessCommandAsync(agentID, command) },
-                { escalateStrategy.Keyword, (agentID, command) => escalateStrategy.ProcessCommandAsync(agentID, command) },
-                { dotNetAsmStrategy.Keyword, (agentID, command) => dotNetAsmStrategy.ProcessCommandAsync(agentID, command) },
-                { downloadStrategy.Keyword, (agentID, command) => downloadStrategy.ProcessCommandAsync(agentID, command) },
-                { cancelDownloadStrategy.Keyword, (agentID, command) => cancelDownloadStrategy.ProcessCommandAsync(agentID, command) },
-                { uploadStrategy.Keyword, (agentID, command) => uploadStrategy.ProcessCommandAsync(agentID, command) },
-                { spawnToStrategy.Keyword, (agentID, command) => spawnToStrategy.ProcessCommandAsync(agentID, command) },
-                { updateHostsStrategy.Keyword, (agentID, command) => updateHostsStrategy.ProcessCommandAsync(agentID, command) },
-                { killStrategy.Keyword, (agentID, command) => killStrategy.ProcessCommandAsync(agentID, command) },
-                { getUIDStrategy.Keyword, (agentID, command) => getUIDStrategy.ProcessCommandAsync(agentID, command) }
+                throw new ArgumentException("Powershell script cannot be empty...");
+            }
+
+            string trimmed = script.Trim();
+            var match = Regex.Match(trimmed, @"^(?<cmd>[^\s]+)\s*(?<args>.*)$");
+
+            return new PowerShellDTO
+            {
+                Commandlet = match.Groups["cmd"].Value,
+                Arguements = string.IsNullOrWhiteSpace(match.Groups["args"].Value) ? null : match.Groups["args"].Value
+            };
+        }
+    }
+
+    public class CommandInterpreter
+    {
+        private readonly Dictionary<string, Func<string, object>> _strategyCache;
+
+        public CommandInterpreter()
+        {
+            var psStrategy = new PowerShellDtoStrategy();
+
+            _strategyCache = new Dictionary<string, Func<string, object>>(StringComparer.OrdinalIgnoreCase)
+            {
+                {psStrategy.Keyword, (payload) => psStrategy.Execute(payload)},
             };
         }
 
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Interprets a command for the specified agent and returns the result of command creation.
-        /// </summary>
-        /// <param name="agentID">The unique identifier of the agent.</param>
-        /// <param name="command">The command string to interpret.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a Result with the command
-        /// creation response.</returns>
-        public async Task<Result<CommandCreationResponse>> Interpret(int agentID, string command)
+        public object ProcessRawInput(string input)
         {
-            var tokens = command.Split(" ");
-
-            if (!_strategyCache.TryGetValue(tokens[0], out var strategy))
+            if (string.IsNullOrWhiteSpace(input))
             {
-                return CommandError.NotFound(command.Trim());
+                throw new ArgumentException("Command input cannot be null!");
             }
 
-            return await strategy(agentID, command[1..]);
+            string cleanedInput = input.Trim();
+            var parseMatch = Regex.Match(cleanedInput, @"^(?<keyword>[^\s]+)\s*(?<payload>.*)$");
+            if (!parseMatch.Success)
+            {
+                throw new FormatException("Invalid command...");
+            }
+
+            string strategyKeyword = parseMatch.Groups["keyword"].Value;
+            string command = parseMatch.Groups["payload"].Value;
+
+            if (!_strategyCache.TryGetValue(strategyKeyword, out var executeFunc))
+            {
+                throw new NotSupportedException("Invalid command...");
+            }
+
+            return executeFunc(command);
+        }
+
+        // Add the endpoints below, this is used in the HTTP client to make the request to the correct endpoint
+        // /api/v1/........
+        public string GetCommandEndpoint(object commandDTO)
+        {
+            switch (commandDTO)
+            {
+                case PowerShellDTO ps:
+                    return "endpoint";
+                default:
+                    throw new InvalidOperationException();
+            }
+
         }
     }
 }
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

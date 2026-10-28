@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeamServer.Data;
-using Trinity.Shared.Enums.Tasks;
 
 #nullable disable
 
@@ -22,9 +21,6 @@ namespace TeamServer.Migrations
                 .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status", new[] { "dispatched", "error", "more_to_follow", "no_flag", "no_more_to_follow", "queued", "running", "success" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskCode", new[] { "cancel_download", "download", "kill_process", "no_code", "run", "run_as", "run_u", "sleep", "spawn_to", "update_hosts" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskType", new[] { "download", "escalate", "get_uid", "intial_checkin", "kill", "nop", "object_file", "powershell", "process", "set", "shell", "upload" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Trinity.Shared.Models.Admin", b =>
@@ -163,32 +159,6 @@ namespace TeamServer.Migrations
                         .IsUnique();
 
                     b.ToTable("CampaignBridges");
-                });
-
-            modelBuilder.Entity("Trinity.Shared.Models.Error", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
-
-                    b.Property<int>("ErrorCode")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("TaskID")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("TaskID")
-                        .IsUnique();
-
-                    b.ToTable("Errors");
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Host", b =>
@@ -377,28 +347,22 @@ namespace TeamServer.Migrations
                     b.Property<int>("AgentID")
                         .HasColumnType("integer");
 
-                    b.Property<TaskCode>("Code")
-                        .HasColumnType("\"taskCode\"");
-
                     b.Property<JsonDocument>("Command")
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.Property<TaskType>("CommandType")
-                        .HasColumnType("\"taskType\"");
+                    b.Property<byte>("CommandType")
+                        .HasColumnType("smallint");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Status>("Status")
-                        .HasColumnType("status");
-
-                    b.Property<int?>("TaskStatusID")
+                    b.Property<int>("StatusID")
                         .HasColumnType("integer");
 
                     b.HasKey("ID");
 
-                    b.HasIndex("TaskStatusID");
+                    b.HasIndex("StatusID");
 
                     b.ToTable("Tasks");
                 });
@@ -411,12 +375,15 @@ namespace TeamServer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
-                    b.Property<string>("Result")
+                    b.Property<JsonDocument>("Response")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<int>("TaskID")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("isSuccess")
+                        .HasColumnType("boolean");
 
                     b.HasKey("ID");
 
@@ -497,15 +464,6 @@ namespace TeamServer.Migrations
                     b.Navigation("Payload");
                 });
 
-            modelBuilder.Entity("Trinity.Shared.Models.Error", b =>
-                {
-                    b.HasOne("Trinity.Shared.Models.Task", null)
-                        .WithOne("Error")
-                        .HasForeignKey("Trinity.Shared.Models.Error", "TaskID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Trinity.Shared.Models.Listener", b =>
                 {
                     b.HasOne("Trinity.Shared.Models.Protocol", "Protocol")
@@ -519,9 +477,13 @@ namespace TeamServer.Migrations
 
             modelBuilder.Entity("Trinity.Shared.Models.Task", b =>
                 {
-                    b.HasOne("Trinity.Shared.Models.TaskStatus", null)
+                    b.HasOne("Trinity.Shared.Models.TaskStatus", "Status")
                         .WithMany("Tasks")
-                        .HasForeignKey("TaskStatusID");
+                        .HasForeignKey("StatusID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.TaskResult", b =>
@@ -540,9 +502,8 @@ namespace TeamServer.Migrations
 
             modelBuilder.Entity("Trinity.Shared.Models.Task", b =>
                 {
-                    b.Navigation("Error");
-
-                    b.Navigation("Result");
+                    b.Navigation("Result")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.TaskStatus", b =>

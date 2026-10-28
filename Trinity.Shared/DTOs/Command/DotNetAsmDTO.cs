@@ -8,7 +8,7 @@ namespace Trinity.Shared.DTOs.Command
 {
     public class DotNetAsmDTO : ICommand
     {
-        public string AssemblyPath { get; set; } = String.Empty;
+        public string Assembly { get; set; } = String.Empty;
         public string Arguments { get; set; } = String.Empty;
     }
 }

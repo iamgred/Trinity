@@ -1,10 +1,7 @@
-using Client.Components;
-using Client.Interpreter;
-using Client.Interpreter.Strategies;
 using Client.Services;
 using MudBlazor.Services;
-using Refit;
-using Trinity.Shared.Interfaces;
+using Client.Components;
+using Client.Interpreter;
 
 namespace Client
 {
@@ -47,30 +44,7 @@ namespace Client
             builder.Services.AddScoped<TaskApiService>();
             builder.Services.AddScoped<CommandInterpreter>();
             builder.Services.AddScoped<PowerShellService>();
-
-            builder.Services.AddScoped<ICommandInterpreter, CommandInterpreter>();
-            builder.Services.AddScoped<PowerShellStrategy>();
-            builder.Services.AddScoped<ShellStrategy>();
-            builder.Services.AddScoped<RunAsStrategy>();
-            builder.Services.AddScoped<RunStrategy>();
-            builder.Services.AddScoped<RunUStrategy>();
-            builder.Services.AddScoped<KillProcessStrategy>();
-            builder.Services.AddScoped<EscalateStrategy>();
-            builder.Services.AddScoped<DotNetAsmStrategy>();
-            builder.Services.AddScoped<DownloadStrategy>();
-            builder.Services.AddScoped<CancelDownloadStrategy>();
-            builder.Services.AddScoped<UploadStrategy>();
-            builder.Services.AddScoped<SpawnToStrategy>();
-            builder.Services.AddScoped<UpdateHostsStrategy>();
-            builder.Services.AddScoped<UpdateHostsStrategy>();
-            builder.Services.AddScoped<KillStrategy>();
-            builder.Services.AddScoped<GetUIDStrategy>();
-            builder.Services.AddRefitClient<ICommandAPI>()
-                .ConfigureHttpClient(client =>
-                {
-                    client.BaseAddress = new Uri("https://localhost:7251");
-                });
-
+            builder.Services.AddHttpClient();
 
             var app = builder.Build(); // <- Build happens here, after all services are registered
 

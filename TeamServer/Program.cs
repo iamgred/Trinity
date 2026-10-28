@@ -1,23 +1,13 @@
-using FluentValidation;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using TeamServer.ExceptionHandlers;
-using TeamServer.Handlers.CheckinHandler;
-using TeamServer.Handlers.CheckinHandler.Strategies;
 using TeamServer.Interface;
 using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using TeamServer.Services.Factories;
-using TeamServer.Validators;
-using TeamServer.Validators.Commands;
-using TeamServer.Validators.Listeners.Http;
-using TeamServer.Validators.Listeners.Smb;
 using Trinity.Shared.Configurations;
-using Trinity.Shared.DTOs.Command;
-using Trinity.Shared.DTOs.Listener.Http;
-using Trinity.Shared.DTOs.Listener.Smb;
-using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
 
 namespace TeamServer
@@ -38,42 +28,20 @@ namespace TeamServer
             builder.Services.AddScoped<OperatorService>();
             builder.Services.AddScoped<CampaignService>();
             builder.Services.AddScoped<AdminService>();
-            builder.Services.AddScoped<DatabaseService>();
-
-            // Handlers 
-            builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();
-            builder.Services.AddScoped<SuccessStrategy>();
-            builder.Services.AddScoped<RunningStrategy>();
-            builder.Services.AddScoped<ErrorStrategy>();
-
-            // Validators
-            builder.Services.AddValidatorsFromAssemblyContaining<OperatorValidator>();
-
-            /// Singletons
             builder.Services.AddSingleton<ListenerFactory>();
             builder.Services.AddSingleton<HttpModuleFactory>();
             builder.Services.AddSingleton<CommandFactory>();
             builder.Services.AddSingleton<AgentFactory>();
             builder.Services.AddSingleton<TaskResultFactory>();
             builder.Services.AddSingleton<HttpListenerManager>();
-            builder.Services.AddSingleton<IHostFactory, HostFactory>();
-            builder.Services.AddSingleton<ITaskRequestFactory, TaskRequestFactory>();
-
-            builder.Services.AddControllers(options =>
-            {
-                options.Filters.Add<ValidationFilter>();
-            });
-
+            builder.Services.AddScoped<DatabaseService>();
+            builder.Services.AddControllers();
             builder.Services.AddSwaggerGen(options =>
             {
                 options.EnableAnnotations();
             });
-
-            builder.Services.AddDbContextPool<Context>(opt => opt.UseNpgsql(
-                builder.Configuration.GetConnectionString("Postgres"),
-                o => o.MapEnum<Status>("status")
-                      .MapEnum<TaskType>("taskType")
-                      .MapEnum<TaskCode>("taskCode")));
+            builder.Services.AddDbContextPool<Context>(opt =>
+                opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();
@@ -91,26 +59,6 @@ namespace TeamServer
             builder.Services.AddScoped<AdminRepository>();
             builder.Services.AddScoped<HostRepository>();
 
-            // Validators 
-            builder.Services.AddScoped<IValidator<CreateHttpListenerRequest>, CreateHttpListenerRequestValidator>();
-            builder.Services.AddScoped<IValidator<CreateSmbRequest>, CreateSmbRequestValidator>();
-            builder.Services.AddScoped<IValidator<BofDTO>, BofDTOValidator>();
-            builder.Services.AddScoped<IValidator<CancelDownloadDTO>, CancelDownloadDTOValidator>();
-            builder.Services.AddScoped<IValidator<DotNetAsmDTO>, DotNetAsmDTOValidator>();
-            builder.Services.AddScoped<IValidator<DownloadDTO>, DownloadDTOValidator>();
-            builder.Services.AddScoped<IValidator<EscalateDTO>, EscalateDTOValidator>();
-            builder.Services.AddScoped<IValidator<KillProcessDTO>, KillProcessDTOValidator>();
-            builder.Services.AddScoped<IValidator<PowerShellDTO>, PowerShellDTOValidator>();
-            builder.Services.AddScoped<IValidator<RunAsDTO>, RunAsDTOValidator>();
-            builder.Services.AddScoped<IValidator<RunDTO>, RunDTOValidator>();
-            builder.Services.AddScoped<IValidator<RunAsDTO>, RunAsDTOValidator>();
-            builder.Services.AddScoped<IValidator<RunUDTO>, RunUDTOValidator>();
-            builder.Services.AddScoped<IValidator<SetSleepDTO>, SetSleepDTOValidator>();
-            builder.Services.AddScoped<IValidator<UpdateHostsDTO>, UpdateHostsDTOValidator>();
-            builder.Services.AddScoped<IValidator<ShellDTO>, ShellDTOValidator>();
-            builder.Services.AddScoped<IValidator<SpawnToDTO>, SpawnToDTOValidator>();
-            builder.Services.AddScoped<IValidator<UploadDTO>, UploadDTOValidator>();
-
             // SignalR
             builder.Services.AddSignalR();
 
@@ -123,8 +71,8 @@ namespace TeamServer
             ServerNetworkSettings serverNetworkSettings = new ServerNetworkSettings()
                 .ResolveIpV4Address()
                 .ResolveIpV6Address();
-            builder.Services.AddSingleton(serverNetworkSettings);
 
+            builder.Services.AddSingleton(serverNetworkSettings);
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -153,3 +101,4 @@ namespace TeamServer
         }
     }
 }
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -11,8 +11,6 @@ endif()
 
 project (Agent)
 
-find_package(CURL REQUIRED)
-
 # Add source to this project's executable.
 add_executable (
   Agent 
@@ -28,16 +26,11 @@ add_executable (
   "include/TaskQueueManager.h"
   "include/Task.h"
   "include/Command.h"
-  "include/Keylogger.h"
-  "src/Keylogger.cpp"
-  "src/FileTransfer.cpp"
-  "include/FileTransfer.h"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 target_include_directories(Agent PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(Agent PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(Agent PRIVATE CURL::libcurl)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)

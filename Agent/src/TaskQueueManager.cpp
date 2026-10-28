@@ -4,21 +4,18 @@
 #include "rapidjson/writer.h" 
 #include "Task.h"
 
-#define SUCCESSFUL "Successful"
-#define FAILURE "Failure"
-
 Request TaskQueueManager::ParseTaskRequest(const std::string& rawJson)
 {
 
 	rapidjson::Document doc = {};
 	doc.Parse(rawJson.c_str());
 
-	int taskID = doc["taskID"].GetInt();
-	int type = doc["type"].GetInt();
-	int code = doc["code"].GetInt();
-	int status = doc["status"].GetInt();
-	const rapidjson::Value& node = doc["data"];
-
+	int taskID = doc["TaskID"].GetInt();
+	int type = doc["TaskType"].GetInt();
+	int code = doc["TaskCode"].GetInt();
+	int status = doc["Status"].GetInt();
+	const rapidjson::Value& node = doc["Command"];
+	
 	switch (type)
 	{
 		case POWERSHELL:
@@ -53,25 +50,21 @@ bool TaskQueueManager::HasPendingTask()
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 void TaskQueueManager::StoreTaskResult(Response& response)
 {
-	std::string json = std::visit([](const auto& responseEnvelope) {
-		return responseEnvelope.StructToJson();
-		}, response);
-
-	taskResults.push(json);
+	taskResults.push_back(response);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string TaskQueueManager::GetTaskResult()
+std::string TaskQueueManager::GetTaskResults()
 {
-	std::string response = taskResults.front();
-	taskResults.pop();
-	return response;
+	std::string json = CreateResponseTaskValue(taskResults);
+	return json;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 void TaskQueueManager::QueueTask(std::string blob)
 {
 	if (blob.empty()) return;
+	if (blob.length() == 36) return;
 	taskQueue.push(blob);
 }
 

@@ -1,12 +1,9 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Trinity.Shared.Errors;
 
 namespace Trinity.Shared.Results
 {
-    public class Result<T> where T : class
+    public class Result<T>
     {
         public bool IsSuccess { get; init; }
         public Error Error { get; init; }

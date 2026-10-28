@@ -10,6 +10,8 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.12" />
 		<PackageReference Include="MudBlazor" Version="9.11.0" />
+		<PackageReference Include="Refit" Version="16.4.0" />
+		<PackageReference Include="Refit.HttpClientFactory" Version="16.4.0" />
 	</ItemGroup>
 
 	<!-- This lets Client use LoginDTO, Agent, Campaign, and all shared models -->

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TeamServer.Data;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Task;
+using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Repositories
@@ -29,8 +30,7 @@ namespace TeamServer.Repositories
         public async Task<Trinity.Shared.Models.Task?> GetTaskByStatusAsync(int taskID, string status)
         {
             return await _dbSet
-                .Include(t => t.Status)
-                .Where(t => t.ID.Equals(taskID) && t.Status.Name.Equals(status))
+                .Where(t => t.ID.Equals(taskID) && t.Status.Equals(Status.QUEUED))
                 .FirstOrDefaultAsync();
         }
 
@@ -47,9 +47,8 @@ namespace TeamServer.Repositories
         public async Task<List<TaskResponse>> GetQueuedAgentTasksByID(int agentID)
         {
             return await _dbSet
-                .Include(t => t.Status)
-                .Where(t => t.Status.Name.Equals("Queued") && t.AgentID.Equals(agentID))
-                .Select(t => new TaskResponse(t.AgentID, Util.GetEnumValue(t.CommandType), t.Status.Name, t.CreatedAt))
+                .Where(t => t.Status.Equals(Status.QUEUED) && t.AgentID.Equals(agentID))
+                .Select(t => new TaskResponse(t.AgentID, Enum.GetName(t.CommandType)!, Enum.GetName(t.Status)!, t.CreatedAt))
                 .ToListAsync();
         }
 
@@ -64,8 +63,7 @@ namespace TeamServer.Repositories
         public async Task<List<TaskResponse>> GetAllAgentTasks()
         {
             return await _dbSet
-                .Include(t => t.Status)
-                .Select(t => new TaskResponse(t.AgentID, Util.GetEnumValue(t.CommandType), t.Status.Name, t.CreatedAt))
+                .Select(t => new TaskResponse(t.AgentID, Enum.GetName(t.CommandType)!, Enum.GetName(t.Status)!, t.CreatedAt))
                 .ToListAsync();
         }
 
@@ -80,9 +78,8 @@ namespace TeamServer.Repositories
         public async Task<GetTaskDetailsResponse?> GetTaskDetailsByIDAsync(int taskID)
         {
             return await _dbSet
-                .Include(t => t.Status)
                 .Where(t => t.ID.Equals(taskID))
-                .Select(t => new GetTaskDetailsResponse(t.ID, t.AgentID, Util.GetEnumValue(t.CommandType), t.Command, t.CreatedAt))
+                .Select(t => new GetTaskDetailsResponse(t.ID, t.AgentID, Enum.GetName(t.CommandType)!, t.Command, t.CreatedAt))
                 .FirstOrDefaultAsync();
         }
 
@@ -109,8 +106,7 @@ namespace TeamServer.Repositories
         public async System.Threading.Tasks.Task ClearTasksByAgentID(int agentID)
         {
             await _dbSet
-                .Include(t => t.Status)
-                .Where(t => t.AgentID.Equals(agentID) && t.Status.Name.Equals("Queued"))
+                .Where(t => t.AgentID.Equals(agentID) && t.Status.Equals(Status.QUEUED))
                 .ExecuteDeleteAsync();
         }
 
@@ -126,8 +122,7 @@ namespace TeamServer.Repositories
         public async Task<Trinity.Shared.Models.Task?> GetTaskFromQueueAsync(int agentID) 
         {
             return await _dbSet
-                .Include(t => t.Status)
-                .Where(t => t.AgentID.Equals(agentID) && t.Status.Name.Equals("Queued"))
+                .Where(t => t.AgentID.Equals(agentID) && t.Status.Equals(Status.QUEUED))
                 .FirstOrDefaultAsync();
         }
     }

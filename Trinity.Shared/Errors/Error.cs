@@ -1,14 +1,11 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Trinity.Shared.Enums;
 
 namespace Trinity.Shared.Errors
 {
     public sealed record Error(string Code, string Description, ErrorType type)
     {
-        public static readonly Error None = new (String.Empty, String.Empty, ErrorType.None);
+        public static readonly Error None = new(String.Empty, String.Empty, ErrorType.None);
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -46,6 +43,18 @@ namespace Trinity.Shared.Errors
         public static Error Conflict(string code, string description)
         {
             return new(code, description, ErrorType.Conflict);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        /// <summary>
+        /// Creates a failure error with the specified code and description.
+        /// </summary>
+        /// <param name="code">The error code.</param>
+        /// <param name="description">The error description.</param>
+        /// <returns>An Error instance representing a failure.</returns>
+        public static Error Failure(string code, string description)
+        {
+            return new(code, description, ErrorType.Failure);
         }
     }
 }

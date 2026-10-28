@@ -264,7 +264,7 @@
                         <div class="gauge-ring" style="background: conic-gradient(@HealthGauge);"></div>
                         <div class="gauge-center">
                             <span class="gauge-num">@HealthPercent%</span>
-                            <span class="gauge-label">Operational</span>
+                            <span class="gauge-label">@HealthLabel</span>
                         </div>
                     </div>
                 </div>
@@ -304,13 +304,26 @@
             <label class="modal-label">Protocol</label>
             <select class="modal-input" @bind="_profileProtocol">
                 <option>HTTP</option>
+                <option>TCP</option>
+                <option>SMB</option>
             </select>
 
-            <label class="modal-label">Local Address</label>
-            <input class="modal-input" @bind="_profileHost" placeholder="0.0.0.0" />
+            @if (_profileProtocol == "SMB")
+            {
+                <label class="modal-label">Pipe Name</label>
+                <input class="modal-input" @bind="_profilePipe" placeholder="trinity-pipe" />
+            }
+            else
+            {
+                @if (_profileProtocol == "HTTP")
+                {
+                    <label class="modal-label">Local Address</label>
+                    <input class="modal-input" @bind="_profileHost" placeholder="0.0.0.0" />
+                }
 
-            <label class="modal-label">Port</label>
-            <input class="modal-input" @bind="_profilePort" placeholder="8443" />
+                <label class="modal-label">Port</label>
+                <input class="modal-input" @bind="_profilePort" placeholder="8443" />
+            }
 
             <div class="modal-actions">
                 <button type="button" class="btn-primary" @onclick="CreateProfile">Confirm</button>

@@ -44,6 +44,32 @@ public sealed class ListenerApiClient(HttpClient httpClient, TeamServerConnectio
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> CreateTcpListenerAsync(string name, int port, CancellationToken cancellationToken = default)
+    {
+        if (connection.BaseAddress is null)
+        {
+            throw new InvalidOperationException("Connect to a TeamServer from the Login page before creating a profile.");
+        }
+
+        var requestUri = new Uri(connection.BaseAddress, "api/v1/listeners/tcp");
+        var body = new { Name = name, Config = new { Port = port } };
+        var response = await httpClient.PostAsJsonAsync(requestUri, body, cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> CreateSmbListenerAsync(string name, string pipe, CancellationToken cancellationToken = default)
+    {
+        if (connection.BaseAddress is null)
+        {
+            throw new InvalidOperationException("Connect to a TeamServer from the Login page before creating a profile.");
+        }
+
+        var requestUri = new Uri(connection.BaseAddress, "api/v1/listeners/smb");
+        var body = new { Name = name, Config = new { pipe } };
+        var response = await httpClient.PostAsJsonAsync(requestUri, body, cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<bool> DeleteListenerAsync(int id, CancellationToken cancellationToken = default)
     {
         if (connection.BaseAddress is null)

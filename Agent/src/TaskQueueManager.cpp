@@ -38,6 +38,13 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 		!typeValue.IsInt() ||
 		!codeValue.IsInt() ||
 		!statusValue.IsInt())
+		int taskID = doc["TaskID"].GetInt();
+	int type = doc["TaskType"].GetInt();
+	int code = doc["TaskCode"].GetInt();
+	int status = doc["Status"].GetInt();
+	const rapidjson::Value &node = doc["Command"];
+
+	switch (type)
 	{
 		return TaskRequest<bool>{};
 	}
@@ -141,20 +148,24 @@ void TaskQueueManager::StoreTaskResult(Response &response)
 								  { return responseEnvelope.StructToJson(); }, response);
 
 	taskResults.push(json);
+	taskResults.push_back(response);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string TaskQueueManager::GetTaskResult()
+std::string TaskQueueManager::GetTaskResults()
 {
-	std::string response = taskResults.front();
-	taskResults.pop();
-	return response;
+	std::string json = CreateResponseTaskValue(taskResults);
+	return json;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 void TaskQueueManager::QueueTask(std::string blob)
 {
 	if (blob.empty())
+		return;
+	if (blob.empty())
+		return;
+	if (blob.length() == 36)
 		return;
 	taskQueue.push(blob);
 }

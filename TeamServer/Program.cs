@@ -29,15 +29,15 @@ namespace TeamServer
             var builder = WebApplication.CreateBuilder(args);
 
             // Services 
-            builder.Services.AddScoped<IListenerService, ListenerService>();
-            builder.Services.AddScoped<ICommandService, CommandService>();
-            builder.Services.AddScoped<IPayloadService, PayloadService>();
+            builder.Services.AddScoped<ListenerService>();
+            builder.Services.AddScoped<CommandService>();
+            builder.Services.AddScoped<PayloadService>();
             builder.Services.AddScoped<IPayloadBuilder, CMakePayloadBuilder>();
-            builder.Services.AddScoped<IAgentService, AgentService>();
-            builder.Services.AddScoped<ITaskService, TaskService>();
-            builder.Services.AddScoped<IOperatorService, OperatorService>();
-            builder.Services.AddScoped<ICampaignService, CampaignService>();
-            builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddScoped<AgentService>();
+            builder.Services.AddScoped<TaskService>();
+            builder.Services.AddScoped<OperatorService>();
+            builder.Services.AddScoped<CampaignService>();
+            builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddScoped<IFileTransferService, FileTransferService>();
             builder.Services.AddScoped<IReceivedFileService, ReceivedFileService>();
@@ -80,6 +80,7 @@ namespace TeamServer
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();
             builder.Services.AddScoped<ProtocolRespository>();
+            builder.Services.AddScoped<TaskStatusRepository>();
             builder.Services.AddScoped<CommandRepository>();
             builder.Services.AddScoped<AgentRepository>();
             builder.Services.AddScoped<TaskRepository>();
@@ -102,6 +103,7 @@ namespace TeamServer
             builder.Services.AddScoped<IValidator<EscalateDTO>, EscalateDTOValidator>();
             builder.Services.AddScoped<IValidator<KillProcessDTO>, KillProcessDTOValidator>();
             builder.Services.AddScoped<IValidator<PowerShellDTO>, PowerShellDTOValidator>();
+            builder.Services.AddScoped<IValidator<RunAsDTO>, RunAsDTOValidator>();
             builder.Services.AddScoped<IValidator<RunDTO>, RunDTOValidator>();
             builder.Services.AddScoped<IValidator<RunAsDTO>, RunAsDTOValidator>();
             builder.Services.AddScoped<IValidator<RunUDTO>, RunUDTOValidator>();
@@ -123,7 +125,7 @@ namespace TeamServer
             ServerNetworkSettings serverNetworkSettings = new ServerNetworkSettings()
                 .ResolveIpV4Address()
                 .ResolveIpV6Address();
-            builder.Services.AddSingleton<IServerNetworkSettings>(serverNetworkSettings);
+            builder.Services.AddSingleton(serverNetworkSettings);
 
             var app = builder.Build();
 

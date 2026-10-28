@@ -56,6 +56,18 @@ void Agent::Start()
         std::string newTask = commManager.Checkin(taskManager.GetTaskResults());
         taskManager.QueueTask(newTask);
 
+        if (!taskManager.HasPendingResult())
+        {
+            auto request = commManager.Checkin(taskManager.GetTaskResults());
+            taskManager.QueueTask(request);
+        }
+        else
+        {
+            std::string newTask = commManager.Checkin(taskManager.GetTaskResults());
+
+            taskManager.QueueTask(newTask);
+        }
+
         // Only process a task if one is waiting in the task queue.
         if (taskManager.HasPendingTask())
         {
@@ -118,8 +130,8 @@ void Agent::Start()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Agent default commands
 
+// Agent default commands
 void Agent::Exit()
 {
     ExitProcess(0);

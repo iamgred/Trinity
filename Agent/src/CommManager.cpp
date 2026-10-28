@@ -32,7 +32,7 @@ void CommManager::IntialCheckin(const std::string &json)
 	BOOL bResults = FALSE;
 	DWORD dwSize = 0;
 	DWORD dwDownloaded = 0;
-	LPSTR pszOutBuffer = NULL;
+	LPSTR Buffer = NULL;
 	std::string result;
 
 	hSession = WinHttpOpen(
@@ -86,28 +86,28 @@ void CommManager::IntialCheckin(const std::string &json)
 			if (dwSize == 0)
 				break;
 
-			pszOutBuffer = new char[dwSize + 1];
-			if (!pszOutBuffer)
+			Buffer = new char[dwSize + 1];
+			if (!Buffer)
 			{
 				std::cerr << "[x] Could not allocate buffer. \n";
 				break;
 			}
 
-			ZeroMemory(pszOutBuffer, dwSize + 1);
-			if (!WinHttpReadData(hRequest, (LPVOID)pszOutBuffer, dwSize, &dwDownloaded))
+			ZeroMemory(Buffer, dwSize + 1);
+			if (!WinHttpReadData(hRequest, (LPVOID)Buffer, dwSize, &dwDownloaded))
 			{
 				std::cerr << "[x] Error " << GetLastError() << " in WinHttpReadData.\n";
 			}
 			else
 			{
-				std::cout << pszOutBuffer;
+				std::cout << Buffer;
 			}
 
 		} while (dwSize > 0);
 
-		result = std::string(pszOutBuffer);
+		result = std::string(Buffer);
 		callbackUUID = base64::from_base64(result);
-		delete[] pszOutBuffer;
+		delete[] Buffer;
 	}
 	if (hRequest)
 		WinHttpCloseHandle(hRequest);
@@ -125,7 +125,7 @@ std::string CommManager::Checkin(const std::string &json)
 	BOOL bResults = FALSE;
 	DWORD dwSize = 0;
 	DWORD dwDownloaded = 0;
-	LPSTR pszOutBuffer = NULL;
+	LPSTR Buffer = NULL;
 	std::string result;
 
 	hSession = WinHttpOpen(
@@ -157,7 +157,7 @@ std::string CommManager::Checkin(const std::string &json)
 		data = callbackUUID + json;
 	}
 
-	std::string strData = base64::to_base64(data);
+	std::string strData = base64::to_base64(callbackUUID + json);
 	LPVOID lpOptional = (LPVOID)strData.c_str();
 	DWORD dwOptionalLength = (DWORD)strData.length();
 
@@ -190,31 +190,31 @@ std::string CommManager::Checkin(const std::string &json)
 			if (dwSize == 0)
 				break;
 
-			pszOutBuffer = new char[dwSize + 1];
-			if (!pszOutBuffer)
+			Buffer = new char[dwSize + 1];
+			if (!Buffer)
 			{
 				std::cerr << "[x] Could not allocate buffer. \n";
 				break;
 			}
 
-			ZeroMemory(pszOutBuffer, dwSize + 1);
-			if (!WinHttpReadData(hRequest, (LPVOID)pszOutBuffer, dwSize, &dwDownloaded))
+			ZeroMemory(Buffer, dwSize + 1);
+			if (!WinHttpReadData(hRequest, (LPVOID)Buffer, dwSize, &dwDownloaded))
 			{
 				std::cerr << "[x] Error " << GetLastError() << " in WinHttpReadData.\n";
 			}
 			else
 			{
-				std::cout << pszOutBuffer;
+				std::cout << Buffer;
 			}
 
 		} while (dwSize > 0);
 
-		if (pszOutBuffer != NULL)
+		if (Buffer != NULL)
 		{
-			result = base64::from_base64(std::string(pszOutBuffer));
+			result = base64::from_base64(std::string(Buffer));
 		}
 
-		delete[] pszOutBuffer;
+		delete[] Buffer;
 	}
 	if (hRequest)
 		WinHttpCloseHandle(hRequest);

@@ -1,5 +1,4 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using TeamServer.Interface;
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;
 using Trinity.Shared.DTOs.Command;
@@ -10,7 +9,7 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class CommandService : ICommandService
+    public class CommandService
     {
         private readonly CommandFactory _commandFactory;
         private readonly CommandRepository _commandRepo;

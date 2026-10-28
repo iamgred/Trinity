@@ -1,11 +1,15 @@
 # ninja log v7
-31	1805	8137717051100846	CMakeFiles/Agent.dir/src/CommandDispatcher.cpp.obj	1c413467a7dccbb2
-55	1941	8137717051275522	CMakeFiles/Agent.dir/src/TaskQueueManager.cpp.obj	42aacb91579cb329
-44	2374	8137717051275522	CMakeFiles/Agent.dir/src/AgentModule.cpp.obj	f7a95508da8e1223
-26	1740	8137717466528537	CMakeFiles/Agent.dir/src/Agent.cpp.obj	7072fdfd68aa0fce
-19	3504	8137717050934303	CMakeFiles/Agent.dir/src/CommManager.cpp.obj	32acfccfbac48fca
-1741	2017	8137717485431983	Agent.exe	2fec5efe5f7be4c
-25	1846	8137730858250485	CMakeFiles/Agent.dir/src/Agent.cpp.obj	7072fdfd68aa0fce
-14	1902	8137730858250485	CMakeFiles/Agent.dir/src/CommandDispatcher.cpp.obj	1c413467a7dccbb2
-6	1945	8137730858053089	CMakeFiles/Agent.dir/src/main.cpp.obj	2765da10fc535084
-1946	2245	8137730882579641	Agent.exe	e38df0b7baf4fcde
+56	2264	8147467251037795	CMakeFiles/Agent.dir/src/TaskQueueManager.cpp.obj	42aacb91579cb329
+39	2601	8147467250879114	CMakeFiles/Agent.dir/src/CommandDispatcher.cpp.obj	1c413467a7dccbb2
+41	2709	8147470196209132	CMakeFiles/Agent.dir/src/main.cpp.obj	2765da10fc535084
+32	3661	8147381142871315	CMakeFiles/Agent.dir/src/CommManager.cpp.obj	32acfccfbac48fca
+11	33	8147381142079338	clean	4657a475079c8ec1
+47	2633	8147467250879114	CMakeFiles/Agent.dir/src/Agent.cpp.obj	7072fdfd68aa0fce
+2711	3033	8147470222401065	Agent.exe	e38df0b7baf4fcde
+28	755	8147471847709420	build.ninja	6a90e44c0b45074d
+28	755	8147471847709420	C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/cmake_install.cmake	6a90e44c0b45074d
+81	2880	8147471853498871	CMakeFiles/Agent.dir/src/Agent.cpp.obj	7072fdfd68aa0fce
+49	2926	8147471853216152	CMakeFiles/Agent.dir/src/main.cpp.obj	2765da10fc535084
+64	3034	8147471853356157	CMakeFiles/Agent.dir/src/CommandDispatcher.cpp.obj	1c413467a7dccbb2
+55	4184	8147471853216152	CMakeFiles/Agent.dir/src/CommManager.cpp.obj	32acfccfbac48fca
+4185	4491	8147471886970110	Agent.exe	e38df0b7baf4fcde

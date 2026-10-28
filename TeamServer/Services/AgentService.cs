@@ -140,7 +140,7 @@ namespace TeamServer.Services
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         private string FormatRequest(string uuid, string request)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(uuid + request);
+            byte[] bytes = Encoding.UTF8.GetBytes(request);
             return Convert.ToBase64String(bytes);
         }
     }

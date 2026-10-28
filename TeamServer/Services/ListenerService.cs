@@ -12,10 +12,11 @@ using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 using Trinity.Shared.Modules;
+using TeamServer.Interface;
 
 namespace TeamServer.Services
 {
-    public class ListenerService 
+    public class ListenerService : IListenerService
     {
         private ILogger _logger;
         private ListenerRespository _listenerRepo;
@@ -103,7 +104,7 @@ namespace TeamServer.Services
             await _listenerRepo.CommitAsync();
             return Result.Success();
         }
-            
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Creates an SMB listener from the specified request, resolves the TCP protocol identifier, and adds the

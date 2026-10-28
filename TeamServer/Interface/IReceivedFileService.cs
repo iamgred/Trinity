@@ -4,10 +4,10 @@ namespace TeamServer.Interface;
 public interface IReceivedFileService
 {
     // Return metadata such as name, size, and modification time for each file.
-    Task<IReadOnlyList<ReceivedFileInfo>> ListFilesAsync();
+    Task<IReadOnlyList<ReceivedFileInfo>> ListFilesAsync(int campaignId);
 
     // Open one file for reading so ASP.NET Core can stream it to a downloader.
-    Task<FileStream?> OpenFileAsync(string fileName);
+    Task<FileStream?> OpenFileAsync(int campaignId, string fileName);
 }
 
 // A small data-transfer object used in the JSON response from GET /api/files.

@@ -1,29 +1,20 @@
 using TeamServer.Interface;
+using TeamServer.Repositories;
+using System.Text.Json;
+using Trinity.Shared.Enums.Tasks;
 
 namespace TeamServer.Services;
 
 public sealed class FileTransferService : IFileTransferService
 {
-    // Files smaller than 100 MiB are sent as one HTTP request.
-    // This keeps small transfers simple and avoids unnecessary chunk bookkeeping.
-    private const long FileThreshold = 100L * 1024 * 1024;
-
-    // Files at or above the threshold are divided into 10 MiB chunks.
-    // A fixed chunk size limits memory usage while transferring large files.
-    private const int ChunkSize = 10 * 1024 * 1024;
-
-    // HttpClient performs outbound C# -> C++ HTTP calls.
-    private readonly HttpClient _httpClient;
-
     // Absolute root folder used for received files, chunks, and streams.
     private readonly string _storageRoot;
+    private readonly AgentRepository _agentRepository;
 
-    public FileTransferService(IHttpClientFactory httpClientFactory, IConfiguration configuration, IWebHostEnvironment environment)
+    public FileTransferService(IConfiguration configuration,
+        IWebHostEnvironment environment, AgentRepository agentRepository)
     {
-        // Ask the factory for a configured HttpClient.
-        // The factory manages the underlying connections more safely than creating
-        // a new HttpClient for every file or chunk.
-        _httpClient = httpClientFactory.CreateClient();
+        _agentRepository = agentRepository;
 
         // Read StoragePath from configuration.
         // If it is missing, store data in a storage folder beside the application.
@@ -36,102 +27,30 @@ public sealed class FileTransferService : IFileTransferService
         Directory.CreateDirectory(Path.Combine(_storageRoot, "streams"));
     }
 
-    public async Task SendFileAsync(string filePath, string cppUrl, CancellationToken cancellationToken = default)
+    public async Task ReceiveFileAsync(string agentKey, string fileName, Stream data, CancellationToken cancellationToken = default)
     {
-        // FileInfo provides the source file's existence and size.
-        var fileInfo = new FileInfo(filePath);
-
-        // Stop early with a useful error instead of making an invalid HTTP request.
-        if (!fileInfo.Exists)
-            throw new FileNotFoundException("File was not found.", filePath);
-
-        // Give this transfer a unique ID.
-        // For a large file, this ID groups all chunk requests together.
-        var transferId = Guid.NewGuid().ToString("N");
-
-        // Remove a possible trailing slash so URL paths do not contain "//".
-        var baseUrl = cppUrl.TrimEnd('/');
-
-        // Small files use one request because chunking would add unnecessary work.
-        if (fileInfo.Length < FileThreshold)
-        {
-            // Open the source in binary mode.
-            // await using closes the file even if the HTTP call fails.
-            await using var file = File.OpenRead(filePath);
-
-            // Wrap the file stream as an HTTP request body.
-            using var content = new StreamContent(file);
-
-            // Send the original filename in a custom header.
-            // The C++ server uses it when naming the received file.
-            content.Headers.Add("X-File-Name", fileInfo.Name);
-
-            // POST the complete file to the C++ server.
-            using var response = await _httpClient.PostAsync($"{baseUrl}/api/files/{transferId}/file", content, cancellationToken);
-
-            // Throw if the C++ server rejected the request.
-            response.EnsureSuccessStatusCode();
-            return;
-        }
-
-        // Open a large source file once and read it incrementally.
-        await using var input = File.OpenRead(filePath);
-
-        // Reuse one buffer for every chunk to keep memory consumption predictable.
-        var buffer = new byte[ChunkSize];
-
-        // The first chunk is numbered zero.
-        var chunkNumber = 0;
-
-        // This variable receives the number of bytes read on each iteration.
-        int bytesRead;
-
-        // Read until ReadAsync returns zero, which means end-of-file.
-        while ((bytesRead = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)) > 0)
-        {
-            // Send only the valid part of the buffer.
-            // The final chunk may be smaller than 10 MiB.
-            using var content = new ByteArrayContent(buffer, 0, bytesRead);
-
-            // POST this chunk to its numbered endpoint.
-            using var response = await _httpClient.PostAsync(
-                $"{baseUrl}/api/files/{transferId}/chunks/{chunkNumber}", content, cancellationToken);
-
-            // Do not continue if the receiver rejected a chunk.
-            response.EnsureSuccessStatusCode();
-
-            // Prepare the number for the next chunk.
-            chunkNumber++;
-        }
-
-        // Tell the C++ server that every chunk has been sent.
-        // The receiver can now rebuild the original file.
-        using var rebuildResponse = await _httpClient.PostAsync(
-            $"{baseUrl}/api/files/{transferId}/rebuild", content: null, cancellationToken);
-        rebuildResponse.EnsureSuccessStatusCode();
+        var campaignId = await GetCampaignIdAsync(agentKey);
+        await CopyToFileAsync(CampaignFilePath(campaignId, fileName), data, cancellationToken);
     }
 
-    public Task ReceiveFileAsync(string fileName, Stream data, CancellationToken cancellationToken = default) =>
-        // Store a complete C++ -> C# file in the files directory.
-        CopyToFileAsync(Path.Combine(_storageRoot, "files", SafeName(fileName)), data, cancellationToken);
-
-    public Task ReceiveChunkAsync(string transferId, int chunkNumber, Stream data, CancellationToken cancellationToken = default)
+    public async Task ReceiveChunkAsync(string agentKey, string transferId, int chunkNumber, Stream data, CancellationToken cancellationToken = default)
     {
         // A negative number is invalid and would not represent a real chunk.
         if (chunkNumber < 0)
             throw new ArgumentOutOfRangeException(nameof(chunkNumber));
 
-        // Get or create this transfer's private chunk directory.
-        var directory = TransferDirectory(transferId);
+        var campaignId = await GetCampaignIdAsync(agentKey);
+        var directory = TransferDirectory(campaignId, transferId);
 
         // Zero padding ensures chunk_00000002 sorts after chunk_00000001.
-        return CopyToFileAsync(Path.Combine(directory, $"chunk_{chunkNumber:D8}"), data, cancellationToken);
+        await CopyToFileAsync(Path.Combine(directory, $"chunk_{chunkNumber:D8}"), data, cancellationToken);
     }
 
-    public async Task<string> RebuildFileAsync(string transferId, CancellationToken cancellationToken = default)
+    public async Task<string> RebuildFileAsync(string agentKey, string transferId, CancellationToken cancellationToken = default)
     {
         // Locate the directory containing this transfer's chunks.
-        var directory = TransferDirectory(transferId);
+        var campaignId = await GetCampaignIdAsync(agentKey);
+        var directory = TransferDirectory(campaignId, transferId);
 
         // Rebuilding cannot work if the directory does not exist.
         if (!Directory.Exists(directory))
@@ -145,7 +64,8 @@ public sealed class FileTransferService : IFileTransferService
             throw new InvalidOperationException("No chunks were found.");
 
         // Store the rebuilt result beside other received files.
-        var outputPath = Path.Combine(_storageRoot, "files", $"{SafeName(transferId)}_rebuilt");
+        var outputPath = Path.Combine(_storageRoot, "files", SafeName(campaignId.ToString()),
+            $"{SafeName(transferId)}_rebuilt");
 
         // Create the destination in binary mode.
         await using var output = File.Create(outputPath);
@@ -161,19 +81,70 @@ public sealed class FileTransferService : IFileTransferService
         return outputPath;
     }
 
-    public Task ReceiveStreamDataAsync(string streamId, Stream data, CancellationToken cancellationToken = default) =>
-        // Append because continuous data arrives in multiple HTTP requests.
-        CopyToFileAsync(Path.Combine(_storageRoot, "streams", $"{SafeName(streamId)}.txt"), data, cancellationToken, FileMode.Append);
+    public async Task ReceiveStreamDataAsync(string agentKey, string streamId, Stream data, CancellationToken cancellationToken = default)
+    {
+        var campaignId = await GetCampaignIdAsync(agentKey);
+        await CopyToFileAsync(Path.Combine(_storageRoot, "streams", SafeName(campaignId.ToString()),
+            $"{SafeName(streamId)}.txt"), data, cancellationToken, FileMode.Append);
+    }
 
-    private string TransferDirectory(string transferId)
+    public async Task<JsonDocument> PrepareDownloadChunkAsync(Trinity.Shared.Models.Task task, string agentKey, CancellationToken cancellationToken = default)
+    {
+        var command = task.Command.RootElement;
+        var fileName = command.GetProperty("Path").GetString() ?? throw new InvalidOperationException("Download path is required.");
+        var campaignId = await GetCampaignIdAsync(agentKey);
+        var path = CampaignFilePath(campaignId, fileName);
+        if (!File.Exists(path))
+            throw new FileNotFoundException("The requested file was not found.", fileName);
+
+        var offset = command.TryGetProperty("Offset", out var offsetElement) ? offsetElement.GetInt64() : 0;
+        const int chunkSize = 512 * 1024;
+        await using var input = File.OpenRead(path);
+        if (offset < 0 || offset > input.Length)
+            throw new InvalidOperationException("The transfer offset is invalid.");
+
+        input.Position = offset;
+        var buffer = new byte[(int)Math.Min(chunkSize, input.Length - offset)];
+        var count = await input.ReadAsync(buffer.AsMemory(), cancellationToken);
+        var final = offset + count >= input.Length;
+        task.Command = JsonDocument.Parse(JsonSerializer.Serialize(new
+        {
+            Path = fileName,
+            Offset = offset + count,
+            TotalBytes = input.Length,
+            Final = final
+        }));
+        task.Status = Status.QUEUED;
+
+        return JsonDocument.Parse(JsonSerializer.Serialize(new
+        {
+            Path = fileName,
+            Data = Convert.ToBase64String(buffer, 0, count),
+            Offset = offset,
+            TotalBytes = input.Length,
+            Final = final
+        }));
+    }
+
+    private string TransferDirectory(int campaignId, string transferId)
     {
         // Use a separate directory for every transfer.
-        var safeTransferId = SafeName(transferId);
-        var directory = Path.Combine(_storageRoot, "files", safeTransferId);
+        var directory = Path.Combine(_storageRoot, "files", SafeName(campaignId.ToString()), SafeName(transferId));
 
         // Create the directory before the caller writes a chunk.
         Directory.CreateDirectory(directory);
         return directory;
+    }
+
+    private string CampaignFilePath(int campaignId, string fileName) =>
+        Path.Combine(_storageRoot, "files", SafeName(campaignId.ToString()), SafeName(fileName));
+
+    private async Task<int> GetCampaignIdAsync(string agentKey)
+    {
+        var agent = await _agentRepository.GetAgentByCheckInUUID(agentKey);
+        if (agent is null)
+            throw new KeyNotFoundException($"Agent '{agentKey}' was not found.");
+        return agent.CampaignID;
     }
 
     private static async Task CopyToFileAsync(string path, Stream data, CancellationToken cancellationToken, FileMode mode = FileMode.Create)

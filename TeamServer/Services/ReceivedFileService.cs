@@ -15,11 +15,15 @@ public sealed class ReceivedFileService : IReceivedFileService
         Directory.CreateDirectory(_filesDirectory);
     }
 
-    public Task<IReadOnlyList<ReceivedFileInfo>> ListFilesAsync()
+    public Task<IReadOnlyList<ReceivedFileInfo>> ListFilesAsync(int campaignId)
     {
         // Enumerate only direct files.
         // Chunk directories are intentionally excluded from the public list.
-        var files = Directory.EnumerateFiles(_filesDirectory)
+        var campaignDirectory = Path.Combine(_filesDirectory, campaignId.ToString());
+        if (!Directory.Exists(campaignDirectory))
+            return Task.FromResult<IReadOnlyList<ReceivedFileInfo>>([]);
+
+        var files = Directory.EnumerateFiles(campaignDirectory)
             .Select(path => new FileInfo(path))
             .OrderBy(file => file.Name, StringComparer.Ordinal)
             .Select(file => new ReceivedFileInfo(file.Name, file.Length, file.LastWriteTimeUtc))
@@ -27,7 +31,7 @@ public sealed class ReceivedFileService : IReceivedFileService
         return Task.FromResult<IReadOnlyList<ReceivedFileInfo>>(files);
     }
 
-    public Task<FileStream?> OpenFileAsync(string fileName)
+    public Task<FileStream?> OpenFileAsync(int campaignId, string fileName)
     {
         // Strip directory components before combining with the storage path.
         // This prevents a download request from navigating outside storage.
@@ -36,7 +40,7 @@ public sealed class ReceivedFileService : IReceivedFileService
             return Task.FromResult<FileStream?>(null);
 
         // Return null so the controller can produce a normal HTTP 404 response.
-        var path = Path.Combine(_filesDirectory, safeName);
+        var path = Path.Combine(_filesDirectory, campaignId.ToString(), safeName);
         if (!File.Exists(path))
             return Task.FromResult<FileStream?>(null);
 

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using TeamServer.Services;
 using Trinity.Shared.Models;
 using FluentValidation;
-using TeamServer.Interface;
 
 namespace TeamServer.Controllers
 {
@@ -11,10 +10,10 @@ namespace TeamServer.Controllers
     [Route(Routes.Campaigns)]
     public class CampaignController : ControllerBase
     {
-        private readonly ICampaignService _campaignService;
+        private readonly CampaignService _campaignService;
         private readonly IValidator<Campaign> _campaignValidator;
 
-        public CampaignController(ICampaignService campaignService, IValidator<Campaign> campaignValidator)
+        public CampaignController(CampaignService campaignService, IValidator<Campaign> campaignValidator)
         {
             _campaignService = campaignService;
             _campaignValidator = campaignValidator;

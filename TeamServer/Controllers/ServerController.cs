@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Trinity.Shared.Configurations;
 using Trinity.Shared.DTOs.TeamServer;
-using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Controllers
 {
@@ -20,7 +19,7 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="settings"></param>
-        public ServerController(ILogger<ServerController> logger, IServerNetworkSettings settings)
+        public ServerController(ILogger<ServerController> logger, ServerNetworkSettings settings)
         {
             _logger = logger;
             _ipV4 = settings.GetIpV4Address();

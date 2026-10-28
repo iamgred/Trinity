@@ -12,7 +12,7 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class PayloadService : IPayloadService
+    public class PayloadService
     {
         private readonly PayloadRepository _payloadRepository;
         private readonly ListenerRespository _listenerRepository;

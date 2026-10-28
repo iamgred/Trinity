@@ -1,6 +1,5 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //    
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Interface;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Smb;
@@ -13,7 +12,7 @@ namespace TeamServer.Controllers
     [ApiController]
     public class ListenerController : ControllerBase
     {
-        private IListenerService _listenerService;
+        private ListenerService _listenerService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -21,7 +20,7 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <remarks>Intended for use with dependency injection.</remarks>
         /// <param name="listenerService">The ListenerService used by the controller to perform listener-related operations.</param>
-        public ListenerController(IListenerService listenerService)
+        public ListenerController(ListenerService listenerService)
         {
             _listenerService = listenerService;
         }
@@ -130,7 +129,7 @@ namespace TeamServer.Controllers
         /// <returns>An IActionResult that is 200 OK if the deletion succeeds, or 400 Bad Request with an error message if it
         /// fails.</returns>
         [HttpDelete("{ID}")]
-        public async Task<IActionResult> DeleteListenerAsync([FromRoute] int ID)
+        public async Task<IActionResult> DeleteListenerAsync([FromRoute] int ID) 
         {
             var result = await _listenerService.RemoveListenerAsync(ID);
             return result.IsSuccess ? Ok() : BadRequest(result.Error);

@@ -1,5 +1,4 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using TeamServer.Services;
 using Trinity.Shared.Models;
@@ -11,16 +10,13 @@ namespace TeamServer.Controllers
     public class OperatorController : ControllerBase
     {
         private readonly OperatorService _operatorService;
-        private readonly IValidator<Operator> _operatorValidator;
         /// <summary>
         /// Initializes a new instance of the OperatorController class with the specified OperatorService.
         /// </summary>
         /// <param name="operatorService"></param>
-        /// <param name="operatorValidator"></param>
-        public OperatorController(OperatorService operatorService, IValidator<Operator> operatorValidator)
+        public OperatorController(OperatorService operatorService)
         {
             _operatorService = operatorService;
-            _operatorValidator = operatorValidator;
         }
         /// <summary>
         /// Gets a list of all operators.
@@ -60,12 +56,6 @@ namespace TeamServer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOperatorAsync([FromBody] Operator newOperator)
         {
-            var validationResult = await _operatorValidator.ValidateAsync(newOperator);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors);
-            }
-
             var result = await _operatorService.CreateOperatorAsync(newOperator);
 
             if (!result.IsSuccess)
@@ -88,13 +78,6 @@ namespace TeamServer.Controllers
             {
                 return BadRequest("Operator ID mismatch.");
             }
-
-            var validationResult = await _operatorValidator.ValidateAsync(updatedOperator);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors);
-            }
-
             var result = await _operatorService.UpdateOperatorAsync(updatedOperator);
             if (!result.IsSuccess)
             {

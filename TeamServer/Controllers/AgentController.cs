@@ -5,8 +5,6 @@ using System.Buffers;
 using System.Text.Json;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Checkin;
-using Trinity.Shared.DTOs.Task;
-using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers
 {
@@ -41,6 +39,14 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpGet("{agentID}")]
+        public async Task<IActionResult> GetAgentDashboard([FromRoute] int agentID)
+        {
+            //var response = await _agentService.GetAgentDashboard(agentID);
+            return Ok();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("checkin")]
         public async Task<IActionResult> Checkin()
         {
@@ -52,12 +58,6 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Generates a intial checkin request base64 encoded (testing purposes only)
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="uuid"></param>
-        /// <returns></returns>
         [HttpPost("base64/initial/checkin")]
         public IActionResult GetIntialBase64([FromBody] IntialCheckInRequest request, [FromQuery] string uuid)
         {
@@ -75,31 +75,8 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Generates a fully established checkin request with responses base64 encoded (testing purposes only)
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="uuid"></param>
-        /// <returns></returns>
         [HttpPost("base64/full/checkin")]
-        public IActionResult GetFullBase64([FromBody] List<TaskResp<string>> request, [FromQuery] string uuid)
-        {
-            var bufferWriter = new ArrayBufferWriter<byte>();
-            Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);
-            int bytesWritten = System.Text.Encoding.UTF8.GetBytes(uuid, uuidSpan);
-            bufferWriter.Advance(bytesWritten);
-
-            using (var jsonWriter = new Utf8JsonWriter(bufferWriter))
-            {
-                JsonSerializer.Serialize(jsonWriter, request);
-            }
-
-            return Ok(Convert.ToBase64String(bufferWriter.WrittenSpan));
-        }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        [HttpPost("base64/error/checkin")]
-        public IActionResult GetFullBase64Error([FromBody] List<TaskResp<Trinity.Shared.DTOs.Task.Error>> request, [FromQuery] string uuid)
+        public IActionResult GetFullBase64([FromBody] ResultRequest request, [FromQuery] string uuid)
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             Span<byte> uuidSpan = bufferWriter.GetSpan(uuid.Length);

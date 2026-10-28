@@ -8,7 +8,7 @@ namespace Trinity.Shared.DTOs.Command
 {
     public class BofDTO : ICommand
     {
-        public string BofPath { get; set; } = String.Empty;
+        public string Bof { get; set; } = String.Empty;
         public string Entrypoint { get; set; } = String.Empty;
         public string Arguements { get; set; } = String.Empty;
     }

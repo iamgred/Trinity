@@ -134,7 +134,11 @@
     private record Account(string Name, string Role);
 
     private Account _current = new("User Name", "Administrator");
-    private readonly List<Account> _accounts = new();
+    private readonly List<Account> _accounts = new()
+    {
+        new("J. Okafor", "Operator"),
+        new("M. Reyes", "Analyst"),
+    };
 
     private void SwitchTo(Account acc)
     {

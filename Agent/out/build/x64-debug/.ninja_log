@@ -1,11 +1,12 @@
 # ninja log v7
-31	1805	8137717051100846	CMakeFiles/Agent.dir/src/CommandDispatcher.cpp.obj	1c413467a7dccbb2
-55	1941	8137717051275522	CMakeFiles/Agent.dir/src/TaskQueueManager.cpp.obj	42aacb91579cb329
-44	2374	8137717051275522	CMakeFiles/Agent.dir/src/AgentModule.cpp.obj	f7a95508da8e1223
-26	1740	8137717466528537	CMakeFiles/Agent.dir/src/Agent.cpp.obj	7072fdfd68aa0fce
-19	3504	8137717050934303	CMakeFiles/Agent.dir/src/CommManager.cpp.obj	32acfccfbac48fca
-1741	2017	8137717485431983	Agent.exe	2fec5efe5f7be4c
-25	1846	8137730858250485	CMakeFiles/Agent.dir/src/Agent.cpp.obj	7072fdfd68aa0fce
-14	1902	8137730858250485	CMakeFiles/Agent.dir/src/CommandDispatcher.cpp.obj	1c413467a7dccbb2
-6	1945	8137730858053089	CMakeFiles/Agent.dir/src/main.cpp.obj	2765da10fc535084
-1946	2245	8137730882579641	Agent.exe	e38df0b7baf4fcde
+18	690	8129046989208602	CMakeFiles/Agent.dir/SleepObf.cpp.obj	5096cfa5d1653ff2
+38	1268	8129046989405466	CMakeFiles/Agent.dir/KeyboardLogger/KeyboardState.cpp.obj	9704816e6402be27
+25	1497	8129046989250557	CMakeFiles/Agent.dir/TaskQueueManager.cpp.obj	2d3c6d28d898c537
+30	1637	8129046989330629	CMakeFiles/Agent.dir/KeyboardLogger/KeyboardHook.cpp.obj	96e6213af767af38
+21	1697	8129046989208602	CMakeFiles/Agent.dir/AgentModule.cpp.obj	b50d1cdebcc5871b
+34	2349	8129046989365108	CMakeFiles/Agent.dir/KeyboardLogger/KeyboardInterpreter.cpp.obj	7654d7f297273aef
+16	2397	8129046989183386	CMakeFiles/Agent.dir/CommandDispatcher.cpp.obj	609a8e617527a1f4
+27	2492	8129046989295258	CMakeFiles/Agent.dir/KeyboardLogger/InputIntentRecorder.cpp.obj	3eea988cc26ab2ad
+12	2511	8129046989122977	CMakeFiles/Agent.dir/CommManager.cpp.obj	fd502acaf8395752
+7	2595	8129046989103522	CMakeFiles/Agent.dir/Agent.cpp.obj	c8ace7864d103004
+2595	2845	8129047014979544	Agent.exe	4a8c3a1b4b05be27

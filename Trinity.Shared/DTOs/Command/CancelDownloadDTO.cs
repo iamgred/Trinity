@@ -8,7 +8,7 @@ namespace Trinity.Shared.DTOs.Command
 {
     public class CancelDownloadDTO : ICommand
     {
-        public int TaskID { get; set; } = default;
+        public string TaskID { get; set; } = String.Empty;
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

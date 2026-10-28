@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Text;
 using System.Text.Json;
+using TeamServer.Interface;
 using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;
@@ -16,7 +17,7 @@ using static Trinity.Shared.Constants.SectionLayout;
 
 namespace TeamServer.Services
 {
-    public class AgentService
+    public class AgentService : IAgentService
     {
         private readonly AgentRepository _agentRepo;
         private readonly AgentFactory _agentFactory;

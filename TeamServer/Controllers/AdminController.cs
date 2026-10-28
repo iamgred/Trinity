@@ -1,5 +1,6 @@
 // ===================================================== { START OF FILE } ===================================================== //
 using Microsoft.AspNetCore.Mvc;
+using TeamServer.Interface;
 using TeamServer.Services;
 using Trinity.Shared.Models;
 
@@ -9,9 +10,9 @@ namespace TeamServer.Controllers
     [Route(Routes.Admins)]
     public class AdminController : ControllerBase
     {
-        private readonly AdminService _adminService;
+        private readonly IAdminService _adminService;
 
-        public AdminController(AdminService adminService)
+        public AdminController(IAdminService adminService)
         {
             _adminService = adminService;
         }

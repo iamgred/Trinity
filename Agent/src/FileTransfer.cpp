@@ -47,7 +47,7 @@ namespace FileTransfer
         }
     }
 
-    bool SendFile(const std::string &filePath, const std::string &transferId, const std::string &apiUrl, std::size_t chunkSize)
+    Response SendFile(const std::string &filePath, const std::string &transferId, const std::string &apiUrl, std::size_t chunkSize)
     {
         if (chunkSize == 0)
             return false;
@@ -79,6 +79,7 @@ namespace FileTransfer
                 return false;
         }
         return PostBinary(baseUrl + "/rebuild", nullptr, 0);
+        return CreateTaskResponse(taskID, DOWNLOAD, DOWNLOAD_CHUNK, MORE_TO_FOLLOW, TaskSuccess{result});
     }
 
     bool RebuildFile(const std::string &transferId, const std::string &outputPath)

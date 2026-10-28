@@ -9,36 +9,11 @@
 
 Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 {
-	rapidjson::Document doc;
+
+	rapidjson::Document doc = {};
 	doc.Parse(rawJson.c_str());
 
-	// Validate JSON
-	if (doc.HasParseError() || !doc.IsObject())
-		return TaskRequest<bool>{};
-
-	// Support both uppercase and lowercase field names.
-	const auto &taskIdValue =
-		doc.HasMember("TaskID") ? doc["TaskID"] : doc.HasMember("taskID") ? doc["taskID"]
-																		  : doc["taskID"];
-
-	const auto &typeValue =
-		doc.HasMember("TaskType") ? doc["TaskType"] : doc.HasMember("taskType") ? doc["taskType"]
-												  : doc.HasMember("type")		? doc["type"]
-																				: doc["type"];
-
-	const auto &codeValue =
-		doc.HasMember("TaskCode") ? doc["TaskCode"] : doc.HasMember("taskCode") ? doc["taskCode"]
-																				: doc["code"];
-
-	const auto &statusValue =
-		doc.HasMember("Status") ? doc["Status"] : doc["status"];
-
-	// Validate required fields before reading them.
-	if (!taskIdValue.IsInt() ||
-		!typeValue.IsInt() ||
-		!codeValue.IsInt() ||
-		!statusValue.IsInt())
-		int taskID = doc["TaskID"].GetInt();
+	int taskID = doc["TaskID"].GetInt();
 	int type = doc["TaskType"].GetInt();
 	int code = doc["TaskCode"].GetInt();
 	int status = doc["Status"].GetInt();
@@ -46,50 +21,31 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 
 	switch (type)
 	{
-		return TaskRequest<bool>{};
-	}
+	case POWERSHELL:
+		auto cmd = node["Commandlet"].GetString();
+		auto arg = node["Arguements"].GetString();
+		return CreateTaskRequest<CommandPowershell>(taskID, type, code, status, CommandPowershell{cmd, arg});
+		break;
 
-	const int taskID = taskIdValue.GetInt();
-	const int type = typeValue.GetInt();
-	const int code = codeValue.GetInt();
-	const int status = statusValue.GetInt();
-
-	// Support "data", "Command", and "command" structures.
-	const rapidjson::Value *command = nullptr;
-
-	if (doc.HasMember("data") && doc["data"].IsObject())
-		command = &doc["data"];
-	else if (doc.HasMember("Command") && doc["Command"].IsObject())
-		command = &doc["Command"];
-	else if (doc.HasMember("command") && doc["command"].IsObject())
-		command = &doc["command"];
-
-	// No command object: return a valid envelope with no parsed payload.
-	if (command == nullptr)
-		return TaskRequest<bool>{taskID, type, code, status, false};
-
-	const auto &node = *command;
-
-	// --------------------------------------------------
-	// Upload / Download path
-	// --------------------------------------------------
-	const char *pathKey =
-		node.HasMember("Path") ? "Path" : "path";
-
-	if (type == UPLOAD &&
-		node.HasMember(pathKey) &&
-		node[pathKey].IsString())
+	case UPLOAD:
 	{
+		if (!node.HasMember("Path") || !node["Path"].IsString())
+			return TaskRequest<bool>{};
+
 		return TaskRequest<CommandUploadFile>{
 			taskID, type, code, status,
-			CommandUploadFile{node[pathKey].GetString()}};
+			CommandUploadFile{node["Path"].GetString()}};
 	}
 
-	if (type == DOWNLOAD_2 &&
-		code == DOWNLOAD &&
-		node.HasMember(pathKey) &&
-		node[pathKey].IsString())
+	case DOWNLOAD_2:
 	{
+		if (code != DOWNLOAD ||
+			!node.HasMember("Path") ||
+			!node["Path"].IsString())
+		{
+			return TaskRequest<bool>{};
+		}
+
 		const char *data =
 			node.HasMember("Data") && node["Data"].IsString()
 				? node["Data"].GetString()
@@ -110,19 +66,24 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 				? node["Final"].GetBool()
 				: false;
 
-		return TaskRequest<CommandDownloadFile>{
-			taskID, type, code, status,
+		return CreateTaskRequest<CommandDownloadFile>(
+			taskID,
+			type,
+			code,
+			status,
 			CommandDownloadFile{
-				node[pathKey].GetString(),
+				node["Path"].GetString(),
 				data,
 				offset,
 				totalBytes,
-				final}};
+				final});
 	}
 
-	return TaskRequest<bool>{taskID, type, code, status, false};
+	default:
+		TaskRequest<bool> test;
+		return test;
+	}
 }
-
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Default constructor
 TaskQueueManager::TaskQueueManager()

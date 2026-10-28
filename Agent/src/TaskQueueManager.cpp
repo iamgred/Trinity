@@ -4,9 +4,6 @@
 #include "rapidjson/writer.h" 
 #include "Task.h"
 
-#define SUCCESSFUL "Successful"
-#define FAILURE "Failure"
-
 Request TaskQueueManager::ParseTaskRequest(const std::string& rawJson)
 {
 

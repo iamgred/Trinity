@@ -15,7 +15,7 @@
 #define RUN_AS				5
 #define RUN_U 				6
 #define KILL_PROCESS		7
-#define DOWNLOAD 			8
+#define DOWNLOAD_CHUNK 		8
 #define CANCEL_DOWNLOAD 	9
 
 // Task Types 
@@ -25,7 +25,7 @@
 #define POWERSHELL			3
 #define SET					4
 #define PROCESS				5
-#define DOWNLOAD_2			6
+#define DOWNLOAD			6
 #define UPLOAD				7
 #define SHELL				8
 #define ESCALATE			9
@@ -143,7 +143,7 @@ struct TaskSuccess
 
 		rapidjson::Value outputVal;
 		outputVal.SetString(output.c_str(), static_cast<rapidjson::SizeType>(output.length()), allocator);
-		obj.AddMember("output", outputVal, allocator);
+		obj.AddMember("Output", outputVal, allocator);
 
 		return obj;
 	}
@@ -157,10 +157,10 @@ struct TaskError
 	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType& allocator) const {
 		rapidjson::Value obj(rapidjson::kObjectType);
 
-		obj.AddMember("code", code, allocator);
+		obj.AddMember("Code", code, allocator);
 		rapidjson::Value msgVal;
 		msgVal.SetString(message.c_str(), static_cast<rapidjson::SizeType>(message.length()), allocator);
-		obj.AddMember("message", msgVal, allocator);
+		obj.AddMember("Message", msgVal, allocator);
 
 		return obj;
 	}

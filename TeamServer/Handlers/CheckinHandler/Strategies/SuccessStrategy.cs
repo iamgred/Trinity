@@ -5,7 +5,6 @@ using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
-using Trinity.Shared.Results;
 
 namespace TeamServer.Handlers.CheckinHandler.Strategies
 {
@@ -35,11 +34,11 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
             var taskID = element.GetProperty("TaskID").GetInt32();
             var task = await _taskRepo.GetByIdAsync(taskID) ?? throw new ArgumentNullException("Task does not exist!");
 
-            var response = JsonSerializer.Deserialize<TaskResp<string>>(element);
+            var response = JsonSerializer.Deserialize<TaskResp<TaskSuccessResponse>>(element);
             if (response != null)
             {
                 task.Status = Status.SUCCESS;
-                task.Result = new TaskResult { TaskID = task.ID, Result = response.Data };
+                task.Result = new TaskResult { TaskID = task.ID, Result = response.Data.Output };
                 await _taskRepo.CommitAsync();
             }
         }

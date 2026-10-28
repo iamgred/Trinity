@@ -93,14 +93,13 @@ Response Agent::ExecutePowerShell(const int& taskID, const CommandPowershell& ps
     std::string result;
     std::string psCommand = "powershell.exe -Command \"" + psRequest.commandlet + "\"";
     FILE* pipe = _popen(psCommand.c_str(), "r");
-    if (!pipe)
+    if (pipe)
     {
         return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskError{ 0, "Failed to open process pipe." });
     }
 
     char buffer[128];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
-
     {
         result += buffer;
     }

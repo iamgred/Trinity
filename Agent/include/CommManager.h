@@ -1,13 +1,16 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 #pragma once
 #include <string>
+#include "FileTransfer.h"
 
-class CommManager {
+class CommManager
+{
 public:
 	CommManager();
 
-	std::string Checkin(const std::string& json = "");
-	void IntialCheckin(const std::string& json);
+	std::string Checkin(const std::string &json = "");
+	void IntialCheckin(const std::string &json);
+	bool SendFile(const std::string &filePath);
 
 private: 
 	std::string payloadUUID;

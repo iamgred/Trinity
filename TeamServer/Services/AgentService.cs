@@ -9,6 +9,7 @@ using TeamServer.Utils;
 using Trinity.Shared.DTOs.Agent;
 using Trinity.Shared.DTOs.Checkin;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
 using static Trinity.Shared.Constants.CheckinRequestOffsets;
@@ -29,6 +30,7 @@ namespace TeamServer.Services
         private readonly ICheckinResponseHandler _responseHandler;
         private readonly IHostFactory _hostFactory;
         private readonly ITaskRequestFactory _taskRequestFactory;
+        private readonly IFileTransferService _fileTransferService;
 
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -36,7 +38,7 @@ namespace TeamServer.Services
             AgentFactory agentFactory, TaskResultRepository taskResultRepository, TaskResultFactory taskResultFactory,
             HostRepository hostRepository, PayloadRepository payloadRepository, IHubContext<NotificationHub> hubContext,
             ICheckinResponseHandler checkinResponseHandler, IHostFactory hostFactory,
-            ITaskRequestFactory taskRequestFactory)
+            ITaskRequestFactory taskRequestFactory, IFileTransferService fileTransferService)
         {
             _agentRepo = agentRepository;
             _agentFactory = agentFactory;
@@ -49,6 +51,7 @@ namespace TeamServer.Services
             _responseHandler = checkinResponseHandler;
             _hostFactory = hostFactory;
             _taskRequestFactory = taskRequestFactory;
+            _fileTransferService = fileTransferService;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -73,7 +76,7 @@ namespace TeamServer.Services
                 return await ProcessIntialCheckin(uuid, response);
             }
 
-            var request = await ProcessFullyEstablishedCheckin(agent.ID, response);
+            var request = await ProcessFullyEstablishedCheckin(agent.ID, uuid, response);
             return FormatRequest(uuid, request);
         }
 
@@ -86,7 +89,7 @@ namespace TeamServer.Services
         /// <returns></returns>
         private async Task<string> ProcessIntialCheckin(string uuid, ReadOnlyMemory<byte> requestBody)
         {
-            var data = JsonSerializer.Deserialize<IntialCheckInRequest>(requestBody.Span);
+            var data = JsonSerializer.Deserialize<IntialCheckInRequest>(requestBody.Span) ?? new IntialCheckInRequest();
             var payload = await _payloadRepo.GetPayloadByUUIDAsync(uuid);
 
             var agent = _agentFactory.Create(data!, payload!.AES256KEY, 5000, 10, Util.GetEnumValue<Architectures>(payload.Architecture), payload.ID);
@@ -107,7 +110,7 @@ namespace TeamServer.Services
         /// <param name="agentID"></param>
         /// <param name="requestBody"></param>
         /// <returns></returns>
-        private async Task<string> ProcessFullyEstablishedCheckin(int agentID, ReadOnlyMemory<byte> requestBody)
+        private async Task<string> ProcessFullyEstablishedCheckin(int agentID, string agentKey, ReadOnlyMemory<byte> requestBody)
         {
             using JsonDocument doc = JsonDocument.Parse(requestBody);
             var taskResults = doc.RootElement.EnumerateArray();
@@ -117,11 +120,38 @@ namespace TeamServer.Services
                 while (taskResults.MoveNext())
                 {
                     await _responseHandler.HandleResponseAsync(taskResults.Current);
+                    await AdvanceDownloadAsync(taskResults.Current, agentKey);
                 }
             }
 
             var task = await _taskRepo.GetTaskFromQueueAsync(agentID);
+            if (task?.CommandType == TaskType.DOWNLOAD && task.Code == TaskCode.DOWNLOAD)
+            {
+                var command = await _fileTransferService.PrepareDownloadChunkAsync(task, agentKey);
+                await _taskRepo.CommitAsync();
+                return _taskRequestFactory.Create(task, command);
+            }
             return _taskRequestFactory.Create(task);
+        }
+
+        private async Task AdvanceDownloadAsync(JsonElement response, string agentKey)
+        {
+            if (!response.TryGetProperty("Status", out var statusElement)
+                || statusElement.GetInt32() != (int)Status.SUCCESS)
+                return;
+
+            var taskId = response.GetProperty("TaskID").GetInt32();
+            var task = await _taskRepo.GetByIdAsync(taskId);
+            if (task?.CommandType != TaskType.DOWNLOAD || task.Code != TaskCode.DOWNLOAD)
+                return;
+
+            var final = task.Command.RootElement.TryGetProperty("Final", out var finalElement)
+                && finalElement.GetBoolean();
+            if (!final)
+            {
+                task.Status = Status.QUEUED;
+                await _taskRepo.CommitAsync();
+            }
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

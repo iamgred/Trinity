@@ -39,6 +39,9 @@ namespace TeamServer
             builder.Services.AddScoped<CampaignService>();
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<DatabaseService>();
+            builder.Services.AddScoped<IFileTransferService, FileTransferService>();
+            builder.Services.AddScoped<IReceivedFileService, ReceivedFileService>();
+            builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
 
             // Handlers 
             builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();
@@ -130,6 +133,12 @@ namespace TeamServer
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<Context>();
+
+                if (builder.Configuration.GetValue<bool>("ApplyMigrations"))
+                {
+                    context.Database.Migrate();
+                }
+
                 StatusCacheService.Intialise(context);
             }
 
@@ -146,8 +155,12 @@ namespace TeamServer
 
             app.MapHub<NotificationHub>("/register");
             app.UseExceptionHandler();
-            app.UseHttpsRedirection();
+            if (app.Configuration.GetValue<bool>("EnableHttpsRedirection"))
+            {
+                app.UseHttpsRedirection();
+            }
             app.UseAuthorization();
+            app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
             app.MapControllers();
             app.Run();
         }

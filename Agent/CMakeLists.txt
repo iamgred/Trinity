@@ -19,15 +19,16 @@ set(WIDE_HOSTS_LIST "L${HOSTS_INITIALIZER}")
 
 # Payload UUID Configuration
 set(INPUT_PAYLOAD_UUID "0c71632c-217f-46ce-bb81-dbfd32dd18ac" CACHE STRING "The payload unique identifier")
-string(STRIP "${INPUT_PAYLOAD_UUID}" INPUT_PAYLOAD_UUID)
 
 # Port Configuration
 set(PORT 5069 CACHE STRING "The primary target connection port")
 string(STRIP "${PORT}" CLEAN_PORT)
 
 # User Agent Configuration
-set(INPUT_USER_AGENT "Trinity Agent Client 1.0" CACHE STRING "The user agent for requests")
-set(WIDE_USER_AGENT L${INPUT_USER_AGENT} INPUT_USER_AGENT )
+set(INPUT_USER_AGENT "Trinity Agent Client/1.0" CACHE STRING "The user agent for requests")
+
+# Agent Header Configuration
+set(INPUT_REQUEST_HEADER "Content-Type: application/json\r\n" CACHE STRING "The agent request header")
 
 # Add source to this project's executable.
 add_executable (
@@ -49,12 +50,12 @@ add_executable (
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 target_include_directories(Agent PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(Agent PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_compile_definitions(Agent PRIVATE 
-    COMM_HOSTS_LIST=${WIDE_HOSTS_LIST}
-    COMM_PAYLOAD_UUID=${INPUT_PAYLOAD_UUID}
-    COMM_PORT=${CLEAN_PORT}
-    COMM_USER_AGENT=${WIDE_USER_AGENT}
-)
+target_compile_definitions(Agent PRIVATE COMM_HOSTS_LIST=${WIDE_HOSTS_LIST})
+target_compile_definitions(Agent PRIVATE COMM_PAYLOAD_UUID="${INPUT_PAYLOAD_UUID}")
+target_compile_definitions(Agent PRIVATE COMM_USER_AGENT="${INPUT_USER_AGENT}")
+target_compile_definitions(Agent PRIVATE COMM_PORT=${CLEAN_PORT})
+target_compile_definitions(Agent PRIVATE COMM_REQUEST_HEADER="${INPUT_REQUEST_HEADER}")
+
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)

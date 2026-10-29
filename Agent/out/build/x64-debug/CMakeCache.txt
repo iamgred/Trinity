@@ -222,8 +222,11 @@ INPUT_HOSTS:STRING=localhost
 //The payload unique identifier
 INPUT_PAYLOAD_UUID:STRING=0c71632c-217f-46ce-bb81-dbfd32dd18ac
 
+//The agent request header
+INPUT_REQUEST_HEADER:STRING=Content-Type: application/json
+
 //The user agent for requests
-INPUT_USER_AGENT:STRING=Trinity Agent Client 1.0
+INPUT_USER_AGENT:STRING=Trinity Agent Client/1.0
 
 //The primary target connection port
 PORT:STRING=5069

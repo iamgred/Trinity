@@ -1,0 +1,147 @@
+@using System.Net.Http.Json
+@using System.Text.Json
+@using Client.Components.UI
+@using Client.Services
+@using Trinity.Shared.DTOs.Payload
+@using Campaign = Trinity.Shared.Models.Campaign
+@inject ListenerApiClient ListenerApi
+@inject CampaignService CampaignService
+@inject IHttpClientFactory HttpFactory
+
+<Modal Title="Generate Payload" Subtitle="Build an agent that calls back to a listener" IconName="nav-generate.svg"
+       FootNote="Built on the team server and added to Payloads." Error="@_error" OnClose="OnClose">
+    <ChildContent>
+        <div class="ts-modal__row">
+            <label for="gp-name">Name</label>
+            <div class="ts-field"><input id="gp-name" @bind="_name" @bind:event="oninput" /></div>
+        </div>
+
+        <div class="ts-modal__row">
+            <label for="gp-listener">Listener</label>
+            <div class="ts-field">
+                <select id="gp-listener" @bind="_listenerId">
+                    @if (_listeners.Count == 0)
+                    {
+                        <option value="0">No listeners running</option>
+                    }
+                    @foreach (var listener in _listeners)
+                    {
+                        <option value="@listener.id">@listener.name · @listener.protocol.ToUpperInvariant()</option>
+                    }
+                </select>
+                <Icon Name="select-chevron.svg" Size="14" />
+            </div>
+        </div>
+
+        <div class="ts-modal__row">
+            <label>Architecture</label>
+            <div>
+                <span class="gp-arch"><Icon Name="lucide-lock.svg" Size="12" /> x64</span>
+                <p class="ts-modal__hint">Trinity agents are built for x64 only.</p>
+            </div>
+        </div>
+
+        <div class="ts-modal__row">
+            <label>Payload Type</label>
+            <SegmentedToggle Options="PayloadTypes" @bind-Value="_type" />
+        </div>
+
+        <div class="ts-modal__row">
+            <label for="gp-campaign">Campaign</label>
+            <div class="ts-field">
+                <Icon Name="lucide-flag.svg" Size="13" Class="gp-flag" />
+                <select id="gp-campaign" @bind="_campaignId">
+                    @if (_campaigns.Count == 0)
+                    {
+                        <option value="0">No campaigns</option>
+                    }
+                    @foreach (var campaign in _campaigns)
+                    {
+                        <option value="@campaign.ID">@campaign.Name</option>
+                    }
+                </select>
+                <Icon Name="select-chevron.svg" Size="14" />
+            </div>
+        </div>
+    </ChildContent>
+    <Footer>
+        <button type="button" class="ts-btn" @onclick="OnClose">Cancel</button>
+        <button type="button" class="ts-btn ts-btn--primary" disabled="@_busy" @onclick="GenerateAsync">@(_busy ? "Generating…" : "Generate")</button>
+    </Footer>
+</Modal>
+
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnGenerated { get; set; }
+
+    
+    private static readonly IReadOnlyList<string> PayloadTypes = ["winexe", "dll"];
+
+    private IReadOnlyList<ListenerResponse> _listeners = [];
+    private List<Campaign> _campaigns = [];
+    private string _name = "agent_x64";
+    private int _listenerId;
+    private int _campaignId;
+    private string _type = "winexe";
+    private string? _error;
+    private bool _busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _listeners = await ListenerApi.GetListenersAsync();
+            _campaigns = await CampaignService.GetAllAsync();
+        }
+        catch (Exception e) when (e is HttpRequestException or InvalidOperationException or JsonException)
+        {
+            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not load listeners or campaigns: {e.Message}";
+        }
+
+        _listenerId = _listeners.FirstOrDefault()?.id ?? 0;
+        _campaignId = _campaigns.FirstOrDefault()?.ID ?? 0;
+    }
+
+    private async Task GenerateAsync()
+    {
+        _error = null;
+        if (string.IsNullOrWhiteSpace(_name) || _listenerId == 0 || _campaignId == 0)
+        {
+            _error = "Enter a name and pick a listener and a campaign.";
+            return;
+        }
+
+        var request = new PayloadCreationDTO
+        {
+            Name = _name.Trim(),
+            ListenerID = _listenerId,
+            CampaignID = _campaignId,
+            Architecture = "x64",
+            Type = _type,
+            OutputFormat = _type,
+        };
+
+        _busy = true;
+        try
+        {
+            // TODO(connect to backend): the shared PayloadService uses the wrong address, so the right one is called here
+            var http = HttpFactory.CreateClient("TeamServer");
+            var response = await http.PostAsJsonAsync("/api/v1/payloads/generate", request);
+            if (!response.IsSuccessStatusCode)
+            {
+                _error = $"The team server refused the build ({(int)response.StatusCode}).";
+                return;
+            }
+
+            await OnGenerated.InvokeAsync();
+        }
+        catch (HttpRequestException e)
+        {
+            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not reach the team server: {e.Message}";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

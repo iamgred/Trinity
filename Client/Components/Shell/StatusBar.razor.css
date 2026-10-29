@@ -1,0 +1,34 @@
+.ts-statusbar {
+    flex: 0 0 27px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 12px;
+    background: var(--ts-surface);
+    border-top: 1px solid var(--ts-border);
+    color: var(--ts-text-3);
+    font-family: var(--ts-mono);
+    font-size: 11px;
+}
+
+.ts-statusbar__conn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ts-statusbar__version {
+    margin-left: auto;
+}
+
+.ts-dot {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 3.5px;
+    background: var(--ts-green);
+}
+
+.ts-dot.is-down {
+    background: var(--ts-red);
+}

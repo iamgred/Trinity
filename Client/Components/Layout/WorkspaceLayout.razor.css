@@ -1,0 +1,77 @@
+/* colours and fonts */
+.ts {
+    --ts-bg: #0e0e10;
+    --ts-surface: #161618;
+    --ts-input: #202024;
+    --ts-raised: #232327;
+    --ts-border: #2c2c30;
+    --ts-row-border: rgba(44, 44, 48, 0.6);
+    --ts-text: #f5f5f7;
+    --ts-text-2: #9a9aa2;
+    --ts-text-3: #6c6c74;
+    --ts-orange: #f57a1e;
+    --ts-orange-deep: #c85e10;
+    --ts-on-orange: #1a0d03;
+    --ts-orange-tint: rgba(245, 122, 30, 0.13);
+    --ts-green: #35c759;
+    --ts-red: #e5484d;
+    --ts-yellow: #f5c518;
+    --ts-blue: #6ea2f8;
+    --ts-purple: #c08af9;
+    --ts-sans: "Inter", system-ui, sans-serif;
+    --ts-mono: "JetBrains Mono", ui-monospace, monospace;
+
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--ts-bg);
+    color: var(--ts-text);
+    font-family: var(--ts-sans);
+    font-size: 13px;
+    line-height: normal;
+    overflow: hidden;
+}
+
+.ts-agents {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--ts-bg);
+}
+
+.ts-splitter {
+    flex: 0 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: var(--ts-surface);
+    border-top: 1px solid var(--ts-border);
+    border-bottom: 1px solid var(--ts-border);
+    cursor: row-resize;
+}
+
+.ts-splitter i {
+    width: 3px;
+    height: 3px;
+    border-radius: 1.5px;
+    background: var(--ts-text-3);
+}
+
+.ts-resize-capture {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    cursor: row-resize;
+}
+
+.ts-page {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--ts-bg);
+    overflow: hidden;
+}

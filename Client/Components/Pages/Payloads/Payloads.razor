@@ -1,0 +1,123 @@
+@page "/payloads"
+@layout WorkspaceLayout
+@using System.Text.Json
+@using Client.Components.Shell
+@using Client.Components.UI
+@using Client.Services
+@using Trinity.Shared.DTOs.Payload
+@inject PayloadService PayloadService
+@inject NavigationManager Nav
+
+<PageTitle>Trinity · Payloads</PageTitle>
+
+@if (_loadError is not null)
+{
+    <div class="ts-notice" role="status">
+        <span>@_loadError</span>
+        <button type="button" @onclick="LoadAsync">Retry</button>
+    </div>
+}
+
+<div class="payloads__scroll">
+    <table class="ts-table">
+        <colgroup>
+            <col style="width:30%" /><col style="width:16.9%" /><col style="width:16.9%" /><col style="width:11.8%" /><col style="width:24.4%" />
+        </colgroup>
+        <thead>
+            <tr><th>name</th><th>type</th><th>listener</th><th>size</th><th>created</th></tr>
+        </thead>
+        <tbody>
+            @if (_payloads.Count == 0)
+            {
+                <tr class="ts-empty"><td colspan="5">@(_loading ? "Loading payloads…" : "No payloads yet. Use Generate to build one.")</td></tr>
+            }
+            @foreach (var payload in _payloads)
+            {
+                <tr class="@(payload == _selected ? "is-selected" : null)" @onclick="() => _selected = payload">
+                    <td><span class="payloads__name"><Icon Name="lucide-file.svg" Size="13" /> @payload.Name</span></td>
+                    <td>@payload.Type</td>
+                    @* TODO(connect to backend): payloads don't say which listener they use *@
+                    <td class="ts-muted">–</td>
+                    <td>@FormatSize(payload.Size)</td>
+                    <td>@payload.CreateTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<ActionBar>
+    <button type="button" class="ts-btn ts-btn--primary" @onclick="() => _generateOpen = true"><Icon Name="nav-generate.svg" Size="13" /> Generate</button>
+    @* TODO(connect to backend): payloads have no ID, so Save and Remove stay off *@
+    <button type="button" class="ts-btn" disabled title="Needs a payload ID from the API"><Icon Name="btn-save.svg" Size="13" /> Save to Disk</button>
+    <button type="button" class="ts-btn ts-btn--danger" disabled title="The team server has no delete route for payloads yet">Remove</button>
+</ActionBar>
+
+@if (_generateOpen)
+{
+    <GeneratePayloadDialog OnClose="CloseGenerate" OnGenerated="OnGeneratedAsync" />
+}
+
+@code {
+    [CascadingParameter] private WorkspaceState State { get; set; } = default!;
+
+    [SupplyParameterFromQuery(Name = "generate")]
+    public int? GenerateQuery { get; set; }
+
+    private List<PayloadDTO> _payloads = [];
+    private PayloadDTO? _selected;
+    private string? _loadError;
+    private bool _loading;
+    private bool _generateOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        State.OpenTab("Payloads", "payloads");
+        await LoadAsync();
+    }
+
+    // opens the Generate popup when you come from nav
+    protected override void OnParametersSet()
+    {
+        if (GenerateQuery == 1)
+        {
+            _generateOpen = true;
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            _payloads = (await PayloadService.GetAllAsync()).OrderByDescending(p => p.CreateTime).ToList();
+            _selected = _payloads.FirstOrDefault();
+            _loadError = null;
+        }
+        catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+        {
+            _loadError = ServerDown.Is(e) ? ServerDown.Message : $"Could not load payloads: {e.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void CloseGenerate()
+    {
+        _generateOpen = false;
+        if (GenerateQuery == 1)
+        {
+            Nav.NavigateTo("payloads", replace: true);
+        }
+    }
+
+    private async Task OnGeneratedAsync()
+    {
+        CloseGenerate();
+        await LoadAsync();
+    }
+
+    private static string FormatSize(int bytes) => bytes >= 1_048_576 ? $"{bytes / 1_048_576.0:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024.0))} KB";
+}

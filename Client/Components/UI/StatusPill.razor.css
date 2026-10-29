@@ -1,0 +1,31 @@
+.ts-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: var(--ts-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--c);
+    background: var(--bg);
+}
+
+.ts-pill::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 2.5px;
+    background: var(--c);
+}
+
+.ts-pill--blue { --c: var(--ts-blue); --bg: rgba(59, 130, 246, 0.16); }
+.ts-pill--purple { --c: var(--ts-purple); --bg: rgba(168, 85, 247, 0.16); }
+.ts-pill--orange { --c: var(--ts-orange); --bg: rgba(245, 122, 30, 0.16); }
+.ts-pill--green { --c: var(--ts-green); --bg: rgba(53, 199, 89, 0.14); }
+.ts-pill--yellow { --c: var(--ts-yellow); --bg: rgba(245, 197, 24, 0.14); }
+.ts-pill--red { --c: var(--ts-red); --bg: rgba(229, 72, 77, 0.14); }
+.ts-pill--grey { --c: var(--ts-text-2); --bg: var(--ts-raised); }

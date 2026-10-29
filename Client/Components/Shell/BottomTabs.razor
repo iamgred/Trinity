@@ -1,0 +1,43 @@
+@using Client.Components.UI
+@inject NavigationManager Nav
+@implements IDisposable
+
+<div class="ts-tabs" role="tablist">
+    @foreach (var tab in State.Tabs)
+    {
+        var active = IsCurrent(tab.Href);
+        <div class="ts-tabs__tab @(active ? "is-active" : null)" role="tab" aria-selected="@active">
+            <a href="@tab.Href">@tab.Title</a>
+            <button type="button" title="Close @tab.Title" @onclick="() => Close(tab)"><Icon Name="tab-close.svg" Size="11" /></button>
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] public WorkspaceState State { get; set; } = default!;
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    private bool IsCurrent(string href) => Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].Equals(href, StringComparison.OrdinalIgnoreCase);
+
+    private void Close(ShellTab tab)
+    {
+        // dont ever close the last tab
+        if (State.Tabs.Count == 1)
+        {
+            return;
+        }
+
+        var wasActive = IsCurrent(tab.Href);
+        State.Tabs.Remove(tab);
+        State.Notify();
+        if (wasActive)
+        {
+            Nav.NavigateTo(State.Tabs[^1].Href);
+        }
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

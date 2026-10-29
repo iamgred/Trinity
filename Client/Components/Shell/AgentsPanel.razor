@@ -1,0 +1,115 @@
+@using Client.Components.UI
+@using Trinity.Shared.DTOs.Agent
+@inject NavigationManager Nav
+
+<div class="ts-agents__strip">
+    <span class="ts-agents__count">AGENTS · @State.Agents.Count</span>
+    <span class="ts-agents__hint">Right-click an agent for actions · double-click to interact</span>
+    <div class="ts-agents__view">
+        <button type="button" class="is-on"><Icon Name="toggle-table.svg" Size="12" /> Table</button>
+        @* TODO: Pivot Graph view (teammate's screen 02) *@
+        <button type="button" disabled title="Pivot Graph is not in the new shell yet"><Icon Name="toggle-graph.svg" Size="12" /> Graph</button>
+    </div>
+</div>
+
+<div class="ts-agents__scroll">
+    <table class="ts-table">
+        <colgroup>
+            <col style="width:6.5%" /><col style="width:10.8%" /><col style="width:10.8%" /><col style="width:9.4%" />
+            <col style="width:20.6%" /><col style="width:11.5%" /><col style="width:5.2%" /><col style="width:4.9%" />
+            <col style="width:8.2%" /><col style="width:6.5%" /><col style="width:5.6%" />
+        </colgroup>
+        <thead>
+            <tr>
+                <th>id</th><th>external</th><th>internal</th><th>listener</th><th>user</th><th>process</th>
+                <th>pid</th><th>arch</th><th>integrity</th>
+                <th class="is-sorted">last <Icon Name="sort-chevron.svg" Size="11" /></th>
+                <th>sleep</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (State.AgentsError is not null)
+            {
+                <tr class="ts-empty"><td colspan="11">@State.AgentsError</td></tr>
+            }
+            else if (!State.Agents.Any())
+            {
+                <tr class="ts-empty"><td colspan="11">No agents have checked in yet.</td></tr>
+            }
+            else
+            {
+                @foreach (var agent in State.FilteredAgents)
+                {
+                    var selected = agent.agentID == State.SelectedAgentId;
+                    var smb = WorkspaceState.IsSmb(agent);
+                    <tr class="@(selected ? "is-selected" : null) @(WorkspaceState.IsStale(agent) ? "is-stale" : null)"
+                        @onclick="() => Select(agent)"
+                        @ondblclick="() => Interact(agent)"
+                        @oncontextmenu="e => OpenMenu(agent, e)" @oncontextmenu:preventDefault="true">
+                        <td>
+                            <span class="ts-agents__id @(smb ? "is-child" : null)">
+                                <Icon Name="@(smb ? "agent-smb.svg" : "agent-direct.svg")" Size="13"
+                                      Class="@(smb ? "is-smb" : selected ? "is-selected" : null)" />
+                                @agent.agentID
+                            </span>
+                        </td>
+                        <td>@(smb ? "–" : agent.externalIP)</td>
+                        <td>@agent.internalIP</td>
+                        <td>@agent.listener</td>
+                        <td>@agent.username</td>
+                        <td>@agent.processName</td>
+                        <td>@agent.PID</td>
+                        <td>@agent.arch</td>
+                        <td class="@(IsHigh(agent) ? "ts-agents__high" : null)">@agent.integrity</td>
+                        <td>@WorkspaceState.FormatAgo(WorkspaceState.SinceLastCheckIn(agent))</td>
+                        <td>@(agent.sleep)s</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (_menuAgent is not null)
+{
+    <AgentContextMenu Agent="_menuAgent" X="_menuX" Y="_menuY"
+                      OnClose="CloseMenu"
+                      OnInteract="() => Interact(_menuAgent)"
+                      OnLoot="() => OpenLoot(_menuAgent)" />
+}
+
+@code {
+    [CascadingParameter] public WorkspaceState State { get; set; } = default!;
+
+    private AgentResponse? _menuAgent;
+    private double _menuX;
+    private double _menuY;
+
+    private static bool IsHigh(AgentResponse agent) =>
+        agent.integrity.Equals("High", StringComparison.OrdinalIgnoreCase) || agent.integrity.Equals("System", StringComparison.OrdinalIgnoreCase);
+
+    private void Select(AgentResponse agent)
+    {
+        State.SelectedAgentId = agent.agentID;
+        State.Notify();
+    }
+
+    private void OpenMenu(AgentResponse agent, MouseEventArgs e)
+    {
+        Select(agent);
+        _menuAgent = agent;
+        _menuX = e.ClientX;
+        _menuY = e.ClientY;
+    }
+
+    private void CloseMenu() => _menuAgent = null;
+
+    // opens the teammate's Interact page
+    private void Interact(AgentResponse agent) => Nav.NavigateTo($"agents/{agent.agentID}/interact");
+
+    private void OpenLoot(AgentResponse agent)
+    {
+        _menuAgent = null;
+        Nav.NavigateTo($"loot?agent={agent.agentID}");
+    }
+}

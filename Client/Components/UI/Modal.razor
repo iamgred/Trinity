@@ -1,0 +1,35 @@
+<div class="ts-overlay" @onclick="OnClose">
+    <div class="ts-modal" role="dialog" aria-modal="true" aria-label="@Title" @onclick:stopPropagation="true">
+        <div class="ts-modal__head">
+            <span class="ts-modal__badge"><Icon Name="@IconName" Size="17" /></span>
+            <div>
+                <div class="ts-modal__title">@Title</div>
+                <div class="ts-modal__sub">@Subtitle</div>
+            </div>
+            <button type="button" class="ts-modal__close" title="Close" @onclick="OnClose"><Icon Name="lucide-x.svg" Size="16" /></button>
+        </div>
+
+        <div class="ts-modal__body">@ChildContent</div>
+
+        @if (Error is not null)
+        {
+            <p class="ts-modal__error" role="alert">@Error</p>
+        }
+
+        <div class="ts-modal__foot">
+            <span class="ts-modal__foot-note">@FootNote</span>
+            @Footer
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public string IconName { get; set; } = "nav-generate.svg";
+    [Parameter] public string? FootNote { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+}

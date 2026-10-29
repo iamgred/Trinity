@@ -1,0 +1,132 @@
+.gp-arch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 15px;
+    border-radius: 9px;
+    border: 1px solid rgba(245, 122, 30, 0.6);
+    background: rgba(245, 122, 30, 0.1);
+    color: var(--ts-orange);
+    font-family: var(--ts-mono);
+    font-size: 13px;
+}
+
+::deep .gp-flag {
+    color: var(--ts-orange);
+}
+
+button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: default;
+}
+
+p, h3, h4, h5 {
+    margin: 0;
+}
+
+.ts-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 15px;
+    border-radius: 8px;
+    border: 1px solid var(--ts-border);
+    background: var(--ts-raised);
+    color: var(--ts-text);
+    font-family: var(--ts-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ts-btn:hover:not(:disabled) {
+    border-color: #3a3a40;
+}
+
+.ts-btn:disabled {
+    opacity: 0.45;
+}
+
+.ts-btn--primary {
+    height: 32px;
+    padding: 0 14px;
+    border: 0;
+    color: #fff;
+    background: linear-gradient(90deg, var(--ts-orange), var(--ts-orange-deep));
+}
+
+.ts-btn--primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+.ts-modal__row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    column-gap: 16px;
+    align-items: start;
+    padding: 8px 0;
+}
+
+.ts-modal__row > label {
+    padding-top: 11px;
+    font-size: 12.5px;
+    color: var(--ts-text);
+}
+
+.ts-field {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 38px;
+    padding: 0 13px;
+    border-radius: 9px;
+    border: 1px solid var(--ts-border);
+    background: var(--ts-input);
+    color: var(--ts-text-3);
+}
+
+.ts-field:focus-within {
+    border-color: var(--ts-orange);
+}
+
+.ts-field input,
+.ts-field select {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ts-text);
+    font-family: var(--ts-mono);
+    font-size: 13px;
+}
+
+.ts-field select {
+    appearance: none;
+    cursor: pointer;
+}
+
+.ts-field select option {
+    background: var(--ts-input);
+}
+
+.ts-field input::placeholder {
+    color: var(--ts-text-3);
+}
+
+.ts-modal__hint {
+    margin: 6px 0 0;
+    font-size: 11.5px;
+    color: var(--ts-text-3);
+}

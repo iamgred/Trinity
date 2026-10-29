@@ -1,0 +1,100 @@
+@using Client.Components.UI
+@using Client.Services
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage Session
+@inject TeamServerConnection Connection
+@inject NavigationManager Nav
+
+<header class="ts-topbar">
+    <div class="ts-topbar__brand">
+        <span class="ts-topbar__logo"><img src="img/shell/shell-logo.png" alt="" width="20" height="20" /></span>
+        <span class="ts-topbar__word">TRINITY</span>
+    </div>
+
+    @if (Admin)
+    {
+        <span class="ts-topbar__badge">ADMIN CONSOLE</span>
+    }
+
+    @* TODO: point Help at the docs *@
+    <button type="button" class="ts-topbar__help">Help</button>
+
+    <div class="ts-topbar__right">
+        @if (Admin)
+        {
+            <a class="ts-topbar__back" href="logs"><Icon Name="lucide-arrow-left.svg" Size="13" /> Back to workspace</a>
+        }
+        else
+        {
+            <span class="ts-topbar__server" title="@(Connected ? "Team server reachable" : "Team server not reachable")">
+                <span class="ts-dot @(Connected ? null : "is-down")"></span>@ServerLabel
+            </span>
+        }
+
+        @if (_user is not null)
+        {
+            @if (_user.IsAdmin && !Admin)
+            {
+                <a class="ts-topbar__user" href="campaigns" title="Open the admin console">
+                    <Icon Name="topbar-user.svg" Size="14" /><b>@_user.Name</b><span>@_user.Role</span>
+                </a>
+            }
+            else
+            {
+                <span class="ts-topbar__user"><Icon Name="topbar-user.svg" Size="14" /><b>@_user.Name</b><span>@_user.Role</span></span>
+            }
+        }
+
+        <button type="button" class="ts-topbar__logout" title="Sign out" @onclick="SignOutAsync"><Icon Name="topbar-logout.svg" Size="15" /></button>
+    </div>
+</header>
+
+@code {
+    [Parameter] public bool Admin { get; set; }
+    [Parameter] public bool Connected { get; set; }
+    [Parameter] public EventCallback<ShellUser> OnUserLoaded { get; set; }
+
+    private ShellUser? _user;
+
+    private string ServerLabel => Connection.BaseAddress is { } uri ? $"teamserver {uri.Host}:{uri.Port}" : "teamserver not set";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        try
+        {
+            var stored = await Session.GetAsync<ShellUser>(ShellUser.StorageKey);
+            _user = stored.Success ? stored.Value : null;
+        }
+        catch (Exception)
+        {
+            // cant read sign-in so treat it as signed out
+            _user = null;
+        }
+
+        if (_user is null)
+        {
+            Nav.NavigateTo("login");
+            return;
+        }
+
+        if (Admin && !_user.IsAdmin)
+        {
+            Nav.NavigateTo("logs");
+            return;
+        }
+
+        StateHasChanged();
+        await OnUserLoaded.InvokeAsync(_user);
+    }
+
+    private async Task SignOutAsync()
+    {
+        await Session.DeleteAsync(ShellUser.StorageKey);
+        Nav.NavigateTo("login");
+    }
+}

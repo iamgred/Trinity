@@ -1,11 +1,13 @@
+using Client.Components.Shell;
 using Client.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace Client.Components.Pages.Login;
 
 public partial class Login
 {
-    // Nav is already injected via @inject in Login.razor — don't redeclare it here
+    // Nav comes from Login.razor
 
     [Inject]
     private TeamServerConnection TeamServerConnection { get; set; } = default!;
@@ -13,30 +15,39 @@ public partial class Login
     [Inject]
     private AuthApiClient AuthApiClient { get; set; } = default!;
 
-    private string _teamServerUrl = "";
+    [Inject]
+    private AdminService AdminService { get; set; } = default!;
+
+    [Inject]
+    private ProtectedSessionStorage Session { get; set; } = default!;
+
+    [Inject]
+    private IConfiguration Config { get; set; } = default!;
+
     private string _username = "";
     private string _password = "";
-    private string? _connectionError;
+    private string? _error;
     private bool _showPassword;
     private bool _isSigningIn;
 
     private async Task HandleLogin()
     {
-        _connectionError = null;
+        _error = null;
 
         try
         {
-            TeamServerConnection.Configure(_teamServerUrl);
+            // server address comes from appsettings
+            TeamServerConnection.Configure(Config["TeamServer:BaseUrl"] ?? "");
         }
         catch (ArgumentException exception)
         {
-            _connectionError = exception.Message;
+            _error = $"TeamServer:BaseUrl in appsettings is not valid. {exception.Message}";
             return;
         }
 
         if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrEmpty(_password))
         {
-            _connectionError = "Enter both an operator name and a password.";
+            _error = "Enter both a username and a password.";
             return;
         }
 
@@ -47,21 +58,38 @@ public partial class Login
 
             if (result == AuthApiClient.LoginResult.InvalidCredentials)
             {
-                _connectionError = "Invalid operator name or password.";
+                _error = "Invalid username or password.";
                 return;
             }
 
-            // Do not retain the password beyond the request.
+            // forget the password once its sent
             _password = "";
-            Nav.NavigateTo("/dashboard");
+
+            var user = new ShellUser(_username.Trim(), await IsAdminAsync(_username.Trim()) ? "admin" : "operator");
+            await Session.SetAsync(ShellUser.StorageKey, user);
+            Nav.NavigateTo(user.IsAdmin ? "campaigns" : "logs");
         }
         catch (HttpRequestException)
         {
-            _connectionError = "Could not reach the TeamServer. Check the URL and that the server is running.";
+            _error = "Could not reach the team server. Check that it is running.";
         }
         finally
         {
             _isSigningIn = false;
+        }
+    }
+
+    // TODO(connect to backend): login doesn't say if you're an admin, so check the admin list
+    private async Task<bool> IsAdminAsync(string username)
+    {
+        try
+        {
+            var admins = await AdminService.GetAllAsync();
+            return admins.Any(a => a.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (HttpRequestException)
+        {
+            return false;
         }
     }
 }

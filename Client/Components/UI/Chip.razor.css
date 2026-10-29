@@ -1,0 +1,41 @@
+button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.ts-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 27px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.ts-chip button {
+    display: grid;
+    place-items: center;
+}
+
+.ts-chip--orange {
+    color: var(--ts-orange);
+    background: rgba(245, 122, 30, 0.14);
+    border: 1px solid rgba(245, 122, 30, 0.35);
+}
+
+.ts-chip--ghost {
+    color: var(--ts-text-2);
+    background: var(--ts-input);
+    border: 1px solid var(--ts-border);
+}
+
+.ts-chip--ghost:hover {
+    color: var(--ts-text);
+}

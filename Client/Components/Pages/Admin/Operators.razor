@@ -1,0 +1,162 @@
+@page "/admin/operators"
+@layout AdminLayout
+@using System.Net.Http.Json
+@using System.Text.Json
+@using Client.Components.Layout
+@using Client.Components.UI
+@using Client.Services
+@using Campaign = Trinity.Shared.Models.Campaign
+@using Operator = Trinity.Shared.Models.Operator
+@inject OperatorService OperatorService
+@inject AdminService AdminService
+@inject CampaignService CampaignService
+@inject IHttpClientFactory HttpFactory
+
+<PageTitle>Trinity · Operators</PageTitle>
+
+<div class="ts-admin-head">
+    <div>
+        <h3>Operators</h3>
+        <p>Admins create every account. There is no self-registration.</p>
+    </div>
+    <button type="button" class="ts-btn ts-btn--primary" @onclick="() => Open(OperatorDialogMode.Create)"><Icon Name="btn-plus.svg" Size="13" /> Create Operator</button>
+</div>
+
+@if (_error is not null)
+{
+    <p class="ops__error" role="alert">@_error</p>
+}
+
+<div class="ops__card">
+    <table class="ts-table">
+        <colgroup><col style="width:5.6%" /><col style="width:15.5%" /><col style="width:15.2%" /><col style="width:42.7%" /><col style="width:21%" /></colgroup>
+        <thead><tr><th>id</th><th>username</th><th>role</th><th>campaigns</th><th>last login</th></tr></thead>
+        <tbody>
+            @if (_rows.Count == 0)
+            {
+                <tr class="ts-empty"><td colspan="5">@(_loading ? "Loading accounts…" : "No accounts yet.")</td></tr>
+            }
+            @foreach (var row in _rows)
+            {
+                <tr class="@(row == _selected ? "is-selected" : null)" @onclick="() => _selected = row">
+                    <td>@row.Id</td>
+                    <td>@row.Username</td>
+                    <td><StatusPill Text="@(row.IsAdmin ? "admin" : "operator")" Tone="@(row.IsAdmin ? "orange" : "blue")" /></td>
+                    <td>@CampaignNames(row)</td>
+                    <td>@(row.LastLogin is { } login && login > DateTime.MinValue ? login.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "never")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="ops__actions">
+    <button type="button" class="ts-btn" disabled="@(_selected is null)" @onclick="() => Open(OperatorDialogMode.Edit)"><Icon Name="lucide-pencil.svg" Size="13" /> Edit</button>
+    <button type="button" class="ts-btn" disabled="@(_selected is null)" @onclick="() => Open(OperatorDialogMode.ResetPassword)"><Icon Name="icon-key.svg" Size="13" /> Reset Password</button>
+    <button type="button" class="ts-btn ts-btn--danger" disabled="@(_selected is null)" @onclick="RemoveAsync"><Icon Name="lucide-trash-2.svg" Size="13" /> @(_confirmRemove ? $"Remove {_selected?.Username}?" : "Remove")</button>
+</div>
+
+@if (_dialogMode is { } mode)
+{
+    <CreateOperatorDialog Mode="mode" Existing="@(mode == OperatorDialogMode.Create ? null : _selected)" Campaigns="_campaigns"
+                          OnClose="() => _dialogMode = null" OnSaved="OnSavedAsync" />
+}
+
+@code {
+    [CascadingParameter] private AdminLayout Layout { get; set; } = default!;
+
+    private List<OperatorRow> _rows = [];
+    private List<Campaign> _campaigns = [];
+    private OperatorRow? _selected;
+    private OperatorDialogMode? _dialogMode;
+    private bool _confirmRemove;
+    private bool _loading;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var http = HttpFactory.CreateClient("TeamServer");
+            _campaigns = await CampaignService.GetAllAsync();
+
+            var campaignsByOperator = new Dictionary<int, List<int>>();
+            foreach (var campaign in _campaigns)
+            {
+                var ops = await http.GetFromJsonAsync<List<Operator>>($"/api/v1/campaigns/{campaign.ID}/operators") ?? [];
+                foreach (var op in ops)
+                {
+                    (campaignsByOperator.TryGetValue(op.ID, out var list) ? list : campaignsByOperator[op.ID] = []).Add(campaign.ID);
+                }
+            }
+
+            var admins = await AdminService.GetAllAsync();
+            var operators = await OperatorService.GetAllAsync();
+            _rows =
+            [
+                .. admins.Select(a => new OperatorRow(a.ID, a.Username, a.Password, true, [], a.LastLogin)),
+                .. operators.Select(o => new OperatorRow(o.ID, o.Username, o.Password, false,
+                    campaignsByOperator.TryGetValue(o.ID, out var ids) ? ids : [], o.LastLogin)),
+            ];
+
+            _selected = _rows.FirstOrDefault(r => r.Id == _selected?.Id && r.IsAdmin == _selected?.IsAdmin) ?? _rows.FirstOrDefault(r => !r.IsAdmin);
+            _error = null;
+            Layout.SetCounts(campaigns: _campaigns.Count, operators: _rows.Count);
+        }
+        catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+        {
+            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not load accounts: {e.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private string CampaignNames(OperatorRow row) => row.IsAdmin
+        ? "all"
+        : row.CampaignIds.Count == 0 ? "–" : string.Join(", ", _campaigns.Where(c => row.CampaignIds.Contains(c.ID)).Select(c => c.Name));
+
+    private void Open(OperatorDialogMode mode)
+    {
+        _confirmRemove = false;
+        _dialogMode = mode;
+    }
+
+    private async Task OnSavedAsync()
+    {
+        _dialogMode = null;
+        await LoadAsync();
+    }
+
+    // click twice to confirm
+    private async Task RemoveAsync()
+    {
+        if (_selected is null)
+        {
+            return;
+        }
+
+        if (!_confirmRemove)
+        {
+            _confirmRemove = true;
+            return;
+        }
+
+        _confirmRemove = false;
+        try
+        {
+            var removed = _selected.IsAdmin ? await AdminService.DeleteAsync(_selected.Id) : await OperatorService.DeleteAsync(_selected.Id);
+            _error = removed ? null : $"The team server refused to remove {_selected.Username}.";
+            _selected = null;
+            await LoadAsync();
+        }
+        catch (HttpRequestException e)
+        {
+            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not reach the team server: {e.Message}";
+        }
+    }
+}

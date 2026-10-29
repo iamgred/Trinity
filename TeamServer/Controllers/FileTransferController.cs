@@ -21,9 +21,9 @@ public sealed class FileTransferController : ControllerBase
     [HttpGet("/api/health")]
     public IActionResult Health() => Ok(new { status = "ok", utc = DateTimeOffset.UtcNow });
 
-    [HttpPost("files/{agentKey}/{fileName}/file")]
+    [HttpPost("files/{agentKey}/{transferId}/file")]
     [Consumes("application/octet-stream")]
-    public async Task<IActionResult> ReceiveFile(string agentKey, string fileName, CancellationToken cancellationToken)
+    public async Task<IActionResult> ReceiveFile(string agentKey, string transferId, [FromQuery] string fileName, [FromQuery] int taskId, CancellationToken cancellationToken)
     {
         // Enable buffering so ASP.NET Core can safely expose the raw request body.
         Request.EnableBuffering();
@@ -32,7 +32,7 @@ public sealed class FileTransferController : ControllerBase
         Request.Body.Position = 0;
 
         // Delegate disk writing to the service.
-        await _fileTransferService.ReceiveFileAsync(agentKey, fileName, Request.Body, cancellationToken);
+        await _fileTransferService.ReceiveFileAsync(agentKey, transferId, fileName, taskId, Request.Body, cancellationToken);
 
         // Return a JSON confirmation to the C++ caller.
         return Ok(new { message = "File received.", fileName });
@@ -40,23 +40,22 @@ public sealed class FileTransferController : ControllerBase
 
     [HttpPost("files/{agentKey}/{transferId}/chunks/{chunkNumber:int}")]
     [Consumes("application/octet-stream")]
-    public async Task<IActionResult> ReceiveChunk(string agentKey, string transferId, int chunkNumber, CancellationToken cancellationToken)
+    public async Task<IActionResult> ReceiveChunk(string agentKey, string transferId, int chunkNumber, [FromQuery] int taskId, CancellationToken cancellationToken)
     {
         // The body contains raw bytes, not multipart form data.
         Request.EnableBuffering();
         Request.Body.Position = 0;
 
         // Store this chunk under its transfer ID and number.
-        await _fileTransferService.ReceiveChunkAsync(agentKey, transferId, chunkNumber, Request.Body, cancellationToken);
+        await _fileTransferService.ReceiveChunkAsync(agentKey, transferId, taskId, chunkNumber, Request.Body, cancellationToken);
 
         return Ok(new { message = "Chunk received.", transferId, chunkNumber });
     }
 
     [HttpPost("files/{agentKey}/{transferId}/rebuild")]
-    public async Task<IActionResult> RebuildFile(string agentKey, string transferId, CancellationToken cancellationToken)
+    public async Task<IActionResult> RebuildFile(string agentKey, string transferId, [FromQuery] int taskId, [FromQuery] long expectedBytes, CancellationToken cancellationToken)
     {
-        // Rebuilding is separate so the sender can explicitly signal completion.
-        var path = await _fileTransferService.RebuildFileAsync(agentKey, transferId, cancellationToken);
+        var path = await _fileTransferService.RebuildFileAsync(agentKey, transferId, taskId, expectedBytes, cancellationToken);
 
         return Ok(new { message = "File rebuilt.", transferId, file = path });
     }
@@ -76,14 +75,14 @@ public sealed class FileTransferController : ControllerBase
 
     [HttpGet("files")]
     // Return metadata for files directly inside storage/files.
-    public async Task<IActionResult> ListFiles([FromQuery] int campaignId) =>
-        Ok(await _receivedFileService.ListFilesAsync(campaignId));
+    public async Task<IActionResult> ListFiles([FromQuery] string agentKey, [FromQuery] int campaignId) =>
+        Ok(await _receivedFileService.ListFilesAsync(agentKey, campaignId));
 
     [HttpGet("files/{campaignId:int}/{fileName}")]
-    public async Task<IActionResult> DownloadFile(int campaignId, string fileName)
+    public async Task<IActionResult> DownloadFile(int campaignId, string fileName, [FromQuery] string agentKey)
     {
         // Ask the service for a safe, read-only file stream.
-        var file = await _receivedFileService.OpenFileAsync(campaignId, fileName);
+        var file = await _receivedFileService.OpenFileAsync(agentKey, campaignId, fileName);
 
         // A missing file becomes a standard HTTP 404 response.
         // Otherwise ASP.NET Core streams the file to the downloader.

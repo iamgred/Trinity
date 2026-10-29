@@ -1,12 +1,13 @@
 #include "FileTransfer.h"
 
-#include <curl/curl.h>
-
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <windows.h>
+#include <winhttp.h>
+#include <codecvt>
 #include <Task.h>
 
 namespace fs = std::filesystem;
@@ -28,60 +29,63 @@ namespace FileTransfer
             std::size_t size,
             const std::string &fileName = {})
         {
-            CURL *curl = curl_easy_init();
-
-            if (!curl)
+            std::wstring wideUrl(url.begin(), url.end());
+            URL_COMPONENTS components{};
+            components.dwStructSize = sizeof(components);
+            wchar_t path[4096]{};
+            wchar_t host[256]{};
+            components.lpszHostName = host;
+            components.dwHostNameLength = static_cast<DWORD>(std::size(host));
+            components.lpszUrlPath = path;
+            components.dwUrlPathLength = static_cast<DWORD>(std::size(path));
+            if (!WinHttpCrackUrl(wideUrl.c_str(), 0, 0, &components))
                 return false;
 
-            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-            curl_easy_setopt(curl, CURLOPT_POST, 1L);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-            curl_easy_setopt(
-                curl,
-                CURLOPT_POSTFIELDSIZE,
-                static_cast<long>(size));
-
-            curl_slist *headers =
-                curl_slist_append(
-                    nullptr,
-                    "Content-Type: application/octet-stream");
-
-            if (!fileName.empty())
+            HINTERNET session = WinHttpOpen(L"Trinity Agent File Transfer",
+                                             WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                                             WINHTTP_NO_PROXY_NAME,
+                                             WINHTTP_NO_PROXY_BYPASS, 0);
+            if (!session)
+                return false;
+            HINTERNET connection = WinHttpConnect(session, host, components.nPort, 0);
+            HINTERNET request = connection
+                ? WinHttpOpenRequest(connection, L"POST", path, nullptr,
+                                     WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES,
+                                     components.nScheme == INTERNET_SCHEME_HTTPS
+                                         ? WINHTTP_FLAG_SECURE : 0)
+                : nullptr;
+            if (!request)
             {
-                const std::string header =
-                    "X-File-Name: " + fileName;
-
-                headers = curl_slist_append(
-                    headers,
-                    header.c_str());
+                if (connection) WinHttpCloseHandle(connection);
+                WinHttpCloseHandle(session);
+                return false;
             }
 
-            curl_easy_setopt(
-                curl,
-                CURLOPT_HTTPHEADER,
-                headers);
-
-            const CURLcode result =
-                curl_easy_perform(curl);
-
-            long responseCode = 0;
-
-            curl_easy_getinfo(
-                curl,
-                CURLINFO_RESPONSE_CODE,
-                &responseCode);
-
-            curl_slist_free_all(headers);
-            curl_easy_cleanup(curl);
-
-            return result == CURLE_OK &&
-                   responseCode >= 200 &&
-                   responseCode < 300;
+            std::wstring headers = L"Content-Type: application/octet-stream\r\n";
+            if (!fileName.empty())
+                headers += L"X-File-Name: " + std::wstring(fileName.begin(), fileName.end()) + L"\r\n";
+            BOOL sent = WinHttpSendRequest(request, headers.c_str(), static_cast<DWORD>(-1),
+                                           const_cast<char *>(data),
+                                           static_cast<DWORD>(size),
+                                           static_cast<DWORD>(size), 0);
+            BOOL received = sent && WinHttpReceiveResponse(request, nullptr);
+            DWORD status = 0;
+            DWORD statusSize = sizeof(status);
+            if (received)
+                WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+                                    WINHTTP_HEADER_NAME_BY_INDEX, &status, &statusSize,
+                                    WINHTTP_NO_HEADER_INDEX);
+            WinHttpCloseHandle(request);
+            WinHttpCloseHandle(connection);
+            WinHttpCloseHandle(session);
+            return received && status >= 200 && status < 300;
         }
     }
 
     bool SendFile(
         const std::string &filePath,
+        const std::string &agentKey,
+        int taskId,
         const std::string &transferId,
         const std::string &apiUrl,
         std::size_t chunkSize)
@@ -106,7 +110,7 @@ namespace FileTransfer
             return false;
 
         const auto baseUrl =
-            apiUrl + "/api/files/" + transferId;
+            apiUrl + "/api/files/" + agentKey;
 
         const auto fileName =
             fs::path(filePath).filename().string();
@@ -128,7 +132,8 @@ namespace FileTransfer
             }
 
             if (!PostBinary(
-                    baseUrl + "/" + fileName + "/file",
+                    baseUrl + "/" + transferId + "/file?fileName=" + fileName +
+                        "&taskId=" + std::to_string(taskId),
                     data.empty() ? nullptr : data.data(),
                     data.size(),
                     fileName))
@@ -156,8 +161,9 @@ namespace FileTransfer
 
                 if (!PostBinary(
                         baseUrl +
-                            "/chunks/" +
-                            std::to_string(chunkNumber++),
+                            "/" + transferId + "/chunks/" +
+                            std::to_string(chunkNumber++) + "?taskId=" +
+                            std::to_string(taskId),
                         buffer.data(),
                         static_cast<std::size_t>(count)))
                 {
@@ -167,7 +173,8 @@ namespace FileTransfer
 
             // Tell the server to rebuild the uploaded chunks.
             if (!PostBinary(
-                    baseUrl + "/rebuild",
+                    baseUrl + "/" + transferId + "/rebuild?expectedBytes=" +
+                        std::to_string(fileSize) + "&taskId=" + std::to_string(taskId),
                     nullptr,
                     0))
             {

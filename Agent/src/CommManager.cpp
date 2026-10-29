@@ -9,6 +9,8 @@
 #include <windows.h>
 #include <winhttp.h>
 #include <vector>
+#include <atomic>
+#include <chrono>
 
 #pragma comment(lib, "winhttp.lib")
 
@@ -287,11 +289,18 @@ e_func:
     return result;
 }
 
-bool CommManager::SendFile(const std::string& filePath)
+bool CommManager::SendFile(const std::string& filePath, int taskId)
 {
+    static std::atomic_uint64_t transferCounter{0};
+    const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    const std::string transferId = callbackUUID + "-" +
+        std::to_string(timestamp) + "-" +
+        std::to_string(transferCounter.fetch_add(1));
     return FileTransfer::SendFile(
         filePath,
         callbackUUID,
+        taskId,
+        transferId,
         "http://" + std::string(host.begin(), host.end()) + ":5069");
 }
 

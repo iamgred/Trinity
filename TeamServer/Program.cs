@@ -46,6 +46,9 @@ namespace TeamServer
             // Handlers 
             builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();
             builder.Services.AddScoped<SuccessStrategy>();
+            builder.Services.AddScoped<KeyloggerStrategy>();
+            builder.Services.AddScoped<UploadStrategy>();
+            builder.Services.AddScoped<DownloadStrategy>();
             builder.Services.AddScoped<RunningStrategy>();
             builder.Services.AddScoped<ErrorStrategy>();
 

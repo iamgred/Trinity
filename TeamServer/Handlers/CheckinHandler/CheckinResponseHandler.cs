@@ -10,17 +10,26 @@ namespace TeamServer.Handlers.CheckinHandler
 {
     public class CheckinResponseHandler : ICheckinResponseHandler
     {
-        private readonly Dictionary<Status, Func<JsonElement, Task>> _handlers;
+        private readonly Dictionary<Enum, Func<JsonElement, Task>> _handlers;
 
         /// Default constuctor.
         /// Intialises checkin response handling strategies.
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 
-        public CheckinResponseHandler(SuccessStrategy successStrategy, RunningStrategy runningStrategy, ErrorStrategy errorStrategy)
+        public CheckinResponseHandler(
+            SuccessStrategy successStrategy,
+            KeyloggerStrategy keyloggerStrategy,
+            UploadStrategy uploadStrategy,
+            DownloadStrategy downloadStrategy,
+            RunningStrategy runningStrategy,
+            ErrorStrategy errorStrategy)
         {
-            _handlers = new Dictionary<Status, Func<JsonElement, Task>>()
+            _handlers = new Dictionary<Enum, Func<JsonElement, Task>>()
             {
                 { SUCCESS, (element) => successStrategy.ProcessResponseAsync(element) },
+                { TaskType.KEYLOGGER_STOP, (element) => keyloggerStrategy.ProcessResponseAsync(element) },
+                { TaskType.UPLOAD, (element) => uploadStrategy.ProcessResponseAsync(element) },
+                { TaskType.DOWNLOAD, (element) => downloadStrategy.ProcessResponseAsync(element) },
                 { RUNNING, (element) =>  runningStrategy.ProcessResponseAsync(element) },
                 { ERROR, (element) => errorStrategy.ProcessResponseAsync(element) }
             };
@@ -35,10 +44,19 @@ namespace TeamServer.Handlers.CheckinHandler
         /// <exception cref="ArgumentException"></exception>
         public async Task HandleResponseAsync(JsonElement element)
         {
+            var taskType = element.TryGetProperty("TaskType", out var taskTypeElement)
+                ? (TaskType?)((TaskType)taskTypeElement.GetInt32())
+                : null;
             var status = (Status)element.GetProperty("Status").GetInt32();
-            _handlers.TryGetValue(status, out var strategy);
+            var key = status == Status.SUCCESS && taskType.HasValue
+                && Enum.IsDefined(taskType.Value)
+                ? (Enum)taskType.Value
+                : status;
 
-            await strategy!(element);
+            if (!_handlers.TryGetValue(key, out var strategy))
+                throw new ArgumentException($"Unsupported check-in response '{key}'.", nameof(element));
+
+            await strategy(element);
         }
     }
 }

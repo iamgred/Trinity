@@ -10,6 +10,8 @@ namespace FileTransfer
     // Sends a local file to the C# API.
     // Files below 100 MB use one request; larger files use 10 MB chunks.
     bool SendFile(const std::string &filePath,
+                  const std::string &agentKey,
+                  int taskId,
                   const std::string &transferId,
                   const std::string &apiUrl,
                   std::size_t chunkSize = 10 * 1024 * 1024);

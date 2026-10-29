@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Text;
 using System.Text.Json;
+using TeamServer.Interface;
 using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;

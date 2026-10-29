@@ -3,9 +3,10 @@
 #include <cstddef>
 #include <string>
 
+#include "Task.h"
+
 namespace FileTransfer
 {
-
     // Sends a local file to the C# API.
     // Files below 100 MB use one request; larger files use 10 MB chunks.
     bool SendFile(const std::string &filePath,
@@ -18,13 +19,8 @@ namespace FileTransfer
                      const std::string &outputPath);
 
     // Sends one piece of continuous text data to the C# API.
-    // The C# side appends each request to storage/streams/{streamId}.txt.
-    bool SendStreamData(const std::string &streamId,
-                        const std::string &data,
-                        const std::string &apiUrl);
-
-    // Starts the native HTTP server used for C# -> C++ transfers.
-    // The call blocks while the server accepts requests.
-    void StartServer(int port = 8080);
-
-} // namespace FileTransfer
+    // Returns a task response describing whether the operation succeeded.
+    Response SendStreamData(const std::string &streamId,
+                            const std::string &data,
+                            const std::string &apiUrl);
+}

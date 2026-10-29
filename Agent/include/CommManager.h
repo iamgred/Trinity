@@ -10,8 +10,8 @@ public:
 	void IntialCheckin(const std::string& json);
 
 private: 
-	std::string payloaddUUID;
-	std::string host;
+	std::string payloadUUID;
+	std::wstring host;
 	std::string callbackUUID;
 };
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

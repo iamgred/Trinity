@@ -47,6 +47,7 @@ namespace FileTransfer
         }
     }
 
+    // TODO : CHANGE TO USE CreateTaskResponse
     Response SendFile(const std::string &filePath, const std::string &transferId, const std::string &apiUrl, std::size_t chunkSize)
     {
         if (chunkSize == 0)

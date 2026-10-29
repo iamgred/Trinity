@@ -14,6 +14,7 @@ namespace TeamServer.Controllers
         public const string Campaigns = "/api/v1/campaigns";
         public const string Admins = "/api/v1/admins";
         public const string Files = "/api/v1/files";
+        public const string Keylogger = "/api/v1/keylogger";
     }
 }
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { END OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //

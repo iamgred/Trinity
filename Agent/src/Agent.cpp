@@ -174,7 +174,6 @@ Response Agent::ExecutePowerShell(const int &taskID, const CommandPowershell &ps
 
     char buffer[128];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
-
     {
         result += buffer;
     }

@@ -12,9 +12,9 @@ public:
 	void IntialCheckin(const std::string &json);
 	bool SendFile(const std::string &filePath);
 
-private:
-	std::string payloaddUUID;
-	std::string host;
+private: 
+	std::string payloadUUID;
+	std::wstring host;
 	std::string callbackUUID;
 };
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

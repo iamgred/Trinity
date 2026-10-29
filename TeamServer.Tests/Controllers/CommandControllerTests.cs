@@ -1036,8 +1036,8 @@ namespace TeamServer.Tests.Controllers
             _commandServiceMock
                 .Setup(x => x.QueueTaskAsync(
                     agentID,
-                    TaskType.DOWNLOAD,
-                    TaskCode.CANCEL_DOWNLOAD,
+                    TaskType.UPLOAD,
+                    TaskCode.NO_CODE,
                     dto))
                 .ReturnsAsync(response);
 
@@ -1055,8 +1055,8 @@ namespace TeamServer.Tests.Controllers
             _commandServiceMock.Verify(
                 x => x.QueueTaskAsync(
                     agentID,
-                    TaskType.DOWNLOAD,
-                    TaskCode.CANCEL_DOWNLOAD,
+                        TaskType.UPLOAD,
+                        TaskCode.NO_CODE,
                     dto),
                 Times.Once());
         }
@@ -1077,8 +1077,8 @@ namespace TeamServer.Tests.Controllers
             _commandServiceMock
                 .Setup(x => x.QueueTaskAsync(
                     agentID,
-                    TaskType.DOWNLOAD,
-                    TaskCode.CANCEL_DOWNLOAD,
+                    TaskType.UPLOAD,
+                    TaskCode.NO_CODE,
                     dto))
                 .ReturnsAsync(error);
 
@@ -1096,8 +1096,8 @@ namespace TeamServer.Tests.Controllers
             _commandServiceMock.Verify(
                 x => x.QueueTaskAsync(
                     agentID,
-                    TaskType.DOWNLOAD,
-                    TaskCode.CANCEL_DOWNLOAD,
+                    TaskType.UPLOAD,
+                    TaskCode.NO_CODE,
                     dto),
                 Times.Once());
         }

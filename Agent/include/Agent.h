@@ -27,7 +27,8 @@ public:
 	// Agent base commands
 	void Exit();
 	Response GetUID(const int& taskID, const bool& isTrue);
-	Response ExecutePowerShell(const int& taskID, const CommandPowershell& psRequest);
+	Response ExecutePowerShell(const int& taskID, const CommandPowershell& request);
+	Response CreateWindowsTaskW(const int& taskID, const CommandWinTask& request);
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;

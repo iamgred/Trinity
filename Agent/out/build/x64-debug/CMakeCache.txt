@@ -220,7 +220,7 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 INPUT_HOSTS:STRING=localhost
 
 //The payload unique identifier
-INPUT_PAYLOAD_UUID:STRING=0c71632c-217f-46ce-bb81-dbfd32dd18ac
+INPUT_PAYLOAD_UUID:STRING=3de5beb2-3e4c-4864-804e-15f8157cb456
 
 //The agent request header
 INPUT_REQUEST_HEADER:STRING=Content-Type: application/json

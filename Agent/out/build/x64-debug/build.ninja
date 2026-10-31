@@ -51,7 +51,7 @@ build cmake_object_order_depends_target_Agent: phony || .
 
 build CMakeFiles\Agent.dir\src\main.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\src\main.cpp || cmake_object_order_depends_target_Agent
   CONFIG = Debug
-  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"0c71632c-217f-46ce-bb81-dbfd32dd18ac\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
+  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"3de5beb2-3e4c-4864-804e-15f8157cb456\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
   INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external -IC:\Users\iamgred\Desktop\Trinity\Agent\include -IC:\Users\iamgred\Desktop\Trinity\Agent\src
   OBJECT_DIR = CMakeFiles\Agent.dir
@@ -62,7 +62,7 @@ build CMakeFiles\Agent.dir\src\main.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug
 
 build CMakeFiles\Agent.dir\src\CommManager.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\src\CommManager.cpp || cmake_object_order_depends_target_Agent
   CONFIG = Debug
-  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"0c71632c-217f-46ce-bb81-dbfd32dd18ac\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
+  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"3de5beb2-3e4c-4864-804e-15f8157cb456\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
   INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external -IC:\Users\iamgred\Desktop\Trinity\Agent\include -IC:\Users\iamgred\Desktop\Trinity\Agent\src
   OBJECT_DIR = CMakeFiles\Agent.dir
@@ -73,7 +73,7 @@ build CMakeFiles\Agent.dir\src\CommManager.cpp.obj: CXX_COMPILER__Agent_unscanne
 
 build CMakeFiles\Agent.dir\src\CommandDispatcher.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\src\CommandDispatcher.cpp || cmake_object_order_depends_target_Agent
   CONFIG = Debug
-  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"0c71632c-217f-46ce-bb81-dbfd32dd18ac\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
+  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"3de5beb2-3e4c-4864-804e-15f8157cb456\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
   INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external -IC:\Users\iamgred\Desktop\Trinity\Agent\include -IC:\Users\iamgred\Desktop\Trinity\Agent\src
   OBJECT_DIR = CMakeFiles\Agent.dir
@@ -84,7 +84,7 @@ build CMakeFiles\Agent.dir\src\CommandDispatcher.cpp.obj: CXX_COMPILER__Agent_un
 
 build CMakeFiles\Agent.dir\src\Agent.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\src\Agent.cpp || cmake_object_order_depends_target_Agent
   CONFIG = Debug
-  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"0c71632c-217f-46ce-bb81-dbfd32dd18ac\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
+  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"3de5beb2-3e4c-4864-804e-15f8157cb456\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
   INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external -IC:\Users\iamgred\Desktop\Trinity\Agent\include -IC:\Users\iamgred\Desktop\Trinity\Agent\src
   OBJECT_DIR = CMakeFiles\Agent.dir
@@ -95,7 +95,7 @@ build CMakeFiles\Agent.dir\src\Agent.cpp.obj: CXX_COMPILER__Agent_unscanned_Debu
 
 build CMakeFiles\Agent.dir\src\TaskQueueManager.cpp.obj: CXX_COMPILER__Agent_unscanned_Debug C$:\Users\iamgred\Desktop\Trinity\Agent\src\TaskQueueManager.cpp || cmake_object_order_depends_target_Agent
   CONFIG = Debug
-  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"0c71632c-217f-46ce-bb81-dbfd32dd18ac\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
+  DEFINES = -DCOMM_HOSTS_LIST=L\"localhost\" -DCOMM_PAYLOAD_UUID=\"3de5beb2-3e4c-4864-804e-15f8157cb456\" -DCOMM_PORT=5069 -DCOMM_REQUEST_HEADER="\"Content-Type: application/json\"" -DCOMM_USER_AGENT="\"Trinity Agent Client/1.0\""
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
   INCLUDES = -IC:\Users\iamgred\Desktop\Trinity\Agent\external -IC:\Users\iamgred\Desktop\Trinity\Agent\include -IC:\Users\iamgred\Desktop\Trinity\Agent\src
   OBJECT_DIR = CMakeFiles\Agent.dir

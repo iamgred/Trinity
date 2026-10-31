@@ -25,4 +25,30 @@ struct CommandPowershell
         return obj;
     }
 };
+
+struct CommandWinTask
+{
+    std::string path;
+    std::string username;
+    std::string taskName;
+
+    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType& allocator) const {
+        rapidjson::Value obj(rapidjson::kObjectType);
+
+        rapidjson::Value pathVal;
+        pathVal.SetString(path.c_str(), static_cast<rapidjson::SizeType>(path.length()), allocator);
+
+        rapidjson::Value usernameVal;
+        usernameVal.SetString(username.c_str(), static_cast<rapidjson::SizeType>(username.length()), allocator);
+
+        rapidjson::Value taskNameVal;
+        taskNameVal.SetString(taskName.c_str(), static_cast<rapidjson::SizeType>(taskName.length()), allocator);
+
+        obj.AddMember("Path", pathVal, allocator);
+        obj.AddMember("Username", usernameVal, allocator);
+        obj.AddMember("TaskName", taskNameVal, allocator);
+
+        return obj;
+    }
+};
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

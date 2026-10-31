@@ -19,7 +19,7 @@ namespace TeamServer.Migrations
             migrationBuilder.AlterDatabase()
                 .Annotation("Npgsql:Enum:status", "dispatched,error,more_to_follow,no_flag,no_more_to_follow,queued,running,success")
                 .Annotation("Npgsql:Enum:taskCode", "cancel_download,download,kill_process,no_code,run,run_as,run_u,sleep,spawn_to,update_hosts")
-                .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,kill,nop,object_file,powershell,process,set,shell,upload");
+                .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,kill,net_asm,nop,object_file,powershell,process,set,shell,upload,win_task");
 
             migrationBuilder.CreateTable(
                 name: "Admins",

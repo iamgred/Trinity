@@ -39,6 +39,13 @@ namespace TeamServer.Controllers
             return response.IsSuccess ? CreatedAtAction(nameof(QueuePowerShellCommand), response.Response) : BadRequest(response.Error);
         }
 
+        [HttpPost("{agentID}/execute/persist")]
+        public async Task<IActionResult> QueuewinTaskCommand([FromRoute] int agentID, WinTaskDTO winTaskDTO)
+        {
+            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.WIN_TASK, TaskCode.NO_CODE, winTaskDTO);
+            return response.IsSuccess ? CreatedAtAction(nameof(QueuePowerShellCommand), "test") : BadRequest(response.Error);
+        }
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Execute a command using shell.

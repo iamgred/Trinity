@@ -18,7 +18,7 @@ string(REPLACE ";" "\", L\"" HOSTS_INITIALIZER \"${INPUT_HOSTS}\")
 set(WIDE_HOSTS_LIST "L${HOSTS_INITIALIZER}")
 
 # Payload UUID Configuration
-set(INPUT_PAYLOAD_UUID "0c71632c-217f-46ce-bb81-dbfd32dd18ac" CACHE STRING "The payload unique identifier")
+set(INPUT_PAYLOAD_UUID "3de5beb2-3e4c-4864-804e-15f8157cb456" CACHE STRING "The payload unique identifier")
 
 # Port Configuration
 set(PORT 5069 CACHE STRING "The primary target connection port")

@@ -416,12 +416,15 @@
 #  define COMPILER_VERSION_MAJOR DEC((__VER__) / 1000000)
 #  define COMPILER_VERSION_MINOR DEC(((__VER__) / 1000) % 1000)
 #  define COMPILER_VERSION_PATCH DEC((__VER__) % 1000)
-#  define COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
 # elif defined(__VER__) && (defined(__ICCAVR__) || defined(__ICCRX__) || defined(__ICCRH850__) || defined(__ICCRL78__) || defined(__ICC430__) || defined(__ICCRISCV__) || defined(__ICCV850__) || defined(__ICC8051__) || defined(__ICCSTM8__))
 #  define COMPILER_VERSION_MAJOR DEC((__VER__) / 100)
 #  define COMPILER_VERSION_MINOR DEC((__VER__) - (((__VER__) / 100)*100))
 #  define COMPILER_VERSION_PATCH DEC(__SUBVERSION__)
-#  define COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
+# endif
+# if defined(__IAR_COMPILERBASE__)
+#  define COMPILER_VERSION_INTERNAL DEC(__IAR_COMPILERBASE__)
+# else
+#  define COMPILER_VERSION_INTERNAL DEC((__IAR_SYSTEMS_ICC__ << 16))
 # endif
 
 #elif defined(__DCC__) && defined(_DIAB_TOOL)
@@ -866,7 +869,9 @@ char const* info_arch = "INFO" ":" "arch[" ARCHITECTURE_ID "]";
 #    define CXX_STD __cplusplus
 #  endif
 #elif defined(__NVCOMPILER)
-#  if __cplusplus == CXX_STD_17 && defined(__cpp_aggregate_paren_init)
+#  if __cplusplus > CXX_STD_20 && defined(__cpp_pp_embed)
+#    define CXX_STD /*CXX_STD_26*/ (CXX_STD_23 + 1)
+#  elif __cplusplus == CXX_STD_17 && defined(__cpp_aggregate_paren_init)
 #    define CXX_STD CXX_STD_20
 #  else
 #    define CXX_STD __cplusplus

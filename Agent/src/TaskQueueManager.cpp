@@ -122,10 +122,7 @@ bool TaskQueueManager::HasPendingTask()
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 void TaskQueueManager::StoreTaskResult(Response &response)
 {
-	std::string json = std::visit([](const auto &responseEnvelope)
-								  { return responseEnvelope.StructToJson(); }, response);
-
-	taskResults.push(json);
+	std::string json = std::visit([](const auto &responseEnvelope) { return responseEnvelope.StructToJson(); }, response);
 	taskResults.push_back(response);
 }
 

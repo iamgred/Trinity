@@ -303,6 +303,11 @@
 #elif defined(__BCC__)
 # define COMPILER_ID "Bruce"
 
+#elif defined(__POCC__)
+# define COMPILER_ID "PellesC"
+# define COMPILER_VERSION_MAJOR DEC(__POCC__/100)
+# define COMPILER_VERSION_MINOR DEC(__POCC__%100)
+
 #elif defined(__SCO_VERSION__)
 # define COMPILER_ID "SCO"
 
@@ -424,12 +429,15 @@
 #  define COMPILER_VERSION_MAJOR DEC((__VER__) / 1000000)
 #  define COMPILER_VERSION_MINOR DEC(((__VER__) / 1000) % 1000)
 #  define COMPILER_VERSION_PATCH DEC((__VER__) % 1000)
-#  define COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
 # elif defined(__VER__) && (defined(__ICCAVR__) || defined(__ICCRX__) || defined(__ICCRH850__) || defined(__ICCRL78__) || defined(__ICC430__) || defined(__ICCRISCV__) || defined(__ICCV850__) || defined(__ICC8051__) || defined(__ICCSTM8__))
 #  define COMPILER_VERSION_MAJOR DEC((__VER__) / 100)
 #  define COMPILER_VERSION_MINOR DEC((__VER__) - (((__VER__) / 100)*100))
 #  define COMPILER_VERSION_PATCH DEC(__SUBVERSION__)
-#  define COMPILER_VERSION_INTERNAL DEC(__IAR_SYSTEMS_ICC__)
+# endif
+# if defined(__IAR_COMPILERBASE__)
+#  define COMPILER_VERSION_INTERNAL DEC(__IAR_COMPILERBASE__)
+# else
+#  define COMPILER_VERSION_INTERNAL DEC((__IAR_SYSTEMS_ICC__ << 16))
 # endif
 
 #elif defined(__DCC__) && defined(_DIAB_TOOL)
@@ -862,16 +870,17 @@ char const* info_arch = "INFO" ":" "arch[" ARCHITECTURE_ID "]";
 #define C_STD_17 201710L
 #define C_STD_23 202311L
 
-#ifdef __STDC_VERSION__
-#  define C_STD __STDC_VERSION__
+#if defined(__STDC_VERSION__)
+# define C_STD __STDC_VERSION__
+#elif defined(__POCC_STDC_VERSION__)
+# define C_STD __POCC_STDC_VERSION__
+#elif defined(__STDC__) || defined(__clang__) || defined(_MSC_VER) ||         \
+  defined(__ibmxl__) || defined(__IBMC__) || defined(__RENESAS__)
+# define C_STD 1
 #endif
 
-#if !defined(__STDC__) && !defined(__clang__) && !defined(__RENESAS__)
-# if defined(_MSC_VER) || defined(__ibmxl__) || defined(__IBMC__)
-#  define C_VERSION "90"
-# else
-#  define C_VERSION
-# endif
+#if !defined(C_STD)
+# define C_VERSION
 #elif C_STD > C_STD_17
 # define C_VERSION "23"
 #elif C_STD > C_STD_11
@@ -890,6 +899,8 @@ const char* info_language_extensions_default = "INFO" ":" "extensions_default["
 #if (defined(__clang__) || defined(__GNUC__) || defined(__xlC__) ||           \
      defined(__TI_COMPILER_VERSION__) || defined(__RENESAS__)) &&             \
   !defined(__STRICT_ANSI__)
+  "ON"
+#elif defined(__POCC__) && defined(__POCC__EXTENSIONS)
   "ON"
 #else
   "OFF"

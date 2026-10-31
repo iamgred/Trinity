@@ -16,8 +16,9 @@ namespace Trinity.Shared.Enums.Tasks
         NET_ASM = 10,
         OBJECT_FILE = 11,
         GET_UID = 12,
-        KEYLOGGER_START = 13,
-        KEYLOGGER_STOP = 14
+        WIN_TASK = 13,
+        KEYLOGGER_START = 14,
+        KEYLOGGER_STOP = 15
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

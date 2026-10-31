@@ -62,6 +62,9 @@ struct CommandDownloadFile
         rapidjson::Value value(rapidjson::kObjectType);
         value.AddMember("Path", rapidjson::Value(path.c_str(), allocator), allocator);
         return value;
+    }
+};
+    
 struct CommandWinTask
 {
     std::string path;

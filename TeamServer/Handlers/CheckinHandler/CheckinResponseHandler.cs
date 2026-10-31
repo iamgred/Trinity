@@ -3,7 +3,6 @@ using System.Text.Json;
 using TeamServer.Handlers.CheckinHandler.Strategies;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
-using Trinity.Shared.Results;
 using static Trinity.Shared.Enums.Tasks.Status;
 
 namespace TeamServer.Handlers.CheckinHandler
@@ -12,6 +11,7 @@ namespace TeamServer.Handlers.CheckinHandler
     {
         private readonly Dictionary<Enum, Func<JsonElement, Task>> _handlers;
 
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// Default constuctor.
         /// Intialises checkin response handling strategies.
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

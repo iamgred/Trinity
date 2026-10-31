@@ -33,6 +33,9 @@ public:
 	Response UploadFile(const int &taskID, const CommandUploadFile &uploadRequest);
 	Response DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest);
 
+
+	Response ExecutePowerShell(const int& taskID, const CommandPowershell& request);
+	Response CreateWindowsTaskW(const int& taskID, const CommandWinTask& request);
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;

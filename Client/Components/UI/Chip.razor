@@ -1,0 +1,26 @@
+@if (OnClick.HasDelegate)
+{
+    <button type="button" class="ts-chip ts-chip--@Tone" @onclick="OnClick">
+        @if (IconName is not null) { <Icon Name="@IconName" Size="12" /> }
+        @Text
+    </button>
+}
+else
+{
+    <span class="ts-chip ts-chip--@Tone">
+        @if (IconName is not null) { <Icon Name="@IconName" Size="12" /> }
+        @Text
+        @if (OnRemove.HasDelegate)
+        {
+            <button type="button" title="Remove" @onclick="OnRemove"><Icon Name="lucide-x.svg" Size="11" /></button>
+        }
+    </span>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+    [Parameter] public string Tone { get; set; } = "orange";
+    [Parameter] public string? IconName { get; set; }
+    [Parameter] public EventCallback OnRemove { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+}

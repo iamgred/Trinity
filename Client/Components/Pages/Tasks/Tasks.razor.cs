@@ -90,15 +90,15 @@ public partial class Tasks
         }
         catch (HttpRequestException exception)
         {
-            _loadError = $"Could not load task records from TeamServer: {exception.Message}";
+            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"Could not load task records from TeamServer: {exception.Message}";
         }
         catch (TaskCanceledException exception)
         {
-            _loadError = $"The TeamServer task request timed out: {exception.Message}";
+            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"The TeamServer task request timed out: {exception.Message}";
         }
         catch (JsonException exception)
         {
-            _loadError = $"TeamServer returned an invalid task response: {exception.Message}";
+            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"TeamServer returned an invalid task response: {exception.Message}";
         }
         finally
         {
@@ -174,15 +174,15 @@ public partial class Tasks
         }
         catch (HttpRequestException exception)
         {
-            _detailError = $"Could not load task detail from TeamServer: {exception.Message}";
+            _detailError = ServerDown.Is(exception) ? ServerDown.Message : $"Could not load task detail from TeamServer: {exception.Message}";
         }
         catch (TaskCanceledException exception)
         {
-            _detailError = $"The TeamServer task-detail request timed out: {exception.Message}";
+            _detailError = ServerDown.Is(exception) ? ServerDown.Message : $"The TeamServer task-detail request timed out: {exception.Message}";
         }
         catch (JsonException exception)
         {
-            _detailError = $"TeamServer returned an invalid task-detail response: {exception.Message}";
+            _detailError = ServerDown.Is(exception) ? ServerDown.Message : $"TeamServer returned an invalid task-detail response: {exception.Message}";
         }
         finally
         {
@@ -211,22 +211,22 @@ public partial class Tasks
         _ => "gray",
     };
 
-    private static string StatusColor(string status) => status switch
+    private static string StatusColor(string status) => TaskStatuses.Kind(status) switch
     {
-        "Successful" => "green",
-        "Failure" => "red",
-        "Running" or "Pending" => "blue",
-        "Queued" => "yellow",
+        TaskStatusKind.Success => "green",
+        TaskStatusKind.Failed => "red",
+        TaskStatusKind.Running => "blue",
+        TaskStatusKind.Queued => "yellow",
         _ => "gray",
     };
 
     private List<StatVm> BuildStats()
     {
         int total = _tasks.Count;
-        int completed = _tasks.Count(t => t.Status.Equals("Successful", StringComparison.OrdinalIgnoreCase));
-        int failed = _tasks.Count(t => t.Status.Equals("Failure", StringComparison.OrdinalIgnoreCase));
-        int running = _tasks.Count(t => t.Status.Equals("Running", StringComparison.OrdinalIgnoreCase));
-        int queued = _tasks.Count(t => t.Status.Equals("Queued", StringComparison.OrdinalIgnoreCase));
+        int completed = _tasks.Count(t => TaskStatuses.Kind(t.Status) == TaskStatusKind.Success);
+        int failed = _tasks.Count(t => TaskStatuses.Kind(t.Status) == TaskStatusKind.Failed);
+        int running = _tasks.Count(t => TaskStatuses.Kind(t.Status) == TaskStatusKind.Running);
+        int queued = _tasks.Count(t => TaskStatuses.Kind(t.Status) == TaskStatusKind.Queued);
 
         return new List<StatVm>
         {

@@ -14,7 +14,7 @@ using Trinity.Shared.Enums.Tasks;
 namespace TeamServer.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20261025211917_init")]
+    [Migration("20261031154657_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -27,7 +27,7 @@ namespace TeamServer.Migrations
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status", new[] { "dispatched", "error", "more_to_follow", "no_flag", "no_more_to_follow", "queued", "running", "success" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskCode", new[] { "cancel_download", "download", "kill_process", "no_code", "run", "run_as", "run_u", "sleep", "spawn_to", "update_hosts" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskType", new[] { "download", "escalate", "get_uid", "intial_checkin", "kill", "nop", "object_file", "powershell", "process", "set", "shell", "upload" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskType", new[] { "download", "escalate", "get_uid", "intial_checkin", "kill", "net_asm", "nop", "object_file", "powershell", "process", "set", "shell", "upload", "win_task" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Trinity.Shared.Models.Admin", b =>

@@ -1,0 +1,107 @@
+/* colours and fonts */
+.ts {
+    --ts-bg: #0e0e10;
+    --ts-surface: #161618;
+    --ts-input: #202024;
+    --ts-raised: #232327;
+    --ts-border: #2c2c30;
+    --ts-row-border: rgba(44, 44, 48, 0.6);
+    --ts-text: #f5f5f7;
+    --ts-text-2: #9a9aa2;
+    --ts-text-3: #6c6c74;
+    --ts-orange: #f57a1e;
+    --ts-orange-deep: #c85e10;
+    --ts-on-orange: #1a0d03;
+    --ts-orange-tint: rgba(245, 122, 30, 0.13);
+    --ts-green: #35c759;
+    --ts-red: #e5484d;
+    --ts-yellow: #f5c518;
+    --ts-blue: #6ea2f8;
+    --ts-purple: #c08af9;
+    --ts-sans: "Inter", system-ui, sans-serif;
+    --ts-mono: "JetBrains Mono", ui-monospace, monospace;
+
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--ts-bg);
+    color: var(--ts-text);
+    font-family: var(--ts-sans);
+    font-size: 13px;
+    line-height: normal;
+    overflow: hidden;
+}
+
+.ts-admin__body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
+
+.ts-admin__aside {
+    flex: 0 0 255px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 12px;
+    background: var(--ts-surface);
+    border-right: 1px solid var(--ts-border);
+}
+
+.ts-admin__label {
+    padding: 0 10px 8px;
+    color: var(--ts-text-3);
+    font-family: var(--ts-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+}
+
+.ts-admin__link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    color: var(--ts-text-2);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.ts-admin__link:hover {
+    color: var(--ts-text);
+}
+
+.ts-admin__count {
+    margin-left: auto;
+    font-family: var(--ts-mono);
+    font-size: 11px;
+    color: var(--ts-text-3);
+}
+
+.ts-admin__link.is-active {
+    background: var(--ts-orange-tint);
+    color: var(--ts-orange);
+}
+
+.ts-admin__link.is-active .ts-admin__count {
+    color: var(--ts-orange);
+}
+
+.ts-admin__note {
+    margin: auto 0 0;
+    padding: 10px;
+    color: var(--ts-text-3);
+    font-size: 11.5px;
+    line-height: 17px;
+}
+
+.ts-admin__main {
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+    padding: 24px 28px;
+}

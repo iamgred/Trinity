@@ -1,0 +1,13 @@
+<footer class="ts-statusbar">
+    <span class="ts-statusbar__conn"><span class="ts-dot @(Connected ? null : "is-down")"></span>@(Connected ? "Connected" : "Disconnected")</span>
+    @foreach (var item in Items)
+    {
+        <span>@item</span>
+    }
+    <span class="ts-statusbar__version">Trinity C2 · v2.0</span>
+</footer>
+
+@code {
+    [Parameter] public bool Connected { get; set; }
+    [Parameter] public IEnumerable<string> Items { get; set; } = [];
+}

@@ -76,29 +76,29 @@ public partial class Clients
     private int _jobTargetId;
     private bool _jobImmediate = true;
 
-    // Job catalogue: display name -> the command path suffix sent to the TeamServer.
+    // jobs list: name on screen -> command sent to the server
     private static readonly (string Name, string Path)[] _jobCatalogue =
     {
         ("Get UID",          "execute/getuid"),
-        ("Set Sleep",        "execute/setsleep"),
+        ("Set Sleep",        "set/sleep"),
         ("Shell Command",    "spawn/shell"),
         ("PowerShell",       "spawn/powershell"),
         ("Run",              "spawn/run"),
         ("Run As",           "spawn/runas"),
         ("Run U",            "spawn/runu"),
-        ("Kill Process",     "spawn/killprocess"),
-        ("Escalate (UAC)",   "spawn/escalate"),
-        (".NET Assembly",    "spawn/dotnetassembly"),
+        ("Kill Process",     "execute/killprocess"),
+        ("Escalate (UAC)",   "execute/escalate"),
+        (".NET Assembly",    "execute/dotnetassembly"),
         ("BOF",              "execute/bof"),
         ("File Download",    "execute/filedownload"),
         ("Cancel Download",  "execute/cancelFileDownload"),
         ("Upload",           "execute/upload"),
-        ("Spawn To",         "execute/spawnto"),
-        ("Update Hosts",     "execute/updatehosts"),
+        ("Spawn To",         "set/spawnto"),
+        ("Update Hosts",     "set/updatehosts"),
         ("Kill Agent",       "execute/kill"),
     };
 
-    // Per-job input labels; null entries hide that field. Index 0/1/2 -> _jobArg/_jobArg2/_jobArg3.
+    // which input boxes each job shows (null = hidden)
     private static (string?, string?, string?) JobLabels(string job) => job switch
     {
         "Set Sleep"       => ("Sleep (ms)", null, null),
@@ -116,7 +116,7 @@ public partial class Clients
         "Upload"          => ("Path", null, null),
         "Spawn To"        => ("Path", null, null),
         "Update Hosts"    => ("Hosts (comma-separated)", null, null),
-        _ => (null, null, null), // Get UID, Kill Agent: no input
+        _ => (null, null, null), // these job's dont need any input
     };
 
     private string? JobLabel1 => JobLabels(_jobName).Item1;
@@ -152,15 +152,15 @@ public partial class Clients
         }
         catch (HttpRequestException exception)
         {
-            _loadError = $"Could not load agents from TeamServer: {exception.Message}";
+            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"Could not load agents from TeamServer: {exception.Message}";
         }
         catch (TaskCanceledException exception)
         {
-            _loadError = $"The TeamServer agent request timed out: {exception.Message}";
+            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"The TeamServer agent request timed out: {exception.Message}";
         }
         catch (JsonException exception)
         {
-            _loadError = $"TeamServer returned an invalid agent response: {exception.Message}";
+            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"TeamServer returned an invalid agent response: {exception.Message}";
         }
         finally
         {
@@ -185,9 +185,7 @@ public partial class Clients
         };
     }
 
-    // Derives Online/Offline from check-in recency. The TeamServer has no explicit status,
-    // so an agent counts as online if it checked in within ~2.5 sleep intervals (sleep is
-    // treated as seconds, floored at 60s so very short sleeps don't flap).
+    // online = checked in recently (within about 2.5 sleep cycle's)
     private static string ComputeStatus(DateTime lastCheckIn, int sleep)
     {
         var window = TimeSpan.FromSeconds(Math.Max(sleep, 60) * 2.5);
@@ -207,7 +205,7 @@ public partial class Clients
                 .Select(task => new Event(
                     task.timeStamp.ToLocalTime().ToString("g"),
                     $"{names.GetValueOrDefault(task.agentID, $"Agent {task.agentID}")} · {task.commandType} · {task.status}",
-                    task.status.Equals("Failure", StringComparison.OrdinalIgnoreCase) ? "red" : "green")));
+                    TaskStatuses.IsFailed(task.status) ? "red" : "green")));
         }
         catch (InvalidOperationException exception)
         {
@@ -215,15 +213,15 @@ public partial class Clients
         }
         catch (HttpRequestException exception)
         {
-            _taskLoadError = $"Could not load task history from TeamServer: {exception.Message}";
+            _taskLoadError = ServerDown.Is(exception) ? ServerDown.Message : $"Could not load task history from TeamServer: {exception.Message}";
         }
         catch (TaskCanceledException exception)
         {
-            _taskLoadError = $"The TeamServer task request timed out: {exception.Message}";
+            _taskLoadError = ServerDown.Is(exception) ? ServerDown.Message : $"The TeamServer task request timed out: {exception.Message}";
         }
         catch (JsonException exception)
         {
-            _taskLoadError = $"TeamServer returned an invalid task response: {exception.Message}";
+            _taskLoadError = ServerDown.Is(exception) ? ServerDown.Message : $"TeamServer returned an invalid task response: {exception.Message}";
         }
     }
 
@@ -400,7 +398,7 @@ public partial class Clients
         _showExecute = true;
     }
 
-    // Builds the request body for the selected job from the argument fields.
+    // build what gets sent for the chosen job
     private object BuildJobBody()
     {
         int ParseInt(string s, int fallback = 0) => int.TryParse(s, out var v) ? v : fallback;
@@ -428,7 +426,7 @@ public partial class Clients
         };
     }
 
-    // Run As takes a DOMAIN\user pair; split it, defaulting the domain to "." when omitted.
+    // Run As: split DOMAIN\user (domain defaults to ".")
     private object BuildRunAsBody()
     {
         var parts = _jobArg.Split('\\', 2);
@@ -475,7 +473,7 @@ public partial class Clients
         }
         catch (HttpRequestException exception)
         {
-            ShowToast($"Could not reach the TeamServer: {exception.Message}");
+            ShowToast(ServerDown.Is(exception) ? ServerDown.Message : $"Could not reach the TeamServer: {exception.Message}");
         }
     }
 
@@ -548,7 +546,7 @@ public partial class Clients
         }
     }
 
-    // Quotes a CSV field when it contains a comma, quote, or newline.
+    // wrap CSV values that has commas, quotes or new lines
     private static string CsvField(string value)
     {
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
@@ -581,7 +579,7 @@ public partial class Clients
     private readonly List<(double X, double Y)> LandDots = new();
 
 
-    //chat generate for testying
+    // rough continent shapes for the map
     private static readonly (double Cx, double Cy, double Rx, double Ry)[] _continents =
     {
         (22, 15, 12, 9),

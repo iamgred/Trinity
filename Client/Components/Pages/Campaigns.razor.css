@@ -1,0 +1,372 @@
+.camp {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+}
+
+.camp__list {
+    flex: 0 0 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.camp__card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 65px;
+    padding: 13px 15px;
+    border-radius: 10px;
+    border: 1px solid var(--ts-border);
+    background: var(--ts-surface);
+    text-align: left;
+}
+
+.camp__card:hover {
+    border-color: #3a3a40;
+}
+
+.camp__card.is-selected {
+    border-color: var(--ts-orange);
+    background: rgba(245, 122, 30, 0.06);
+}
+
+.camp__card-top {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--ts-text-2);
+}
+
+.camp__card.is-selected .camp__card-top {
+    color: var(--ts-orange);
+}
+
+.camp__card-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ts-text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.camp__card-meta {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px;
+    color: var(--ts-text-3);
+    font-size: 11.5px;
+}
+
+.camp__detail {
+    flex: 1;
+    min-width: 0;
+}
+
+.camp__detail-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.camp__detail-head > div {
+    flex: 1;
+}
+
+.camp__detail-head h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ts-text);
+}
+
+.camp__detail-head p {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ts-text-3);
+}
+
+.camp__panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.camp__panel {
+    min-height: 273px;
+    padding: 17px;
+    border-radius: 12px;
+    border: 1px solid var(--ts-border);
+    background: var(--ts-surface);
+}
+
+.camp__panel h5 {
+    margin: 0 0 10px;
+    font-family: var(--ts-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--ts-text-3);
+}
+
+.camp__panel-sub {
+    margin-top: 22px !important;
+}
+
+.camp__op {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 47px;
+    margin-bottom: 6px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: var(--ts-raised);
+}
+
+.camp__avatar {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    background: rgba(245, 122, 30, 0.16);
+    color: var(--ts-orange);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.camp__op-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.camp__op-text b {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ts-text);
+}
+
+.camp__op-text small {
+    font-size: 11px;
+    color: var(--ts-text-3);
+}
+
+.camp__op button {
+    display: grid;
+    place-items: center;
+    color: var(--ts-text-3);
+}
+
+.camp__op button:hover {
+    color: var(--ts-red);
+}
+
+.camp__assign {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    width: 100%;
+    height: 33px;
+    padding: 0 11px;
+    border-radius: 8px;
+    border: 1px dashed rgba(245, 122, 30, 0.6);
+    color: var(--ts-orange);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.camp__assign:hover {
+    background: rgba(245, 122, 30, 0.06);
+}
+
+.camp__assign-pick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.camp__assign-pick button {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--ts-border);
+    background: var(--ts-input);
+    color: var(--ts-text);
+    font-family: var(--ts-mono);
+    font-size: 12px;
+}
+
+.camp__assign-pick button:hover {
+    border-color: var(--ts-orange);
+}
+
+.camp__assign-pick span,
+.camp__na,
+.camp__empty {
+    font-size: 12px;
+    color: var(--ts-text-3);
+}
+
+.camp__error {
+    margin-bottom: 12px;
+    font-size: 12.5px;
+    color: var(--ts-red);
+}
+
+button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: default;
+}
+
+p, h3, h4, h5 {
+    margin: 0;
+}
+
+.ts-admin-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.ts-admin-head h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ts-text);
+}
+
+.ts-admin-head p {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--ts-text-2);
+}
+
+.ts-admin-head .ts-btn {
+    margin-left: auto;
+}
+
+.ts-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 15px;
+    border-radius: 8px;
+    border: 1px solid var(--ts-border);
+    background: var(--ts-raised);
+    color: var(--ts-text);
+    font-family: var(--ts-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ts-btn:hover:not(:disabled) {
+    border-color: #3a3a40;
+}
+
+.ts-btn:disabled {
+    opacity: 0.45;
+}
+
+.ts-btn--primary {
+    height: 32px;
+    padding: 0 14px;
+    border: 0;
+    color: #fff;
+    background: linear-gradient(90deg, var(--ts-orange), var(--ts-orange-deep));
+}
+
+.ts-btn--primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+.ts-btn--danger {
+    color: var(--ts-red);
+    background: rgba(229, 72, 77, 0.08);
+    border-color: rgba(229, 72, 77, 0.6);
+}
+
+.ts-btn--danger:hover:not(:disabled) {
+    border-color: var(--ts-red);
+}
+
+.ts-modal__row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    column-gap: 16px;
+    align-items: start;
+    padding: 8px 0;
+}
+
+.ts-modal__row > label {
+    padding-top: 11px;
+    font-size: 12.5px;
+    color: var(--ts-text);
+}
+
+.ts-field {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 38px;
+    padding: 0 13px;
+    border-radius: 9px;
+    border: 1px solid var(--ts-border);
+    background: var(--ts-input);
+    color: var(--ts-text-3);
+}
+
+.ts-field:focus-within {
+    border-color: var(--ts-orange);
+}
+
+.ts-field input,
+.ts-field select {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ts-text);
+    font-family: var(--ts-mono);
+    font-size: 13px;
+}
+
+.ts-field select {
+    appearance: none;
+    cursor: pointer;
+}
+
+.ts-field select option {
+    background: var(--ts-input);
+}
+
+.ts-field input::placeholder {
+    color: var(--ts-text-3);
+}

@@ -1,0 +1,152 @@
+@inherits LayoutComponentBase
+@implements IAsyncDisposable
+@using System.Text.Json
+@using Client.Components.Shell
+@using Client.Services
+@inject AgentApiClient AgentApi
+@inject ListenerApiClient ListenerApi
+@inject ServerApiClient ServerApi
+@inject TeamServerConnection Connection
+@inject IConfiguration Config
+
+<HeadContent>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
+</HeadContent>
+
+<CascadingValue Value="State">
+    <div class="ts ts-workspace">
+        <TopBar Connected="State.Connected" />
+        <NavRow />
+
+        <section class="ts-agents" style="height:@(State.AgentsPanelHeight)px">
+            <AgentsPanel />
+        </section>
+
+        <div class="ts-splitter" title="Drag to resize" @onpointerdown="StartResize">
+            <i></i><i></i><i></i>
+        </div>
+
+        <BottomTabs />
+
+        <main class="ts-page">@Body</main>
+
+        <StatusBar Connected="State.Connected" Items="StatusItems" />
+
+        @if (_resizing)
+        {
+            <div class="ts-resize-capture" @onpointermove="Resize" @onpointerup="StopResize" @onpointerleave="StopResize"></div>
+        }
+    </div>
+</CascadingValue>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private readonly WorkspaceState State = new();
+    private readonly CancellationTokenSource _stop = new();
+    private bool _resizing;
+    private double _resizeStartY;
+    private int _resizeStartHeight;
+
+    private IEnumerable<string> StatusItems =>
+    [
+        $"{State.Agents.Count} agent{(State.Agents.Count == 1 ? "" : "s")}",
+        $"{State.SmbPeerCount} SMB peer{(State.SmbPeerCount == 1 ? "" : "s")}",
+        $"{State.ListenerCount} listener{(State.ListenerCount == 1 ? "" : "s")}",
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        State.Changed += OnStateChanged;
+
+        if (Connection.BaseAddress is null && Config["TeamServer:BaseUrl"] is { Length: > 0 } baseUrl)
+        {
+            Connection.Configure(baseUrl);
+        }
+
+        await RefreshAsync();
+        _ = PollAsync();
+    }
+
+    private void OnStateChanged() => InvokeAsync(StateHasChanged);
+
+    // refresh agents every 5s, server every 15s
+    private async Task PollAsync()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+        var tick = 0;
+        try
+        {
+            while (await timer.WaitForNextTickAsync(_stop.Token))
+            {
+                tick++;
+                await RefreshAgentsAsync();
+                if (tick % 3 == 0)
+                {
+                    await RefreshServerAsync();
+                }
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async Task RefreshAsync()
+    {
+        await RefreshServerAsync();
+        await RefreshAgentsAsync();
+    }
+
+    private async Task RefreshAgentsAsync()
+    {
+        try
+        {
+            State.Agents = await AgentApi.GetAgentsAsync(_stop.Token);
+            State.AgentsError = null;
+        }
+        catch (Exception e) when (e is HttpRequestException or InvalidOperationException or JsonException or TaskCanceledException)
+        {
+            State.AgentsError = ServerDown.Is(e) ? ServerDown.Message : $"Could not load agents: {e.Message}";
+        }
+    }
+
+    private async Task RefreshServerAsync()
+    {
+        try
+        {
+            State.Connected = await ServerApi.GetServerStatusAsync(_stop.Token);
+            State.ListenerCount = (await ListenerApi.GetListenersAsync(_stop.Token)).Count;
+        }
+        catch (Exception e) when (e is HttpRequestException or InvalidOperationException or JsonException or TaskCanceledException)
+        {
+            State.Connected = false;
+        }
+    }
+
+    private void StartResize(PointerEventArgs e)
+    {
+        _resizing = true;
+        _resizeStartY = e.ClientY;
+        _resizeStartHeight = State.AgentsPanelHeight;
+    }
+
+    // keep the agents panel 120–640px tall
+    private void Resize(PointerEventArgs e) =>
+        State.AgentsPanelHeight = Math.Clamp(_resizeStartHeight + (int)(e.ClientY - _resizeStartY), 120, 640);
+
+    private void StopResize() => _resizing = false;
+
+    public ValueTask DisposeAsync()
+    {
+        State.Changed -= OnStateChanged;
+        _stop.Cancel();
+        _stop.Dispose();
+        return ValueTask.CompletedTask;
+    }
+}

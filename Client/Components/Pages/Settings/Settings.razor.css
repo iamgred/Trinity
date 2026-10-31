@@ -145,7 +145,7 @@ h2 {
     font-weight: 700;
 }
 
-/* categories rail */
+/* category list */
 .categories { padding: 16px; }
 .category-list {
     display: flex;
@@ -178,7 +178,7 @@ h2 {
 }
 .category-item.active svg { opacity: 1; }
 
-/* framework settings form */
+/* settings form */
 .setting-row {
     display: flex;
     align-items: center;
@@ -254,7 +254,7 @@ h2 {
 }
 .btn-primary:active { transform: translateY(0); box-shadow: none; }
 
-/* data tables (channels + profiles) */
+/* tables */
 .channels-section, .profiles-section { overflow-x: auto; }
 .data-table {
     width: 100%;
@@ -321,6 +321,12 @@ h2 {
     transition: border-color 0.15s ease, color 0.15s ease;
 }
 .pill-btn svg { width: 12px; height: 12px; }
+/* keep these buttons on one line */
+.pill-btn { white-space: nowrap; flex-shrink: 0; }
+
+/* squeeze the profiles table so every column fits */
+.profiles-section .data-table th,
+.profiles-section .data-table td { padding: 8px 5px; font-size: 12px; white-space: normal; }
 .pill-btn:hover { border-color: var(--brand-orange); color: var(--brand-orange); }
 
 /* policy list */
@@ -353,7 +359,7 @@ h2 {
     background: rgba(255, 255, 255, 0.04);
 }
 
-/* framework status gauge */
+/* status gauge */
 .gauge-body {
     display: flex;
     align-items: center;

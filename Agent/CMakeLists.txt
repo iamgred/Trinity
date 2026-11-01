@@ -62,6 +62,9 @@ target_compile_definitions(Agent PRIVATE COMM_PORT=${CLEAN_PORT})
 target_compile_definitions(Agent PRIVATE COMM_REQUEST_HEADER="${INPUT_REQUEST_HEADER}")
 target_link_libraries(Agent PRIVATE winhttp iphlpapi ws2_32 psapi)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  target_link_options(Agent PRIVATE -static -static-libgcc -static-libstdc++)
+endif()
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)

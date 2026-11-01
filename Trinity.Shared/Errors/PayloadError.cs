@@ -14,6 +14,15 @@ namespace Trinity.Shared.Errors
             );
         }
 
+        public static Error GenerationFailed(string details)
+        {
+            return new Error(
+                "Payloads.GenerationFailed",
+                $"Failed to generate the payload: {details}",
+                ErrorType.Validation
+            );
+        }
+
         public static Error NotFound(int ID)
         {
             return new Error(

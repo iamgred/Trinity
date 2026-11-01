@@ -65,7 +65,10 @@ namespace TeamServer.Services
                     return PayloadError.GenerationFailed();
                 }
 
-                var config = JsonDocument.Parse(JsonSerializer.Deserialize<HttpConfig>(listener.Config).Hosts.FirstOrDefault().ToString());
+                var listenerConfig = JsonSerializer.Deserialize<HttpConfig>(listener.Config)
+                    ?? throw new InvalidOperationException("The listener configuration is invalid.");
+                var host = listenerConfig.Hosts.FirstOrDefault()
+                    ?? throw new InvalidOperationException("The listener has no configured hosts.");
 
                 // Configure the build environment and generate build files using CMake
                 Result configureResult = await RunProcessAsync(
@@ -73,14 +76,14 @@ namespace TeamServer.Services
                     $"-S \"{agentPath}\" " +
                     $"-B \"{buildRoot}\" " +
                     "-G Ninja " +
-                    $"-DHOST=\"{config}\"" +
-                    $"-DPAYLOAD_UUID=\"{payloadUUID}\"" +
+                    $"-DHOST=\"{host}\" " +
+                    $"-DINPUT_PAYLOAD_UUID=\"{payloadUUID}\" " +
                     $"-DCMAKE_CXX_COMPILER=\"{compiler}\" "
                 );
 
                 if (!configureResult.IsSuccess)
                 {
-                    return PayloadError.GenerationFailed();
+                    return configureResult.Error;
                 }
 
                 Result buildResult = await RunProcessAsync(
@@ -90,7 +93,7 @@ namespace TeamServer.Services
 
                 if (!buildResult.IsSuccess)
                 {
-                    return PayloadError.GenerationFailed();
+                    return buildResult.Error;
                 }
 
                 string executablePath = FindExecutable(buildRoot);
@@ -108,9 +111,9 @@ namespace TeamServer.Services
 
                 return finalOutputPath;
             }
-            catch
+            catch (Exception exception)
             {
-                return PayloadError.GenerationFailed();
+                return PayloadError.GenerationFailed(exception.Message);
             }
         }
 
@@ -153,12 +156,20 @@ namespace TeamServer.Services
             {
                 process.Start();
 
-                await process.StandardOutput.ReadToEndAsync();
-                await process.StandardError.ReadToEndAsync();
+                var outputTask = process.StandardOutput.ReadToEndAsync();
+                var errorTask = process.StandardError.ReadToEndAsync();
 
                 await process.WaitForExitAsync();
 
-                return process.ExitCode == 0 ? Result.Success() : PayloadError.GenerationFailed();
+                var output = await outputTask;
+                var error = await errorTask;
+                if (process.ExitCode == 0)
+                {
+                    return Result.Success();
+                }
+
+                var details = string.IsNullOrWhiteSpace(error) ? output : error;
+                return PayloadError.GenerationFailed(details.Trim());
             }
         }
 

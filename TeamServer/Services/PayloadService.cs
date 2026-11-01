@@ -12,7 +12,7 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class PayloadService
+    public class PayloadService : IPayloadService
     {
         private readonly PayloadRepository _payloadRepository;
         private readonly ListenerRespository _listenerRepository;
@@ -47,10 +47,10 @@ namespace TeamServer.Services
 
             var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
 
-            //if (!buildResult.IsSuccess)
-            //{
-            //    return PayloadError.GenerationFailed();
-            //}
+            if (!buildResult.IsSuccess)
+            {
+                return buildResult.Error;
+            }
 
             var payload = new Payload
             {
@@ -90,6 +90,8 @@ namespace TeamServer.Services
 
                     return new PayloadDTO
                     {
+                        ID = p.ID,
+                        PayloadUUID = p.PayloadUUID,
                         Name = AppendFileExtension(p.FileName, p.PayloadType),
                         Size = size,
                         Type = Util.GetEnumValue<PayloadTypes>(p.PayloadType),

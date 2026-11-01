@@ -18,7 +18,7 @@ using static Trinity.Shared.Constants.SectionLayout;
 
 namespace TeamServer.Services
 {
-    public class AgentService
+    public class AgentService : IAgentService
     {
         private readonly AgentRepository _agentRepo;
         private readonly AgentFactory _agentFactory;

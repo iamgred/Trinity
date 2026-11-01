@@ -1,4 +1,5 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using TeamServer.Interface;
 using TeamServer.Repositories;
 using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Errors;
@@ -6,7 +7,7 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class TaskService
+    public class TaskService : ITaskService
     {
         private readonly TaskRepository _taskRepo;
         private readonly AgentRepository _agentRepo;

@@ -17,7 +17,20 @@ namespace TeamServer.Repositories
         /// <remarks>Forwards the context to the base repository for shared initialization.</remarks>
         /// <param name="context">The context used to access the application's data store.</param>
         public TaskRepository(Context context) : base(context)
-        { 
+        {
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves a task by its ID, including its associated Result and Error entities.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public new async Task<Trinity.Shared.Models.Task?> GetByIdAsync(int id)
+        {
+            return await _dbSet
+                .Include(task => task.Result)
+                .Include(task => task.Error)
+                .FirstOrDefaultAsync(task => task.ID == id);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -119,7 +132,7 @@ namespace TeamServer.Repositories
         /// <param name="agentID">Identifier of the agent to find the queued task for.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains the first queued Task for the
         /// specified agent, or null if none is found.</returns>
-        public async Task<Trinity.Shared.Models.Task?> GetTaskFromQueueAsync(int agentID) 
+        public async Task<Trinity.Shared.Models.Task?> GetTaskFromQueueAsync(int agentID)
         {
             return await _dbSet
                 .Where(t => t.AgentID.Equals(agentID) && t.Status.Equals(Status.QUEUED))

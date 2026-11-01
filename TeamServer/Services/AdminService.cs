@@ -1,4 +1,5 @@
 // =============================================================== { START OF FILE } =============================================================== //
+using TeamServer.Interface;
 using TeamServer.Repositories;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
@@ -9,7 +10,7 @@ namespace TeamServer.Services
     /// <summary>
     /// Provides services for managing Admin entities in the database, including CRUD operations.
     /// </summary>
-    public class AdminService
+    public class AdminService : IAdminService
     {
         private readonly AdminRepository _db;
 

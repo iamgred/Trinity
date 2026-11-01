@@ -101,6 +101,11 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
                         ? node["Data"].GetString()
                         : "";
 
+                const auto destinationPath =
+                    node.HasMember("DestinationPath") && node["DestinationPath"].IsString()
+                        ? node["DestinationPath"].GetString()
+                        : "";
+
                 const auto offset =
                     node.HasMember("Offset") && node["Offset"].IsInt64()
                         ? node["Offset"].GetInt64()
@@ -123,6 +128,7 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
                     status,
                     CommandDownloadFile{
                         node["Path"].GetString(),
+                        destinationPath,
                         data,
                         offset,
                         totalBytes,

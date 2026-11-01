@@ -121,7 +121,6 @@ namespace TeamServer.Services
                 while (taskResults.MoveNext())
                 {
                     await _responseHandler.HandleResponseAsync(taskResults.Current);
-                    await AdvanceDownloadAsync(taskResults.Current, agentKey);
                 }
             }
 
@@ -134,27 +133,6 @@ namespace TeamServer.Services
             }
             return _taskRequestFactory.Create(task);
         }
-
-        private async Task AdvanceDownloadAsync(JsonElement response, string agentKey)
-        {
-            if (!response.TryGetProperty("Status", out var statusElement)
-                || statusElement.GetInt32() != (int)Status.SUCCESS)
-                return;
-
-            var taskId = response.GetProperty("TaskID").GetInt32();
-            var task = await _taskRepo.GetByIdAsync(taskId);
-            if (task?.CommandType != TaskType.DOWNLOAD || task.Code != TaskCode.DOWNLOAD)
-                return;
-
-            var final = task.Command.RootElement.TryGetProperty("Final", out var finalElement)
-                && finalElement.GetBoolean();
-            if (!final)
-            {
-                task.Status = Status.QUEUED;
-                await _taskRepo.CommitAsync();
-            }
-        }
-
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<Result<List<AgentResponse>>> GetAgentsAsync()
         {

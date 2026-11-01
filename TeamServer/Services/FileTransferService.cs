@@ -112,6 +112,9 @@ public sealed class FileTransferService : IFileTransferService
     {
         var command = task.Command.RootElement;
         var fileName = command.GetProperty("Path").GetString() ?? throw new InvalidOperationException("Download path is required.");
+        var destinationPath = command.TryGetProperty("DestinationPath", out var destinationElement)
+            ? destinationElement.GetString()
+            : null;
         var campaignId = await GetCampaignIdAsync(agentKey);
         var path = CampaignFilePath(campaignId, fileName);
         if (!File.Exists(path))
@@ -130,6 +133,7 @@ public sealed class FileTransferService : IFileTransferService
         task.Command = JsonDocument.Parse(JsonSerializer.Serialize(new
         {
             Path = fileName,
+            DestinationPath = destinationPath,
             Offset = offset + count,
             TotalBytes = input.Length,
             Final = final
@@ -139,6 +143,7 @@ public sealed class FileTransferService : IFileTransferService
         return JsonDocument.Parse(JsonSerializer.Serialize(new
         {
             Path = fileName,
+            DestinationPath = destinationPath,
             Data = Convert.ToBase64String(buffer, 0, count),
             Offset = offset,
             TotalBytes = input.Length,

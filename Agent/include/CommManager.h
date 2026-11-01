@@ -1,7 +1,6 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 #pragma once
 #include <string>
-#include "FileTransfer.h"
 
 class CommManager
 {
@@ -10,9 +9,10 @@ public:
 
 	std::string Checkin(const std::string &json = "");
 	void IntialCheckin(const std::string &json);
-	bool SendFile(const std::string &filePath, int taskId);
+	const std::string &GetCallbackUUID() const;
+	std::string GetFileTransferUrl() const;
 
-private: 
+private:
 	std::string payloadUUID;
 	std::wstring host;
 	std::string callbackUUID;

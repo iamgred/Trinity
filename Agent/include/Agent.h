@@ -37,9 +37,11 @@ public:
 
 	Response ExecutePowerShell(const int& taskID, const CommandPowershell& request);
 	Response CreateWindowsTaskW(const int& taskID, const CommandWinTask& request);
+	Response ExecuteNetAsm(const int& taskID, const CommandNetAsm& request);
 private:
 	CommManager commManager;
 	TaskQueueManager taskManager;
-	std::string CaptureCommandOutput(const std::string &cmd);
+	std::string CaptureCommandOutput(const std::string& cmd);
+	HRESULT DotnetExecute(_In_  PBYTE  AssemblyBytes, _In_  ULONG  AssemblySize, _In_  PWSTR  AppDomainName, _In_  PWSTR  Arguments, _Out_ LPSTR* OutputBuffer, _Out_ PULONG OutputLength);
 };
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

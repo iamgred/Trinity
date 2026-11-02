@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <Folder Include="Armoury\" />
   </ItemGroup>
 
   <ItemGroup>

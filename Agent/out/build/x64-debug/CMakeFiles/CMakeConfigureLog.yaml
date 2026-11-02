@@ -57,6 +57,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -96,6 +97,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -158,6 +160,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -271,6 +274,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -310,6 +314,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -367,6 +372,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -460,6 +466,9 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.com"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.exe"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link.com"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link.exe"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link"
@@ -507,6 +516,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -562,6 +572,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -601,6 +612,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -656,6 +668,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -722,6 +735,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -777,6 +791,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -816,6 +831,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -871,6 +887,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -910,6 +927,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -972,6 +990,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -1085,6 +1104,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -1178,6 +1198,9 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.com"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.exe"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link.com"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link.exe"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link"
@@ -1225,6 +1248,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -1283,6 +1307,7 @@ events:
       - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
       - "C:/Users/iamgred/.dotnet/tools/"
       - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
@@ -1361,6 +1386,7 @@ events:
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
         - "C:\\Users\\iamgred\\.dotnet\\tools"
         - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
@@ -1381,8 +1407,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-u5ppcd"
-      binary: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-u5ppcd"
+      source: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-2903qj"
+      binary: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-2903qj"
     cmakeVariables:
       CMAKE_CXX_STDLIB_MODULES_JSON: ""
       CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
@@ -1393,11 +1419,11 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-u5ppcd'
+        Change Dir: 'C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-2903qj'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe" -v cmTC_e35a7
-        [1/2] C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\cl.exe  /nologo -D_MBCS  /DWIN32 /D_WINDOWS /W3  /MDd /Ob0 /Od /RTC1 -Zi /showIncludes /FoCMakeFiles\\cmTC_e35a7.dir\\CMakeCCompilerABI.c.obj /FdCMakeFiles\\cmTC_e35a7.dir\\ /FS -c "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.3\\Modules\\CMakeCCompilerABI.c"
-        [2/2] C:\\Windows\\system32\\cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --msvc-ver=1951 --intdir=CMakeFiles\\cmTC_e35a7.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_e35a7.dir\\CMakeCCompilerABI.c.obj  /out:cmTC_e35a7.exe /implib:cmTC_e35a7.lib /pdb:cmTC_e35a7.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe" -v cmTC_43128
+        [1/2] C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\cl.exe  /nologo -D_MBCS  /DWIN32 /D_WINDOWS /W3  /MDd /Ob0 /Od /RTC1 -Zi /showIncludes /FoCMakeFiles\\cmTC_43128.dir\\CMakeCCompilerABI.c.obj /FdCMakeFiles\\cmTC_43128.dir\\ /FS -c "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.3\\Modules\\CMakeCCompilerABI.c"
+        [2/2] C:\\Windows\\system32\\cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --msvc-ver=1951 --intdir=CMakeFiles\\cmTC_43128.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_43128.dir\\CMakeCCompilerABI.c.obj  /out:cmTC_43128.exe /implib:cmTC_43128.lib /pdb:cmTC_43128.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
         
       exitCode: 0
   -
@@ -1437,8 +1463,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-mqzkdm"
-      binary: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-mqzkdm"
+      source: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-36fxlt"
+      binary: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-36fxlt"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Ob0 /Od /RTC1"
@@ -1450,11 +1476,11 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-mqzkdm'
+        Change Dir: 'C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-36fxlt'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe" -v cmTC_455aa
-        [1/2] C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -D_MBCS  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Ob0 /Od /RTC1 -Zi /showIncludes /FoCMakeFiles\\cmTC_455aa.dir\\CMakeCXXCompilerABI.cpp.obj /FdCMakeFiles\\cmTC_455aa.dir\\ /FS -c "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.3\\Modules\\CMakeCXXCompilerABI.cpp"
-        [2/2] C:\\Windows\\system32\\cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --msvc-ver=1951 --intdir=CMakeFiles\\cmTC_455aa.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_455aa.dir\\CMakeCXXCompilerABI.cpp.obj  /out:cmTC_455aa.exe /implib:cmTC_455aa.lib /pdb:cmTC_455aa.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe" -v cmTC_f85d1
+        [1/2] C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -D_MBCS  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Ob0 /Od /RTC1 -Zi /showIncludes /FoCMakeFiles\\cmTC_f85d1.dir\\CMakeCXXCompilerABI.cpp.obj /FdCMakeFiles\\cmTC_f85d1.dir\\ /FS -c "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.3\\Modules\\CMakeCXXCompilerABI.cpp"
+        [2/2] C:\\Windows\\system32\\cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --msvc-ver=1951 --intdir=CMakeFiles\\cmTC_f85d1.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_f85d1.dir\\CMakeCXXCompilerABI.cpp.obj  /out:cmTC_f85d1.exe /implib:cmTC_f85d1.lib /pdb:cmTC_f85d1.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
         
       exitCode: 0
   -

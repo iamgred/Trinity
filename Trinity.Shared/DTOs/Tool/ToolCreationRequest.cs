@@ -1,15 +1,8 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Http;
 
-namespace TeamServer.DTOs.Listeners
+namespace Trinity.Shared.DTOs.Tool
 {
-    public class HttpListenerDto : ListenerBaseDto
-    {
-        public int C2Port { get; set; } = 8080;
-        public int BindPort { get; set; } = 8080;
-        public string UserAgent { get; set; } = String.Empty;
-        public Dictionary<string,string> Headers { get; set; } = new();
-        public List<string> Hosts { get; set; } = new(); 
-    }
+    public record ToolCreationRequest(string Name, int OperatorID, IFormFile file);
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

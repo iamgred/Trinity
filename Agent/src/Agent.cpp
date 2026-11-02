@@ -159,20 +159,18 @@ e_func:
 
 
 Response Agent::CreateWindowsTaskW(const int& taskID, const CommandWinTask& request){
-    HRESULT         hr = E_FAIL;
-    BOOL            isSuccess = FALSE;
-    ITask* pITask = NULL;
-    IPersistFile* pIPersistFile = NULL;
-    ITaskTrigger* pITaskTrigger = NULL;
-    ITaskFolder* pITaskFolder = NULL;
-    std::wstring    uuid = {};
-    std::wstring    wPath = {};
-    ITaskScheduler* pITS = 0;
-    WORD            piNewTrigger = 0;
-    DWORD           dwFlags = 0;
+    HRESULT         hr              = E_FAIL;
+    BOOL            isSuccess       = FALSE;
+    ITask*          pITask          = NULL;
+    IPersistFile*   pIPersistFile   = NULL;
+    ITaskTrigger*   pITaskTrigger   = NULL;
+    ITaskFolder*    pITaskFolder    = NULL;
+    std::wstring    uuid            = {};
+    std::wstring    wPath           = {};
+    ITaskScheduler* pITS            = 0;
+    WORD            piNewTrigger    = 0;
+    DWORD           dwFlags         = 0;
     TASK_TRIGGER    pTrigger;
-    IEnumWorkItems* pEnumWorkItems = NULL;
-    LPWSTR          userName = NULL;
 
     std::wstring path(request.path.begin(), request.path.end());
     std::wstring username(request.username.begin(), request.username.end());

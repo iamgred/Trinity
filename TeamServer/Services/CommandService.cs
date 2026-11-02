@@ -15,24 +15,30 @@ namespace TeamServer.Services
         private readonly CommandRepository _commandRepo;
         private readonly TaskStatusRepository _statusRepo;
         private readonly AgentRepository _agentRepo;
+        private readonly ToolRepository _toolRepo;
+        private readonly IWebHostEnvironment _env;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
-        /// Initializes a new instance of CommandService with the specified dependencies.
+        /// Default constructor.
         /// </summary>
-        /// <remarks>Dependencies are required for command creation, persistence, and agent/task status
-        /// management.</remarks>
-        /// <param name="database">Provides database access and persistence operations.</param>
-        /// <param name="commandFactory">Factory for creating Command instances.</param>
-        /// <param name="commandRepository">Persists and retrieves Command entities.</param>
-        /// <param name="taskStatusRepository">Manages persistence and retrieval of task status information.</param>
-        /// <param name="agentRepository">Accesses and manages agent data.</param>
-        public CommandService(DatabaseService database, CommandFactory commandFactory, CommandRepository commandRepository, TaskStatusRepository taskStatusRepository, AgentRepository agentRepository)
+        /// <param name="database"></param>
+        /// <param name="commandFactory"></param>
+        /// <param name="commandRepository"></param>
+        /// <param name="taskStatusRepository"></param>
+        /// <param name="agentRepository"></param>
+        /// <param name="toolRepository"></param>
+        public CommandService(DatabaseService database,
+            CommandFactory commandFactory, CommandRepository commandRepository,
+            TaskStatusRepository taskStatusRepository, AgentRepository agentRepository,
+            ToolRepository toolRepository, IWebHostEnvironment env)
         {
             _commandFactory = commandFactory;
             _commandRepo = commandRepository;
             _statusRepo = taskStatusRepository;
             _agentRepo = agentRepository;
+            _toolRepo = toolRepository;
+            _env = env;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -45,7 +51,7 @@ namespace TeamServer.Services
         /// <param name="type">Type of command used to create the task.</param>
         /// <param name="agentID">Identifier of the agent that will own the queued task.</param>
         /// <returns>A Result indicating success, or an error result when the specified agent is not found.</returns>
-        public async Task<Result<CommandCreationResponse>> QueueTaskAsync(int agentID, TaskType type, TaskCode code, ICommand command)
+        public async Task<Result> QueueTaskAsync(int agentID, TaskType type, TaskCode code, ICommand command)
         {
             var agent = await _agentRepo.GetAgentByIDAsync(agentID);
             if (agent == null)
@@ -53,36 +59,46 @@ namespace TeamServer.Services
                 return AgentError.NotFound(agentID);
             }
 
-
             var task = _commandFactory.Create(agentID, type, code, command);
             await _commandRepo.QueueAsync(task);
             await _commandRepo.CommitAsync();
 
-            return FormatCreationResponse(ref type, ref code, task.ID, ref command);
+            return Result.Success();
         }
 
-        private CommandCreationResponse FormatCreationResponse(ref TaskType type, ref TaskCode code, int taskID, ref ICommand command)
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<Result> QueueNetAsmTask(int agentID, TaskType type, TaskCode code, DotNetAsmDTO command)
         {
-            string message = type switch
+            var agent = await _agentRepo.GetAgentByIDAsync(agentID);
+            if (agent == null)
             {
+                return AgentError.NotFound(agentID);
+            }
 
-                TaskType.POWERSHELL => $"Tasked agent to run: {((PowerShellDTO)command).Commandlet}",
-                TaskType.SHELL => $"Tasked agent to run: {((ShellDTO)command).Command}",
-                TaskType.PROCESS when code.Equals(TaskCode.SPAWN_TO) => $"Tasked agent to set spawn to: {((SpawnToDTO)command).Path}",
-                TaskType.PROCESS when code.Equals(TaskCode.KILL_PROCESS) => $"Tasked agent to kill process: {((KillProcessDTO)command).PID}",
-                TaskType.PROCESS when code.Equals(TaskCode.RUN_AS) => $"Tasked agent to run command as {((RunAsDTO)command).DomainUser}",
-                TaskType.PROCESS when code.Equals(TaskCode.RUN) => $"Tasked agent to run program: {((RunDTO)command).Program}",
-                TaskType.PROCESS when code.Equals(TaskCode.RUN_U) => $"Tasked agent to run command under process: {((RunUDTO)command).PID}",
-                TaskType.DOWNLOAD when code.Equals(TaskCode.DOWNLOAD) => $"Tasked agent to download {((DownloadDTO)command).Path}",
-                TaskType.DOWNLOAD when code.Equals(TaskCode.CANCEL_DOWNLOAD) => $"Tasked agent to cancel download with taskID: {((CancelDownloadDTO)command).TaskID}",
-                TaskType.UPLOAD => $"Tasked agent to upload file: {((UploadDTO)command).Path}",
-                TaskType.SET when code.Equals(TaskCode.UPDATE_HOSTS) => $"Tasked agent to update hosts: {((UpdateHostsDTO)command).Hosts}",
-                TaskType.SET when code.Equals(TaskCode.SLEEP) => $"Tasked agent to sleep for {((SetSleepDTO)command).Sleep}s",
-                TaskType.GET_UID => $"Tasked agent to get user ID",
-                TaskType.KILL => $"Tasked agent to terminate"
-            };
+            var tool = await _toolRepo.GetToolByPathAsync(command.AssemblyPath);
+            if (tool == null)
+            {
+                return ToolError.NotFound(command.AssemblyPath);
+            }
 
-            return new CommandCreationResponse(message, taskID);
+            var blob = await ConvertToBase64Blob(command.AssemblyPath);
+            var request = new DotNetAsmRequest { Arguments = command.Arguments, Assembly = blob };
+
+            var task = _commandFactory.Create(agentID, type, code, request);
+            await _commandRepo.QueueAsync(task);
+            await _commandRepo.CommitAsync();
+            return Result.Success();
+        }
+
+        private async Task<string> ConvertToBase64Blob(string path)
+        {
+            using (FileStream fileStream = File.OpenRead(path))
+            {
+                byte[] fileBytes = new byte[fileStream.Length];
+                await fileStream.ReadAsync(fileBytes, 0, fileBytes.Length);
+                string base64blob = Convert.ToBase64String(fileBytes);
+                return base64blob;
+            }
         }
     }
 }

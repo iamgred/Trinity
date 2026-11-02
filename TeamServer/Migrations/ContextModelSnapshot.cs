@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeamServer.Data;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Enums.Tasks;
 
 #nullable disable
@@ -22,9 +23,11 @@ namespace TeamServer.Migrations
                 .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "arch", new[] { "x32", "x64", "x86" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status", new[] { "dispatched", "error", "more_to_follow", "no_flag", "no_more_to_follow", "queued", "running", "success" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskCode", new[] { "cancel_download", "download", "kill_process", "no_code", "run", "run_as", "run_u", "sleep", "spawn_to", "update_hosts" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskType", new[] { "download", "escalate", "get_uid", "intial_checkin", "kill", "net_asm", "nop", "object_file", "powershell", "process", "set", "shell", "upload", "win_task" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "toolType", new[] { "net_asm" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Trinity.Shared.Models.Admin", b =>
@@ -470,6 +473,44 @@ namespace TeamServer.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Trinity.Shared.Models.Tool", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("AddedDateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Arch>("Arch")
+                        .HasColumnType("arch");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("OperatorID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Size")
+                        .HasColumnType("double precision");
+
+                    b.Property<ToolType>("Type")
+                        .HasColumnType("\"toolType\"");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("OperatorID");
+
+                    b.ToTable("Tools");
+                });
+
             modelBuilder.Entity("Trinity.Shared.Models.Agent", b =>
                 {
                     b.HasOne("Trinity.Shared.Models.Campaign", "Campaign")
@@ -531,6 +572,17 @@ namespace TeamServer.Migrations
                         .HasForeignKey("Trinity.Shared.Models.TaskResult", "TaskID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Trinity.Shared.Models.Tool", b =>
+                {
+                    b.HasOne("Trinity.Shared.Models.Operator", "Operator")
+                        .WithMany()
+                        .HasForeignKey("OperatorID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Operator");
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Protocol", b =>

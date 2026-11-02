@@ -33,7 +33,7 @@ namespace TeamServer.Services
                 Directory.CreateDirectory(storagePath);
             }
 
-            var fileName = Path.GetFileNameWithoutExtension(request.file.FileName);
+            var fileName = Path.GetFileName(request.file.FileName);
 
             var fullPath = Path.Combine(storagePath, fileName);
             await using var stream = new FileStream(

@@ -116,18 +116,33 @@ std::string CommManager::Checkin(const std::string& json)
 
 	if (WinHttpReceiveResponse(hRequest, NULL))
 	{
-		std::vector<char> buffer;
+		std::vector<char> totalResponse; // Persistent container for all chunks
+		std::vector<char> chunkBuffer;   // Temporary container for each chunk
+
 		do {
 			dwSize = 0;
 			if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) break;
 			if (dwSize == 0) break;
-			buffer = std::vector<char>(dwSize);
-			if (!WinHttpReadData(hRequest, buffer.data(), dwSize, &dwDownloaded)) break;
+
+			// Prepare temporary buffer for this chunk
+			chunkBuffer.resize(dwSize);
+			dwDownloaded = 0;
+
+			if (!WinHttpReadData(hRequest, chunkBuffer.data(), dwSize, &dwDownloaded)) break;
+
+			// Append only the bytes that were actually downloaded, ignoring uninitialized padding
+			if (dwDownloaded > 0) {
+				totalResponse.insert(totalResponse.end(), chunkBuffer.begin(), chunkBuffer.begin() + dwDownloaded);
+			}
+
 		} while (dwSize > 0);
 
-		if (!buffer.size() > 0) goto e_func;
-		result = base64::from_base64(std::string(buffer.begin(), buffer.end()));
+		if (totalResponse.empty()) goto e_func;
+
+		// Convert the validated binary data into a string and decode base64
+		result = base64::from_base64(std::string(totalResponse.begin(), totalResponse.end()));
 	}
+
 
 e_func:
 	if (hRequest) WinHttpCloseHandle(hRequest);

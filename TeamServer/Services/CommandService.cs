@@ -62,7 +62,6 @@ namespace TeamServer.Services
             var task = _commandFactory.Create(agentID, type, code, command);
             await _commandRepo.QueueAsync(task);
             await _commandRepo.CommitAsync();
-
             return Result.Success();
         }
 

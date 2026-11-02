@@ -45,6 +45,7 @@ add_executable (
   "include/TaskQueueManager.h"
   "include/Task.h"
   "include/Command.h"
+  "include/mscorlib.h"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)

@@ -65,7 +65,13 @@ namespace TeamServer.Services
                     return PayloadError.GenerationFailed();
                 }
 
+                // Deserialize the listener configuration to retrieve necessary parameters for the build process
                 var config = JsonSerializer.Deserialize<HttpConfig>(listener.Config);
+                // Validate the deserialized configuration to ensure it is not null
+                if (config == null)
+                {
+                    return PayloadError.GenerationFailed();
+                }
 
                 // Configure the build environment and generate build files using CMake
                 Result configureResult = await RunProcessAsync(

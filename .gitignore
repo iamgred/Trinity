@@ -394,3 +394,6 @@ FodyWeavers.xsd
 .local-backend/
 *.local.sql
 *.local.md
+
+# Local CMake test/build output
+Agent/build-test/

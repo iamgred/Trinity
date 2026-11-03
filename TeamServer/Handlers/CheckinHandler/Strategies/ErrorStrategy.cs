@@ -1,25 +1,28 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Text.Json;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
+using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
-using Trinity.Shared.Models;
 
 namespace TeamServer.Handlers.CheckinHandler.Strategies
 {
     public class ErrorStrategy : ICheckinStrategy
     {
         private readonly TaskRepository _taskRepo;
+        private readonly NotificationHub _hub;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="taskRepository"></param>
-        public ErrorStrategy(TaskRepository taskRepository)
+        public ErrorStrategy(TaskRepository taskRepository, NotificationHub notificationHub)
         {
             _taskRepo = taskRepository;
+            _hub = notificationHub;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -35,6 +38,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
                 task.Status = Status.ERROR;
                 task.Error = new Trinity.Shared.Models.Error { TaskID = response.TaskID, ErrorCode = response.Data.ErrorCode, Message = response.Data.Message };
                 await _taskRepo.CommitAsync();
+                await _hub.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(DateTime.UtcNow, taskID, response.Data.Message, Status.SUCCESS));
             }
         }
     }

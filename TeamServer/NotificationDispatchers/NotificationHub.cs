@@ -22,11 +22,11 @@ namespace TeamServer.NotificationDispatchers
         /// Sends the Agent task response to all subscribed terminal instances.
         /// </summary>
         /// <param name="agentID"></param>
-        /// <param name="message"></param>
+        /// <param name="notification"></param>
         /// <returns></returns>
-        public async Task SendTaskResponseAsync(string agentID, string message)
+        public async Task SendTaskResponseAsync(string agentID, TaskNotification notification)
         {
-            await Clients.Group(agentID).SendAsync(message);
+            await Clients.Group(agentID).SendAsync("TaskNotification", notification);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -69,7 +69,7 @@ namespace TeamServer.NotificationDispatchers
         /// </summary>
         /// <param name="campaignID"></param>
         /// <returns></returns>
-        public async Task UnsubscribeFromEvenLog(string campaignID)
+        public async Task UnsubscribeFromEventLog(string campaignID)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, campaignID);
         }

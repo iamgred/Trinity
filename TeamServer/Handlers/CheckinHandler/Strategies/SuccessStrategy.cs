@@ -1,6 +1,8 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Text.Json;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
+using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
@@ -11,15 +13,18 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     public class SuccessStrategy : ICheckinStrategy
     {
         private readonly TaskRepository _taskRepo;
+        private readonly NotificationHub _hubContext;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="taskRepository"></param>
-        public SuccessStrategy(TaskRepository taskRepository)
+        /// <param name="hubContext"></param>
+        public SuccessStrategy(TaskRepository taskRepository, NotificationHub hubContext)
         {
             _taskRepo = taskRepository;
+            _hubContext = hubContext;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -40,6 +45,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
                 task.Status = Status.SUCCESS;
                 task.Result = new TaskResult { TaskID = task.ID, Result = response.Data.Output };
                 await _taskRepo.CommitAsync();
+                await _hubContext.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(DateTime.UtcNow, taskID, response.Data.Output, Status.SUCCESS));
             }
         }
     }

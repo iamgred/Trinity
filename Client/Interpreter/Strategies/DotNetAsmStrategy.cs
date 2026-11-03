@@ -29,7 +29,7 @@ namespace Client.Interpreter.Strategies
         /// <param name="agentID">The unique identifier of the agent.</param>
         /// <param name="command">The runAs command to execute.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the command output.</returns>
-        public async Task<Result<CommandCreationResponse>> ProcessCommandAsync(int agentID, string? command)
+        public async Task<Result<string>> ProcessCommandAsync(int agentID, string? command)
         {
             if (string.IsNullOrEmpty(command))
             {
@@ -48,7 +48,8 @@ namespace Client.Interpreter.Strategies
                 Arguments = match.Groups[2].Value
             };
 
-            return await _client.QueueDotNetAsmCommandAsync(agentID, dto);
+            var taskID = await _client.QueueDotNetAsmCommandAsync(agentID, dto);
+            return $"Tasked agent to execute: {dto.AssemblyPath} #{taskID}";
         }
     }
 }

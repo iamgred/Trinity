@@ -28,7 +28,7 @@ namespace Client.Interpreter.Strategies
         /// <param name="command">The shell command to execute.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a Result with the command
         /// creation response.</returns>
-        public async Task<Result<CommandCreationResponse>> ProcessCommandAsync(int agentID, string? command)
+        public async Task<Result<string>> ProcessCommandAsync(int agentID, string? command)
         {
             if (string.IsNullOrEmpty(command))
             {
@@ -37,7 +37,8 @@ namespace Client.Interpreter.Strategies
 
             var dto = new ShellDTO { Command = command };
 
-            return await _client.QueueShellCommandAsync(agentID, dto);
+            var taskID = await _client.QueueShellCommandAsync(agentID, dto);
+            return $"Tasked agent to run shell command: {dto.Command} #{taskID}";
         }
     }
 }

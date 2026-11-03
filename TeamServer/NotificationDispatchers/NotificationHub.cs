@@ -69,7 +69,7 @@ namespace TeamServer.NotificationDispatchers
         /// </summary>
         /// <param name="campaignID"></param>
         /// <returns></returns>
-        public async Task UnsubscribeFromEvenLog(string campaignID)
+        public async Task UnsubscribeFromEventLog(string campaignID)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, campaignID);
         }

@@ -14,13 +14,18 @@ namespace TeamServer.Handlers.CheckinHandler
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// Default constuctor.
         /// Intialises checkin response handling strategies.
-        public CheckinResponseHandler(SuccessStrategy successStrategy, RunningStrategy runningStrategy, ErrorStrategy errorStrategy)
+        public CheckinResponseHandler(
+            SuccessStrategy successStrategy,
+            RunningStrategy runningStrategy,
+            ErrorStrategy errorStrategy,
+            KeyloggerStrategy keyloggerStrategy)
         {
             _handlers = new Dictionary<Status, Func<JsonElement, Task>>()
             {
                 { SUCCESS, (element) => successStrategy.ProcessResponseAsync(element) },
                 { RUNNING, (element) =>  runningStrategy.ProcessResponseAsync(element) },
-                { ERROR, (element) => errorStrategy.ProcessResponseAsync(element) }
+                { ERROR, (element) => errorStrategy.ProcessResponseAsync(element) },
+                { COMPLETED, (element) => keyloggerStrategy.ProcessResponseAsync(element) }
             };
         }
 

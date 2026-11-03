@@ -45,19 +45,10 @@ namespace TeamServer.Handlers.CheckinHandler
         /// <exception cref="ArgumentException"></exception>
         public async Task HandleResponseAsync(JsonElement element)
         {
-            var taskType = element.TryGetProperty("TaskType", out var taskTypeElement)
-                ? (TaskType?)((TaskType)taskTypeElement.GetInt32())
-                : null;
-            var status = (Status)element.GetProperty("Status").GetInt32();
-            var key = status == Status.SUCCESS && taskType.HasValue
-                && Enum.IsDefined(taskType.Value)
-                ? (Enum)taskType.Value
-                : status;
+           var status = (Status)element.GetProperty("status").GetInt32();
+           _handlers.TryGetValue(status, out var strategy);
 
-            if (!_handlers.TryGetValue(key, out var strategy))
-                throw new ArgumentException($"Unsupported check-in response '{key}'.", nameof(element));
-
-            await strategy(element);
+           await strategy!(element);
         }
     }
 }

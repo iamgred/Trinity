@@ -1,6 +1,10 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
+<<<<<<< Updated upstream
 using TeamServer.Services;
+=======
+using TeamServer.Interface;
+>>>>>>> Stashed changes
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Enums.Tasks;
 

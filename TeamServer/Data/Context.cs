@@ -1,9 +1,5 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
-using System.Text.Json;
-using Trinity.Shared.Errors;
-using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Data
@@ -23,6 +19,7 @@ namespace TeamServer.Data
         public DbSet<CampaignBridge> CampaignBridges { get; set; }
         public DbSet<Trinity.Shared.Models.TaskStatus> TaskStatus { get; set; }
         public DbSet<Trinity.Shared.Models.Error> Errors { get; set; }
+        public DbSet<Tool> Tools { get; set; }
         public Context()
         {
         }

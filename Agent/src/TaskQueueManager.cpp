@@ -61,17 +61,17 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
         }
 
         case WIN_TASK:
+		{
+			auto path = node["Path"].GetString();
+			auto username = node["Username"].GetString();
+			auto taskName = node["TaskName"].GetString();
+			return CreateTaskRequest<CommandWinTask>(taskID, type, code, status, CommandWinTask{ path, username, taskName });
+		}
+        case NET_ASM:
         {
-                auto path = node["Path"].GetString();
-                auto username = node["Username"].GetString();
-                auto taskName = node["TaskName"].GetString();
-
-                return CreateTaskRequest<CommandWinTask>(
-                    taskID,
-                    type,
-                    code,
-                    status,
-                    CommandWinTask{path, username, taskName});
+                auto args = node["Arguments"].GetString();
+                auto assmebly = node["Assembly"].GetString();
+                return CreateTaskRequest<CommandNetAsm>(taskID, type, code, status, CommandNetAsm{ args, assmebly });
         }
 
         case UPLOAD:
@@ -140,8 +140,8 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
                 TaskRequest<bool> test;
                 return test;
         }
-        }
 }
+
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Default constructor
 TaskQueueManager::TaskQueueManager()

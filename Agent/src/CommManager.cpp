@@ -9,7 +9,6 @@
 #include <windows.h>
 #include <winhttp.h>
 #include <vector>
-#include <chrono>
 
 #pragma comment(lib, "winhttp.lib")
 
@@ -182,7 +181,6 @@ std::string CommManager::Checkin(const std::string &json)
 
     if (!hSession)
         goto e_func;
-
     hConnect = WinHttpConnect(
         hSession,
         host.c_str(),
@@ -223,6 +221,7 @@ std::string CommManager::Checkin(const std::string &json)
 
     if (WinHttpReceiveResponse(hRequest, NULL))
     {
+        // Persistent container for all chunks
         std::vector<char> buffer;
 
         do
@@ -242,6 +241,7 @@ std::string CommManager::Checkin(const std::string &json)
             if (dwSize == 0)
                 break;
 
+            // Prepare temporary buffer for this chunk
             std::vector<char> chunk(dwSize);
 
             if (!WinHttpReadData(
@@ -258,6 +258,7 @@ std::string CommManager::Checkin(const std::string &json)
                 goto e_func;
             }
 
+            // Append only the bytes that were actually downloaded, ignoring uninitialized padding
             buffer.insert(
                 buffer.end(),
                 chunk.begin(),
@@ -268,7 +269,9 @@ std::string CommManager::Checkin(const std::string &json)
         if (buffer.empty())
             goto e_func;
 
+        // Convert the validated binary data into a string and decode base64
         const std::string encodedResponse(buffer.begin(), buffer.end());
+
         try
         {
             result = base64::from_base64(encodedResponse);
@@ -281,20 +284,22 @@ std::string CommManager::Checkin(const std::string &json)
         }
     }
 
-e_func:
-    if (hRequest)
-        WinHttpCloseHandle(hRequest);
 
-    if (hConnect)
-        WinHttpCloseHandle(hConnect);
 
-    if (hSession)
-        WinHttpCloseHandle(hSession);
+    e_func:
+        if (hRequest)
+            WinHttpCloseHandle(hRequest);
 
-    if (result.rfind(callbackUUID, 0) == 0)
-        result.erase(0, callbackUUID.length());
+        if (hConnect)
+            WinHttpCloseHandle(hConnect);
 
-    return result;
+        if (hSession)
+            WinHttpCloseHandle(hSession);
+
+        if (result.rfind(callbackUUID, 0) == 0)
+            result.erase(0, callbackUUID.length());
+
+        return result;
 }
 
 const std::string &CommManager::GetCallbackUUID() const

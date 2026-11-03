@@ -17,6 +17,7 @@ using Trinity.Shared.Configurations;
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Smb;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
 
@@ -43,6 +44,7 @@ namespace TeamServer
             builder.Services.AddScoped<IReceivedFileService, ReceivedFileService>();
             builder.Services.AddScoped<IFileStorageService, FileStorageService>();
             builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
+            builder.Services.AddScoped<ToolService>();
 
             // Handlers 
             builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();
@@ -80,7 +82,9 @@ namespace TeamServer
                 builder.Configuration.GetConnectionString("Postgres"),
                 o => o.MapEnum<Status>("status")
                       .MapEnum<TaskType>("taskType")
-                      .MapEnum<TaskCode>("taskCode")));
+                      .MapEnum<TaskCode>("taskCode")
+                      .MapEnum<ToolType>("toolType")
+                      .MapEnum<Arch>("arch")));
 
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();
@@ -97,6 +101,7 @@ namespace TeamServer
             builder.Services.AddScoped<CampaignBridgeRepository>();
             builder.Services.AddScoped<AdminRepository>();
             builder.Services.AddScoped<HostRepository>();
+            builder.Services.AddScoped<ToolRepository>();
 
             // Validators 
             builder.Services.AddScoped<IValidator<CreateHttpListenerRequest>, CreateHttpListenerRequestValidator>();

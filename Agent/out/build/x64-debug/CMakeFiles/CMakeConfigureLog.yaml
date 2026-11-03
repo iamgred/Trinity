@@ -258,6 +258,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -266,6 +267,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
     searched_directories:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe.com"
     found: "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
@@ -281,6 +295,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -291,6 +306,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
   -
     kind: "find-v1"
     backtrace:
@@ -328,6 +357,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -338,6 +368,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
       ENV{INCLUDE}:
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\include"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\ucrt"
@@ -421,6 +465,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -429,6 +474,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
     searched_directories:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/link.com"
     found: "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/link.exe"
@@ -444,6 +502,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -454,6 +513,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
   -
     kind: "find-v1"
     backtrace:
@@ -486,6 +559,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -494,6 +568,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
     searched_directories:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/lld-link.com"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/lld-link.exe"
@@ -525,6 +612,7 @@ events:
       - "C:/Program Files/dotnet/lld-link.com"
       - "C:/Program Files/dotnet/lld-link.exe"
       - "C:/Program Files/dotnet/lld-link"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/lld-link.com"
       - "C:/Program Files/Git/cmd/lld-link.exe"
       - "C:/Program Files/Git/cmd/lld-link"
@@ -549,6 +637,41 @@ events:
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/lld-link.com"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/lld-link.exe"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/lld-link"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/lld-link"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/lld-link"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/lld-link"
+      - "C:/Users/iamgred/.dotnet/tools/lld-link.com"
+      - "C:/Users/iamgred/.dotnet/tools/lld-link.exe"
+      - "C:/Users/iamgred/.dotnet/tools/lld-link"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/lld-link"
+>>>>>>> origin/kan-31-execute-asm
     found: false
     search_context:
       ENV{PATH}:
@@ -562,6 +685,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -572,6 +696,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
   -
     kind: "find-v1"
     backtrace:
@@ -602,6 +740,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -610,6 +749,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
     searched_directories:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/link.com"
     found: "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/link.exe"
@@ -625,6 +777,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -635,6 +788,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
   -
     kind: "find-v1"
     backtrace:
@@ -665,6 +832,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -673,6 +841,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
     searched_directories:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/mt.com"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/mt.exe"
@@ -691,6 +872,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -701,6 +883,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
   -
     kind: "find-v1"
     backtrace:
@@ -731,6 +927,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -739,6 +936,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
     searched_directories:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/lib.com"
     found: "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/lib.exe"
@@ -754,6 +964,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -764,6 +975,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
   -
     kind: "find-v1"
     backtrace:
@@ -794,6 +1019,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -802,6 +1028,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
     searched_directories:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe.com"
     found: "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
@@ -817,6 +1056,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -827,6 +1067,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
   -
     kind: "find-v1"
     backtrace:
@@ -864,6 +1118,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -874,6 +1129,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
       ENV{INCLUDE}:
         - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\include"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\ucrt"
@@ -957,6 +1226,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -965,6 +1235,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
     searched_directories:
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/lld-link.com"
       - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/lld-link.exe"
@@ -996,6 +1279,7 @@ events:
       - "C:/Program Files/dotnet/lld-link.com"
       - "C:/Program Files/dotnet/lld-link.exe"
       - "C:/Program Files/dotnet/lld-link"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/lld-link.com"
       - "C:/Program Files/Git/cmd/lld-link.exe"
       - "C:/Program Files/Git/cmd/lld-link"
@@ -1020,6 +1304,41 @@ events:
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/lld-link.com"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/lld-link.exe"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/lld-link"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/lld-link"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/lld-link"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/lld-link"
+      - "C:/Users/iamgred/.dotnet/tools/lld-link.com"
+      - "C:/Users/iamgred/.dotnet/tools/lld-link.exe"
+      - "C:/Users/iamgred/.dotnet/tools/lld-link"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/lld-link"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link.com"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link.exe"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/lld-link"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/lld-link.com"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/lld-link.exe"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/lld-link"
+>>>>>>> origin/kan-31-execute-asm
     found: false
     search_context:
       ENV{PATH}:
@@ -1033,6 +1352,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -1043,6 +1363,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
   -
     kind: "find-v1"
     backtrace:
@@ -1076,6 +1410,7 @@ events:
       - "C:/Program Files/Microsoft SQL Server/170/Tools/Binn/"
       - "C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/"
       - "C:/Program Files/dotnet/"
+<<<<<<< HEAD
       - "C:/Program Files/Git/cmd/"
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/"
@@ -1084,6 +1419,19 @@ events:
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/"
       - "C:/Users/anon/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
       - "C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/"
+=======
+      - "C:/Users/iamgred/AppData/Local/Microsoft/WindowsApps/"
+      - "C:/Users/iamgred/AppData/Local/GitHubDesktop/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/DockerDesktop/resources/bin/"
+      - "C:/Users/iamgred/.dotnet/tools/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/"
+      - "C:/Users/iamgred/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/PrivateAssemblies/runtimes/win-x64/native/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/VC/Linux/bin/ConnectionManagerExe/"
+      - "C:/Program Files/Microsoft Visual Studio/18/Community/VC/vcpkg/"
+>>>>>>> origin/kan-31-execute-asm
       - "C:/Program Files/bin/"
       - "C:/Program Files/sbin/"
       - "C:/Program Files/"
@@ -1114,6 +1462,7 @@ events:
         - "C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\"
         - "C:\\Program Files\\dotnet\\"
+<<<<<<< HEAD
         - "C:\\Program Files\\Git\\cmd"
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\"
@@ -1124,6 +1473,20 @@ events:
         - "C:\\Program Files\\CMake\\bin"
         - "C:\\Users\\anon\\AppData\\Local\\Microsoft\\WinGet\\Links"
       CMAKE_INSTALL_PREFIX: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/install/x64-debug"
+=======
+        - "C:\\Users\\iamgred\\AppData\\Local\\Microsoft\\WindowsApps"
+        - "C:\\Users\\iamgred\\AppData\\Local\\GitHubDesktop\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+        - "C:\\Users\\iamgred\\.dotnet\\tools"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin"
+        - "C:\\Users\\iamgred\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\copilot-shim"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\PrivateAssemblies\\runtimes\\win-x64\\native"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\VC\\Linux\\bin\\ConnectionManagerExe"
+        - "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg"
+      CMAKE_INSTALL_PREFIX: "C:/Users/iamgred/Desktop/Trinity/Agent/out/install/x64-debug"
+>>>>>>> origin/kan-31-execute-asm
       CMAKE_SYSTEM_PREFIX_PATH:
         - "C:/Program Files"
         - "C:/Program Files (x86)"
@@ -1138,8 +1501,13 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
+<<<<<<< HEAD
       source: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-w1pehn"
       binary: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-w1pehn"
+=======
+      source: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-2903qj"
+      binary: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-2903qj"
+>>>>>>> origin/kan-31-execute-asm
     cmakeVariables:
       CMAKE_CXX_STDLIB_MODULES_JSON: ""
       CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
@@ -1150,11 +1518,19 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: false
       stdout: |
+<<<<<<< HEAD
         Change Dir: 'C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-w1pehn'
         
         Run Build Command(s): C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/ninja.exe -v cmTC_d885d
         [1/2] "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\bin\\Hostx64\\x64\\cl.exe"  /nologo -D_MBCS  /DWIN32 /D_WINDOWS /W3  /MDd /Ob0 /Od /RTC1 -Zi /showIncludes /FoCMakeFiles\\cmTC_d885d.dir\\CMakeCCompilerABI.c.obj /FdCMakeFiles\\cmTC_d885d.dir\\ /FS -c "C:\\Program Files\\CMake\\share\\cmake-4.4\\Modules\\CMakeCCompilerABI.c"
         [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && "C:\\Program Files\\CMake\\bin\\cmake.exe" -E vs_link_exe --msvc-ver=1951 --intdir=CMakeFiles\\cmTC_d885d.dir --rc="C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\rc.exe" --mt="C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\mt.exe" --manifests  -- "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\bin\\Hostx64\\x64\\link.exe" /nologo CMakeFiles\\cmTC_d885d.dir\\CMakeCCompilerABI.c.obj  /out:cmTC_d885d.exe /implib:cmTC_d885d.lib /pdb:cmTC_d885d.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+=======
+        Change Dir: 'C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-2903qj'
+        
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe" -v cmTC_43128
+        [1/2] C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\cl.exe  /nologo -D_MBCS  /DWIN32 /D_WINDOWS /W3  /MDd /Ob0 /Od /RTC1 -Zi /showIncludes /FoCMakeFiles\\cmTC_43128.dir\\CMakeCCompilerABI.c.obj /FdCMakeFiles\\cmTC_43128.dir\\ /FS -c "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.3\\Modules\\CMakeCCompilerABI.c"
+        [2/2] C:\\Windows\\system32\\cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --msvc-ver=1951 --intdir=CMakeFiles\\cmTC_43128.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_43128.dir\\CMakeCCompilerABI.c.obj  /out:cmTC_43128.exe /implib:cmTC_43128.lib /pdb:cmTC_43128.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+>>>>>>> origin/kan-31-execute-asm
         
       exitCode: 0
   -
@@ -1195,8 +1571,13 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
+<<<<<<< HEAD
       source: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-rfycjt"
       binary: "C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-rfycjt"
+=======
+      source: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-36fxlt"
+      binary: "C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-36fxlt"
+>>>>>>> origin/kan-31-execute-asm
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Ob0 /Od /RTC1"
@@ -1208,11 +1589,19 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: false
       stdout: |
+<<<<<<< HEAD
         Change Dir: 'C:/Users/anon/Documents/INSY7315/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-rfycjt'
         
         Run Build Command(s): C:/Users/anon/AppData/Local/Microsoft/WinGet/Links/ninja.exe -v cmTC_75c57
         [1/2] "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\bin\\Hostx64\\x64\\cl.exe"  /nologo /TP -D_MBCS  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Ob0 /Od /RTC1 -Zi /showIncludes /FoCMakeFiles\\cmTC_75c57.dir\\CMakeCXXCompilerABI.cpp.obj /FdCMakeFiles\\cmTC_75c57.dir\\ /FS -c "C:\\Program Files\\CMake\\share\\cmake-4.4\\Modules\\CMakeCXXCompilerABI.cpp"
         [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && "C:\\Program Files\\CMake\\bin\\cmake.exe" -E vs_link_exe --msvc-ver=1951 --intdir=CMakeFiles\\cmTC_75c57.dir --rc="C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\rc.exe" --mt="C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\mt.exe" --manifests  -- "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\bin\\Hostx64\\x64\\link.exe" /nologo CMakeFiles\\cmTC_75c57.dir\\CMakeCXXCompilerABI.cpp.obj  /out:cmTC_75c57.exe /implib:cmTC_75c57.lib /pdb:cmTC_75c57.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+=======
+        Change Dir: 'C:/Users/iamgred/Desktop/Trinity/Agent/out/build/x64-debug/CMakeFiles/CMakeScratch/TryCompile-36fxlt'
+        
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe" -v cmTC_f85d1
+        [1/2] C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -D_MBCS  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Ob0 /Od /RTC1 -Zi /showIncludes /FoCMakeFiles\\cmTC_f85d1.dir\\CMakeCXXCompilerABI.cpp.obj /FdCMakeFiles\\cmTC_f85d1.dir\\ /FS -c "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-4.3\\Modules\\CMakeCXXCompilerABI.cpp"
+        [2/2] C:\\Windows\\system32\\cmd.exe /C "cd . && "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe" -E vs_link_exe --msvc-ver=1951 --intdir=CMakeFiles\\cmTC_f85d1.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_f85d1.dir\\CMakeCXXCompilerABI.cpp.obj  /out:cmTC_f85d1.exe /implib:cmTC_f85d1.lib /pdb:cmTC_f85d1.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+>>>>>>> origin/kan-31-execute-asm
         
       exitCode: 0
   -

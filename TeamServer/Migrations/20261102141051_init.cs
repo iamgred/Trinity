@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Enums.Tasks;
 
 #nullable disable
@@ -17,9 +18,11 @@ namespace TeamServer.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:Enum:arch", "x32,x64,x86")
                 .Annotation("Npgsql:Enum:status", "dispatched,error,more_to_follow,no_flag,no_more_to_follow,queued,running,success")
                 .Annotation("Npgsql:Enum:taskCode", "cancel_download,download,kill_process,no_code,run,run_as,run_u,sleep,spawn_to,update_hosts")
-                .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,kill,net_asm,nop,object_file,powershell,process,set,shell,upload,win_task");
+                .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,kill,net_asm,nop,object_file,powershell,process,set,shell,upload,win_task")
+                .Annotation("Npgsql:Enum:toolType", "net_asm");
 
             migrationBuilder.CreateTable(
                 name: "Admins",
@@ -146,6 +149,31 @@ namespace TeamServer.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TaskStatus", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tools",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Arch = table.Column<Arch>(type: "arch", nullable: false),
+                    Type = table.Column<ToolType>(type: "\"toolType\"", nullable: false),
+                    Size = table.Column<double>(type: "double precision", nullable: false),
+                    Path = table.Column<string>(type: "text", nullable: false),
+                    OperatorID = table.Column<int>(type: "integer", nullable: false),
+                    AddedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tools", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_Tools_Operators_OperatorID",
+                        column: x => x.OperatorID,
+                        principalTable: "Operators",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -343,6 +371,11 @@ namespace TeamServer.Migrations
                 name: "IX_Tasks_TaskStatusID",
                 table: "Tasks",
                 column: "TaskStatusID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tools_OperatorID",
+                table: "Tools",
+                column: "OperatorID");
         }
 
         /// <inheritdoc />
@@ -364,10 +397,10 @@ namespace TeamServer.Migrations
                 name: "Hosts");
 
             migrationBuilder.DropTable(
-                name: "Operators");
+                name: "TaskResult");
 
             migrationBuilder.DropTable(
-                name: "TaskResult");
+                name: "Tools");
 
             migrationBuilder.DropTable(
                 name: "Campaigns");
@@ -380,6 +413,9 @@ namespace TeamServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "Tasks");
+
+            migrationBuilder.DropTable(
+                name: "Operators");
 
             migrationBuilder.DropTable(
                 name: "Protocols");

@@ -84,7 +84,10 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
                     type,
                     code,
                     status,
-                    CommandUploadFile{node["Path"].GetString()}};
+                    CommandUploadFile{
+                        node["Path"].GetString(),
+                        node.HasMember("Offset") && node["Offset"].IsInt64() ? node["Offset"].GetInt64() : 0,
+                        node.HasMember("TotalBytes") && node["TotalBytes"].IsInt64() ? node["TotalBytes"].GetInt64() : 0}};
         }
 
         case DOWNLOAD:
@@ -139,6 +142,7 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
         {
                 TaskRequest<bool> test;
                 return test;
+        }
         }
 }
 

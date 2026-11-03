@@ -10,7 +10,6 @@ public:
 	std::string Checkin(const std::string &json = "");
 	void IntialCheckin(const std::string &json);
 	const std::string &GetCallbackUUID() const;
-	std::string GetFileTransferUrl() const;
 
 private:
 	std::string payloadUUID;

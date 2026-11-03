@@ -20,3 +20,9 @@
 8	1621	8153557994785804	CMakeFiles/Agent.dir/src/TaskQueueManager.cpp.obj	2dc0012868cb3ccc
 1623	1798	8153558010770859	Agent.exe	e38df0b7baf4fcde
 >>>>>>> origin/kan-31-execute-asm
+12	2569	8154102070265101	CMakeFiles/Agent.dir/src/main.cpp.obj	c7d5252ef70d34c8
+21	2572	8154102070346905	CMakeFiles/Agent.dir/src/CommandDispatcher.cpp.obj	2f6df97a30239d26
+17	3101	8154102070306788	CMakeFiles/Agent.dir/src/CommManager.cpp.obj	d33bae7204132186
+32	3114	8154102070444653	CMakeFiles/Agent.dir/src/Keylogger.cpp.obj	d235b2bd6e550f2
+22	1890	8154102239740443	CMakeFiles/Agent.dir/src/TaskQueueManager.cpp.obj	1833a1e221b773af
+26	2883	8154102239780436	CMakeFiles/Agent.dir/src/FileTransfer.cpp.obj	6927d359ccc1a3a6

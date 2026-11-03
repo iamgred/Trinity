@@ -14,7 +14,12 @@ namespace Trinity.Shared.Enums.Tasks
         QUEUED              = 4,
         RUNNING             = 5,
         MORE_TO_FOLLOW      = 6,
-        NO_MORE_TO_FOLLOW   = 7
+        NO_MORE_TO_FOLLOW   = 7,
+        UPLOAD_CHUNK        = 8,
+        UPLOAD_FINAL        = 9,
+        DOWNLOAD_CHUNK      = 10,
+        DOWNLOAD_FINAL      = 11,
+        KEYLOGGER           = 12
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

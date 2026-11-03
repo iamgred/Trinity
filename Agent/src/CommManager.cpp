@@ -307,9 +307,4 @@ const std::string &CommManager::GetCallbackUUID() const
     return callbackUUID;
 }
 
-std::string CommManager::GetFileTransferUrl() const
-{
-    return "http://" + std::string(host.begin(), host.end()) + ":5069";
-}
-
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

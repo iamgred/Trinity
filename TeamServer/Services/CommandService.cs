@@ -1,6 +1,7 @@
 ﻿﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;
+using TeamServer.Interface;
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Errors;
@@ -9,7 +10,7 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class CommandService
+    public class CommandService : ICommandService
     {
         private readonly CommandFactory _commandFactory;
         private readonly CommandRepository _commandRepo;
@@ -51,7 +52,7 @@ namespace TeamServer.Services
         /// <param name="type">Type of command used to create the task.</param>
         /// <param name="agentID">Identifier of the agent that will own the queued task.</param>
         /// <returns>A Result indicating success, or an error result when the specified agent is not found.</returns>
-        public async Task<Result> QueueTaskAsync(int agentID, TaskType type, TaskCode code, ICommand command)
+        public async Task<Result<CommandCreationResponse>> QueueTaskAsync(int agentID, TaskType type, TaskCode code, ICommand command)
         {
             var agent = await _agentRepo.GetAgentByIDAsync(agentID);
             if (agent == null)
@@ -62,11 +63,11 @@ namespace TeamServer.Services
             var task = _commandFactory.Create(agentID, type, code, command);
             await _commandRepo.QueueAsync(task);
             await _commandRepo.CommitAsync();
-            return Result.Success();
+            return new CommandCreationResponse("Command queued.", task.ID);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public async Task<Result> QueueNetAsmTask(int agentID, TaskType type, TaskCode code, DotNetAsmDTO command)
+        public async Task<Result<CommandCreationResponse>> QueueNetAsmTask(int agentID, TaskType type, TaskCode code, DotNetAsmDTO command)
         {
             var agent = await _agentRepo.GetAgentByIDAsync(agentID);
             if (agent == null)
@@ -86,7 +87,7 @@ namespace TeamServer.Services
             var task = _commandFactory.Create(agentID, type, code, request);
             await _commandRepo.QueueAsync(task);
             await _commandRepo.CommitAsync();
-            return Result.Success();
+            return new CommandCreationResponse("Command queued.", task.ID);
         }
 
         private async Task<string> ConvertToBase64Blob(string path)

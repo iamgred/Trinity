@@ -12,5 +12,11 @@ namespace TeamServer.Interface
             TaskType type,
             TaskCode code,
             ICommand command);
+
+        Task<Result<CommandCreationResponse>> QueueNetAsmTask(
+            int agentID,
+            TaskType type,
+            TaskCode code,
+            DotNetAsmDTO command);
     }
 }

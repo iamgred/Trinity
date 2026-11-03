@@ -76,7 +76,7 @@ namespace TeamServer.Services
                     $"-S \"{agentPath}\" " +
                     $"-B \"{buildRoot}\" " +
                     "-G Ninja " +
-                    $"-DHOST=\"{host}\" " +
+                    $"-DINPUT_HOSTS=\"{host}\" " +
                     $"-DINPUT_PAYLOAD_UUID=\"{payloadUUID}\" " +
                     $"-DCMAKE_CXX_COMPILER=\"{compiler}\" "
                 );

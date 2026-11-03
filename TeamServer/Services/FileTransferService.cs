@@ -151,6 +151,44 @@ public sealed class FileTransferService : IFileTransferService
         }));
     }
 
+    public async Task ReceiveCheckinUploadChunkAsync(
+        int taskId,
+        string fileName,
+        long offset,
+        long totalBytes,
+        string data,
+        bool final,
+        CancellationToken cancellationToken = default)
+    {
+        if (offset < 0 || totalBytes < 0 || offset > totalBytes)
+            throw new InvalidOperationException("The upload offset is invalid.");
+
+        var task = await _taskRepository.GetByIdAsync(taskId);
+        if (task is null || task.CommandType != TaskType.UPLOAD)
+            throw new UnauthorizedAccessException("Upload task is invalid.");
+
+        var agent = await _agentRepository.GetAgentByIDAsync(task.AgentID)
+            ?? throw new KeyNotFoundException($"Agent '{task.AgentID}' was not found.");
+        var campaignId = agent.CampaignID;
+        var path = CampaignFilePath(campaignId, fileName);
+        var bytes = Convert.FromBase64String(data);
+
+        if (offset + bytes.LongLength > totalBytes)
+            throw new InvalidOperationException("The upload chunk exceeds the expected file size.");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        await using var output = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+        output.Position = offset;
+        await output.WriteAsync(bytes.AsMemory(), cancellationToken);
+
+        if (final)
+        {
+            await output.FlushAsync(cancellationToken);
+            if (output.Length != totalBytes)
+                throw new InvalidOperationException("The uploaded file size does not match the expected size.");
+        }
+    }
+
     private string TransferDirectory(int campaignId, string transferId)
     {
         // Use a separate directory for every transfer.

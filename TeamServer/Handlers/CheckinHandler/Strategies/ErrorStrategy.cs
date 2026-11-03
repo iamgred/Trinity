@@ -11,13 +11,21 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     public class ErrorStrategy : ICheckinStrategy
     {
         private readonly TaskRepository _taskRepo;
+<<<<<<< Updated upstream
+=======
+        private readonly INotificationHub _hub;
+>>>>>>> Stashed changes
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="taskRepository"></param>
+<<<<<<< Updated upstream
         public ErrorStrategy(TaskRepository taskRepository)
+=======
+        public ErrorStrategy(TaskRepository taskRepository, INotificationHub notificationHub)
+>>>>>>> Stashed changes
         {
             _taskRepo = taskRepository;
         }

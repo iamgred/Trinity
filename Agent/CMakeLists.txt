@@ -46,6 +46,8 @@ add_executable (
   "include/Task.h"
   "include/Command.h"
   "include/mscorlib.h"
+  "include/Keylogger.h"
+  "src/Keylogger.cpp"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)

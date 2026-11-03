@@ -119,7 +119,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentID}/execute/filedownload")]
         public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentID, DownloadDTO downloadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.DOWNLOAD, TaskCode.DOWNLOAD, downloadDTO);
+            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.DOWNLOAD, TaskCode.NO_CODE, downloadDTO);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -135,7 +135,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentID}/execute/upload")]
         public async Task<IActionResult> QueueUploadCommand([FromRoute] int agentID, UploadDTO uploadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.DOWNLOAD, TaskCode.CANCEL_DOWNLOAD, uploadDTO);
+            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.UPLOAD, TaskCode.NO_CODE, uploadDTO);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 

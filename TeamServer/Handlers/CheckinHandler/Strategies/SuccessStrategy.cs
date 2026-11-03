@@ -13,18 +13,19 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     public class SuccessStrategy : ICheckinStrategy
     {
         private readonly TaskRepository _taskRepo;
-        private readonly NotificationHub _hubContext;
+
+        private readonly INotificationHub _hub;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="taskRepository"></param>
-        /// <param name="hubContext"></param>
-        public SuccessStrategy(TaskRepository taskRepository, NotificationHub hubContext)
+
+        public SuccessStrategy(TaskRepository taskRepository, INotificationHub notificationHub)
         {
             _taskRepo = taskRepository;
-            _hubContext = hubContext;
+            _hub = notificationHub;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -45,7 +46,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
                 task.Status = Status.SUCCESS;
                 task.Result = new TaskResult { TaskID = task.ID, Result = response.Data.Output };
                 await _taskRepo.CommitAsync();
-                await _hubContext.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(DateTime.UtcNow, taskID, response.Data.Output, Status.SUCCESS));
+                await _hub.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(DateTime.UtcNow, taskID, response.Data.Output, Status.SUCCESS));
             }
         }
     }

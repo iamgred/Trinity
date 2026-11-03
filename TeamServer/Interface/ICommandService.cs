@@ -7,10 +7,12 @@ namespace TeamServer.Interface
 {
     public interface ICommandService
     {
-        Task<Result<CommandCreationResponse>> QueueTaskAsync(
+        Task<Result> QueueTaskAsync(
             int agentID,
             TaskType type,
             TaskCode code,
             ICommand command);
+
+        Task<Result> QueueNetAsmTask(int agentID, TaskType type, TaskCode code, DotNetAsmDTO command);
     }
 }

@@ -64,6 +64,9 @@ namespace TeamServer
             builder.Services.AddSingleton<IHostFactory, HostFactory>();
             builder.Services.AddSingleton<ITaskRequestFactory, TaskRequestFactory>();
 
+            // Transient
+            builder.Services.AddTransient<INotificationHub, NotificationHub>();
+
             builder.Services.AddControllers(options =>
             {
                 options.Filters.Add<ValidationFilter>();

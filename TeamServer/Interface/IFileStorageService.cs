@@ -5,7 +5,7 @@ namespace TeamServer.Interface
 {
     public interface IFileStorageService
     {
-        Task<Result<string>> SaveFileAsync(IFormFile file);
+        // Task<Result<string>> SaveFileAsync(IFormFile file);
         Task<Result<byte[]>> GetFileAsync(string fileName);
         Result<List<string>> ListFiles();
     }

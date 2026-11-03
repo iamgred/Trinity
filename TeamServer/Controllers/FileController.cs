@@ -20,18 +20,18 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        [HttpPost("upload")]
-        public async Task<IActionResult> UploadFileAsync([FromBody] IFormFile file)
-        {
-            var result = await _fileStorageService.SaveFileAsync(file);
+        // [HttpPost("upload")]
+        // public async Task<IActionResult> UploadFileAsync([FromBody] IFormFile file)
+        // {
+        //     var result = await _fileStorageService.SaveFileAsync(file);
 
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result.Error);
-            }
+        //     if (!result.IsSuccess)
+        //     {
+        //         return BadRequest(result.Error);
+        //     }
 
-            return Ok(result.Response);
-        }
+        //     return Ok(result.Response);
+        // }
 
         /// <summary>
         /// Downloads a file from the uploads directory.

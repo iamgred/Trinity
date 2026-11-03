@@ -79,58 +79,58 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public async Task<Result<string>> SaveFileAsync(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return FileError.EmptyFile();
-            }
+        // public async Task<Result<string>> SaveFileAsync(IFormFile file)
+        // {
+        //     if (file == null || file.Length == 0)
+        //     {
+        //         return FileError.EmptyFile();
+        //     }
 
-            // Ensure the uploads directory exists
-            var storagePath = Path.Combine(
-                _webHostEnvironment.ContentRootPath,
-                "uploads");
+        //     // Ensure the uploads directory exists
+        //     var storagePath = Path.Combine(
+        //         _webHostEnvironment.ContentRootPath,
+        //         "uploads");
 
-            if (!Directory.Exists(storagePath))
-            {
-                Directory.CreateDirectory(storagePath);
-            }
+        //     if (!Directory.Exists(storagePath))
+        //     {
+        //         Directory.CreateDirectory(storagePath);
+        //     }
 
-            // Generate a unique file name to avoid overwriting existing files
-            var fileName = Path.GetFileName(file.FileName);
-            var fileNameWithoutExtension =
-                Path.GetFileNameWithoutExtension(fileName);
+        //     // Generate a unique file name to avoid overwriting existing files
+        //     var fileName = Path.GetFileName(file.FileName);
+        //     var fileNameWithoutExtension =
+        //         Path.GetFileNameWithoutExtension(fileName);
 
-            var extension = Path.GetExtension(fileName);
+        //     var extension = Path.GetExtension(fileName);
 
-            var destinationPath = Path.Combine(
-                storagePath,
-                fileName);
+        //     var destinationPath = Path.Combine(
+        //         storagePath,
+        //         fileName);
 
-            var counter = 1;
+        //     var counter = 1;
 
-            // If a file with the same name already exists, append a number to the file name
-            while (File.Exists(destinationPath))
-            {
-                var newFileName =
-                    $"{fileNameWithoutExtension}({counter}){extension}";
+        //     // If a file with the same name already exists, append a number to the file name
+        //     while (File.Exists(destinationPath))
+        //     {
+        //         var newFileName =
+        //             $"{fileNameWithoutExtension}({counter}){extension}";
 
-                destinationPath = Path.Combine(
-                    storagePath,
-                    newFileName);
+        //         destinationPath = Path.Combine(
+        //             storagePath,
+        //             newFileName);
 
-                counter++;
-            }
+        //         counter++;
+        //     }
 
-            // Save the file to the uploads directory
-            await using var stream = new FileStream(
-                destinationPath,
-                FileMode.Create);
+        //     // Save the file to the uploads directory
+        //     await using var stream = new FileStream(
+        //         destinationPath,
+        //         FileMode.Create);
 
-            await file.CopyToAsync(stream);
+        //     await file.CopyToAsync(stream);
 
-            return destinationPath;
-        }
+        //     return destinationPath;
+        // }
     }
 }
 // ======================================= { END OF FILE } ======================================= //

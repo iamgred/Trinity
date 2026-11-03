@@ -15,7 +15,8 @@ namespace Trinity.Shared.Enums.Tasks
         RUNNING = 5,
         MORE_TO_FOLLOW = 6,
         NO_MORE_TO_FOLLOW = 7,
-        COMPLETED = 8
+        COMPLETED = 8,
+        DOWNLOAD_CHUNK_STATUS = 9,
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

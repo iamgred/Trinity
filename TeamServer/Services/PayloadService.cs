@@ -45,12 +45,14 @@ namespace TeamServer.Services
 
             var payloadUUID = Guid.NewGuid().ToString();
 
+            // Call the payload builder to build the payload
             var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
 
-            //if (!buildResult.IsSuccess)
-            //{
-            //    return PayloadError.GenerationFailed();
-            //}
+            // If the build failed, return an error
+            if (!buildResult.IsSuccess)
+            {
+                return PayloadError.GenerationFailed();
+            }
 
             var payload = new Payload
             {

@@ -18,7 +18,10 @@ CommManager::CommManager()
 {
 	const std::vector<std::wstring> hosts = { COMM_HOSTS_LIST };
 	payloadUUID = COMM_PAYLOAD_UUID;
-	host = L"localhost";
+	if (!hosts.empty())
+	{
+		host = hosts.front();
+	}
 }
 
 void CommManager::IntialCheckin(const std::string& json)

@@ -65,7 +65,7 @@ namespace TeamServer.Services
                     return PayloadError.GenerationFailed();
                 }
 
-                var config = JsonDocument.Parse(JsonSerializer.Deserialize<HttpConfig>(listener.Config).Hosts.FirstOrDefault().ToString());
+                var config = JsonSerializer.Deserialize<HttpConfig>(listener.Config);
 
                 // Configure the build environment and generate build files using CMake
                 Result configureResult = await RunProcessAsync(
@@ -73,8 +73,11 @@ namespace TeamServer.Services
                     $"-S \"{agentPath}\" " +
                     $"-B \"{buildRoot}\" " +
                     "-G Ninja " +
-                    $"-DHOST=\"{config}\"" +
-                    $"-DPAYLOAD_UUID=\"{payloadUUID}\"" +
+                    $"-DINPUT_HOSTS=\"{string.Join(";", config.Hosts)}\" " +
+                    $"-DINPUT_PAYLOAD_UUID=\"{payloadUUID}\" " +
+                    $"-DPORT={config.C2Port} " +
+                    $"-DINPUT_USER_AGENT=\"{config.UserAgent}\" " +
+                    $"-DINPUT_REQUEST_HEADER=\"{config.Header}\" " +
                     $"-DCMAKE_CXX_COMPILER=\"{compiler}\" "
                 );
 

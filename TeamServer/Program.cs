@@ -40,7 +40,6 @@ namespace TeamServer
             builder.Services.AddScoped<CampaignService>();
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<DatabaseService>();
-            builder.Services.AddScoped<IFileTransferService, FileTransferService>();
             builder.Services.AddScoped<IReceivedFileService, ReceivedFileService>();
             builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
             builder.Services.AddScoped<ToolService>();

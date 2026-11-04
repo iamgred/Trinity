@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TeamServer.Interface;
 using TeamServer.Services;
+using Trinity.Shared.Enums;
 
 namespace TeamServer.Controllers
 {
@@ -34,30 +35,35 @@ namespace TeamServer.Controllers
         // }
 
         /// <summary>
-        /// Downloads a file from the uploads directory.
+        /// Downloads a file from the uploads or loot directory.
         /// </summary>
         /// <param name="fileName"></param>
+        /// <param name="folderName"></param>
         /// <returns></returns>
         [HttpGet("download/{fileName}")]
-        public async Task<IActionResult> DownloadFileAsync(string fileName)
+        public async Task<IActionResult> DownloadFileAsync(
+            string fileName,
+            [FromQuery] FileFolders folderName)
         {
-            var result = await _fileStorageService.GetFileAsync(fileName);
+            var result = await _fileStorageService.GetFileAsync(fileName, folderName);
 
             if (!result.IsSuccess)
             {
                 return NotFound(result.Error);
             }
+
             return File(result.Response!, "application/octet-stream", fileName);
         }
 
         /// <summary>
-        /// Lists all files in the uploads directory.
+        /// Lists all files in the uploads or loot directory.
         /// </summary>
+        /// <param name="folderName"></param>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult ListFiles()
+        public IActionResult ListFiles([FromQuery] FileFolders folderName)
         {
-            var result = _fileStorageService.ListFiles();
+            var result = _fileStorageService.ListFiles(folderName);
 
             if (!result.IsSuccess)
             {

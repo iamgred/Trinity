@@ -1,4 +1,5 @@
 using TeamServer.Interface;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Results;
 
@@ -10,7 +11,7 @@ public sealed class KeyloggerService : IKeyloggerService
     public KeyloggerService(IConfiguration configuration, IWebHostEnvironment environment)
     {
         var root = Path.GetFullPath(configuration["StoragePath"] ?? Path.Combine(environment.ContentRootPath, "storage"));
-        _filesDirectory = Path.Combine(root, "loot");
+        _filesDirectory = Path.Combine(root, FileFolders.Loot.ToString());
         Directory.CreateDirectory(_filesDirectory);
     }
 

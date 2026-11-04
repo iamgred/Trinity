@@ -3,6 +3,7 @@ using Trinity.Shared.DTOs.Data;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Results;
 using TeamServer.Interface;
+using Trinity.Shared.Enums;
 
 namespace TeamServer.Services
 {
@@ -20,7 +21,7 @@ namespace TeamServer.Services
                 configuration["StoragePath"]
                 ?? Path.Combine(environment.ContentRootPath, "storage"));
 
-            _filesDirectory = Path.Combine(root, "loot");
+            _filesDirectory = Path.Combine(root, FileFolders.Loot.ToString());
 
             Directory.CreateDirectory(_filesDirectory);
         }

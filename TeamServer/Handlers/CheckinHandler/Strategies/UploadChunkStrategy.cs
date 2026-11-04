@@ -87,7 +87,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
                 await _hub.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(
                     DateTime.UtcNow, 
                     taskID, 
-                    $"Grabbed loot successfully: {chunk.FileName}",
+                    $"Grabbed Loot successfully: {chunk.FileName}",
                     Status.SUCCESS));
                 return;
             }

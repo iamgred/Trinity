@@ -1,5 +1,6 @@
 // ======================================= { START OF FILE } ======================================= //
 using TeamServer.Interface;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Results;
 
@@ -19,7 +20,7 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public async Task<Result<byte[]>> GetFileAsync(string fileName)
+        public async Task<Result<byte[]>> GetFileAsync(string fileName,FileFolders folderName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
@@ -30,7 +31,7 @@ namespace TeamServer.Services
             var storagePath = Path.Combine(
                 _webHostEnvironment.ContentRootPath,
                 "storage",
-                "uploads");
+                folderName.ToString());
 
             var safeFileName = Path.GetFileName(fileName);
 
@@ -51,13 +52,13 @@ namespace TeamServer.Services
         /// Lists all files in the storage/uploads directory.
         /// </summary>
         /// <returns></returns>
-        public Result<List<string>> ListFiles()
+        public Result<List<string>> ListFiles(FileFolders folderName)
         {
             // Ensure the storage/uploads directory exists
             var storagePath = Path.Combine(
                 _webHostEnvironment.ContentRootPath,
                 "storage",
-                "uploads");
+                folderName.ToString());
 
             if (!Directory.Exists(storagePath))
             {
@@ -91,7 +92,7 @@ namespace TeamServer.Services
             var storagePath = Path.Combine(
                 _webHostEnvironment.ContentRootPath,
                 "storage",
-                "uploads");
+                FileFolders.Uploads.ToString());
 
             if (!Directory.Exists(storagePath))
             {

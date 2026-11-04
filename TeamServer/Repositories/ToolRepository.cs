@@ -24,11 +24,34 @@ namespace TeamServer.Repositories
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<Tool?> GetToolAsync(int toolID)
+        {
+            return await _dbSet
+                .Where(t => t.ID.Equals(toolID))
+                .FirstOrDefaultAsync();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public async Task<Tool?> GetToolByPathAsync(string path)
         {
             return await _dbSet
                 .Where(t => t.Path.Equals(path))
                 .FirstOrDefaultAsync();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<List<Tool>> GetToolsAsync(int pagination, int row)
+        {
+            return await _dbSet
+                .Skip(pagination * row)
+                .Take(row)
+                .ToListAsync();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public void RemoveTool(Tool tool)
+        {
+            _dbSet.Remove(tool);
         }
     }
 }

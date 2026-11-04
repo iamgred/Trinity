@@ -5,9 +5,11 @@ namespace Trinity.Shared.Interfaces
 {
     public interface IToolRepository
     {
-        public Task<Tool?> GetToolByPathAsync(string path);
-
-        public System.Threading.Tasks.Task AddToolAsync(Tool tool);
+        Task<Tool?> GetToolByPathAsync(string path);
+        System.Threading.Tasks.Task AddToolAsync(Tool tool);
+        Task<Tool?> GetToolAsync(int toolID);
+        Task<List<Tool>> GetToolsAsync(int pagination, int row);
+        void RemoveTool(Tool tool);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

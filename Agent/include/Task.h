@@ -6,6 +6,7 @@
 #include <string>
 #include <variant>
 #include <deque>
+
 #include "Command.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
@@ -43,7 +44,7 @@
 #define WIN_TASK 13
 #define KEYLOGGER 14
 
-//  Statuses
+// Statuses
 #define NO_FLAG 0
 #define TASK_ERROR 1
 #define SUCCESS 2
@@ -59,18 +60,18 @@
 template <typename T>
 struct TaskResponse
 {
-	int taskID;
-	int type;
-	int code;
-	int status;
-	T data;
+    int taskID;
+    int type;
+    int code;
+    int status;
+    T data;
 
     std::string StructToJson() const
     {
         rapidjson::Document doc;
         doc.SetObject();
 
-		rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+        rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
         doc.AddMember("TaskID", taskID, allocator);
         doc.AddMember("TaskType", type, allocator);
@@ -84,20 +85,20 @@ struct TaskResponse
 
         doc.Accept(writer);
 
-	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
-	{
+        return buffer.GetString();
+    }
 
     rapidjson::Value ToJsonValue(
-        rapidjson::Document::AllocatorType& allocator) const
+        rapidjson::Document::AllocatorType &allocator) const
     {
         rapidjson::Value objValue;
         objValue.SetObject();
 
-		objValue.AddMember("TaskID", taskID, allocator);
-		objValue.AddMember("TaskType", type, allocator);
-		objValue.AddMember("TaskCode", code, allocator);
-		objValue.AddMember("Status", status, allocator);
-		objValue.AddMember("Data", data.ToJsonValue(allocator), allocator);
+        objValue.AddMember("TaskID", taskID, allocator);
+        objValue.AddMember("TaskType", type, allocator);
+        objValue.AddMember("TaskCode", code, allocator);
+        objValue.AddMember("Status", status, allocator);
+        objValue.AddMember("Data", data.ToJsonValue(allocator), allocator);
 
         return objValue;
     }
@@ -111,24 +112,24 @@ TaskResponse<T> CreateTaskResponse(
     int status,
     T data)
 {
-	return TaskResponse<T>{taskID, type, code, status, data};
-};
+    return TaskResponse<T>{taskID, type, code, status, data};
+}
 
 template <typename T>
 struct TaskRequest
 {
-	int taskID;
-	int type;
-	int code;
-	int status;
-	T data;
+    int taskID;
+    int type;
+    int code;
+    int status;
+    T data;
 
     std::string StructToJson() const
     {
         rapidjson::Document doc;
         doc.SetObject();
 
-		rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+        rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
         doc.AddMember("TaskID", taskID, allocator);
         doc.AddMember("TaskType", type, allocator);
@@ -158,16 +159,17 @@ TaskRequest<T> CreateTaskRequest(
     int status,
     T data)
 {
-	return TaskRequest<T>{taskID, type, code, status, data};
-};
+    return TaskRequest<T>{taskID, type, code, status, data};
+}
 
 struct TaskSuccess
 {
     std::string output;
 
-	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
-	{
-		rapidjson::Value obj(rapidjson::kObjectType);
+    rapidjson::Value ToJsonValue(
+        rapidjson::Document::AllocatorType &allocator) const
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
 
         rapidjson::Value outputVal;
 
@@ -187,9 +189,10 @@ struct TaskError
     int code;
     std::string message;
 
-	rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
-	{
-		rapidjson::Value obj(rapidjson::kObjectType);
+    rapidjson::Value ToJsonValue(
+        rapidjson::Document::AllocatorType &allocator) const
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
 
         obj.AddMember("Code", code, allocator);
 
@@ -207,37 +210,33 @@ struct TaskError
 };
 
 using Request = std::variant<
-	TaskRequest<CommandPowershell>,
-	TaskRequest<CommandWinTask>,
-	TaskRequest<CommandNetAsm>,
-	TaskRequest<CommandKeylogger>,
-	TaskRequest<CommandUploadFile>,
-	TaskRequest<CommandDownloadFile>,
-	TaskRequest<bool>>;
+    TaskRequest<CommandPowershell>,
+    TaskRequest<CommandWinTask>,
+    TaskRequest<CommandNetAsm>,
+    TaskRequest<CommandKeylogger>,
+    TaskRequest<CommandUploadFile>,
+    TaskRequest<CommandDownloadFile>,
+    TaskRequest<bool>>;
+
 using Response = std::variant<
-	TaskResponse<TaskSuccess>, 
-	TaskResponse<TaskError>,
-	TaskResponse<Upload::Chunk>>;
+    TaskResponse<TaskSuccess>,
+    TaskResponse<TaskError>,
+    TaskResponse<Upload::Chunk>>;
 
-inline std::string CreateResponseTaskValue(const std::deque<Response> &tasks)
+inline std::string CreateResponseTaskValue(
+    const std::deque<Response> &tasks)
 {
-	rapidjson::Document jsonDoc;
-	jsonDoc.SetArray();
-	rapidjson::Document::AllocatorType &allocator = jsonDoc.GetAllocator();
+    rapidjson::Document jsonDoc;
+    jsonDoc.SetArray();
 
-	for (const auto &taskVariant : tasks)
-	{
-		rapidjson::Value taskVal = std::visit([&allocator](const auto &concreteTask) -> rapidjson::Value
-											  { return concreteTask.ToJsonValue(allocator); }, taskVariant);
-
-    rapidjson::Document::AllocatorType& allocator =
+    rapidjson::Document::AllocatorType &allocator =
         jsonDoc.GetAllocator();
 
-    for (const auto& taskVariant : tasks)
+    for (const auto &taskVariant : tasks)
     {
         rapidjson::Value taskVal =
             std::visit(
-                [&allocator](const auto& concreteTask) -> rapidjson::Value
+                [&allocator](const auto &concreteTask) -> rapidjson::Value
                 {
                     return concreteTask.ToJsonValue(allocator);
                 },

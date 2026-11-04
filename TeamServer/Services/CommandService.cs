@@ -1,4 +1,5 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using TeamServer.Interface;
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;
 using Trinity.Shared.DTOs.Command;
@@ -17,6 +18,7 @@ namespace TeamServer.Services
         private readonly AgentRepository _agentRepo;
         private readonly ToolRepository _toolRepo;
         private readonly IWebHostEnvironment _env;
+        private readonly IDownloadService _downloadService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -31,7 +33,7 @@ namespace TeamServer.Services
         public CommandService(DatabaseService database,
             CommandFactory commandFactory, CommandRepository commandRepository,
             TaskStatusRepository taskStatusRepository, AgentRepository agentRepository,
-            ToolRepository toolRepository, IWebHostEnvironment env)
+            ToolRepository toolRepository, IWebHostEnvironment env, IDownloadService downloadService)
         {
             _commandFactory = commandFactory;
             _commandRepo = commandRepository;
@@ -39,6 +41,7 @@ namespace TeamServer.Services
             _agentRepo = agentRepository;
             _toolRepo = toolRepository;
             _env = env;
+            _downloadService = downloadService;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -98,6 +101,54 @@ namespace TeamServer.Services
                 string base64blob = Convert.ToBase64String(fileBytes);
                 return base64blob;
             }
+        }
+        /// <summary>
+        /// Queues a download task for the specified agent and command, creating the first chunk of the download.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public async Task<Result> QueueDownloadTaskAsync(int agentID, DownloadDTO command)
+        {
+            var agent = await _agentRepo.GetAgentByIDAsync(agentID);
+
+            if (agent == null)
+            {
+                return AgentError.NotFound(agentID);
+            }
+
+            var firstChunkResult =
+                await _downloadService.DownloadChunkAsync(
+                    command.Path,
+                    command.DestinationPath,
+                    0);
+
+            if (!firstChunkResult.IsSuccess)
+            {
+                return firstChunkResult.Error;
+            }
+
+            var firstChunk = firstChunkResult.Response;
+
+            if (firstChunk == null)
+            {
+                return Error.Failure(
+                    "Download.FirstChunkMissing",
+                    "The first download chunk could not be created.");
+            }
+
+            var task = _commandFactory.Create(
+                agentID,
+                TaskType.DOWNLOAD,
+                firstChunk.Final
+                    ? TaskCode.DOWNLOAD_FINAL
+                    : TaskCode.DOWNLOAD_CHUNK,
+                firstChunk);
+
+            await _commandRepo.QueueAsync(task);
+            await _commandRepo.CommitAsync();
+
+            return Result.Success();
         }
     }
 }

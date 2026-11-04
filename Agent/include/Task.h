@@ -48,6 +48,7 @@
 #define NO_MORE_TO_FOLLOW 7
 #define COMPLETED 8
 #define DOWNLOAD_CHUNK_STATUS 9
+#define DOWNLOAD_FINAL_STATUS 10
 
 template <typename T>
 struct TaskResponse

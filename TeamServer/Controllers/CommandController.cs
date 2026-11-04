@@ -119,7 +119,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentID}/execute/filedownload")]
         public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentID, DownloadDTO downloadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.DOWNLOAD, TaskCode.NO_CODE, downloadDTO);
+            var response = await this._commandService.QueueDownloadTaskAsync(agentID, downloadDTO);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 

@@ -926,7 +926,7 @@ Response Agent::UploadFile(const int &taskID, const CommandUploadFile &uploadReq
             taskID,
             UPLOAD,
             NO_CODE,
-            TASK_ERROR,
+            ERROR,
             TaskError{1, "Failed to read upload chunk."});
     }
 
@@ -973,7 +973,7 @@ Response Agent::DownloadFile(const int &taskID, const CommandDownloadFile &downl
                 ? DOWNLOAD_FINAL
                 : DOWNLOAD_CHUNK,
             downloadRequest.final
-                ? SUCCESS
+                ? DOWNLOAD_FINAL_STATUS
                 : DOWNLOAD_CHUNK_STATUS,
             TaskSuccess{"File chunk stored."});
     }

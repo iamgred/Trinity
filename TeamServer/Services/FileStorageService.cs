@@ -15,7 +15,7 @@ namespace TeamServer.Services
         }
 
         /// <summary>
-        /// Retrieves a file from the uploads directory.
+        /// Retrieves a file from the storage/uploads directory.
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
@@ -26,14 +26,14 @@ namespace TeamServer.Services
                 return FileError.FileNotFound(fileName);
             }
 
-            // Check if the file exists in the uploads directory
+            // Check if the file exists in the storage/uploads directory
             var storagePath = Path.Combine(
                 _webHostEnvironment.ContentRootPath,
+                "storage",
                 "uploads");
 
             var safeFileName = Path.GetFileName(fileName);
 
-            // Ensure the uploads directory exists
             var filePath = Path.Combine(
                 storagePath,
                 safeFileName);
@@ -48,14 +48,15 @@ namespace TeamServer.Services
         }
 
         /// <summary>
-        /// Lists all files in the uploads directory.
+        /// Lists all files in the storage/uploads directory.
         /// </summary>
         /// <returns></returns>
         public Result<List<string>> ListFiles()
         {
-            // Ensure the uploads directory exists
+            // Ensure the storage/uploads directory exists
             var storagePath = Path.Combine(
                 _webHostEnvironment.ContentRootPath,
+                "storage",
                 "uploads");
 
             if (!Directory.Exists(storagePath))
@@ -63,8 +64,8 @@ namespace TeamServer.Services
                 Directory.CreateDirectory(storagePath);
             }
 
-            // Get all files in the uploads directory and return their names
-            var files = Directory.GetFiles(storagePath).Select(Path.GetFileName).Where(f => f != null).ToList()!;
+            // Get all files in the storage/uploads directory
+            var files = Directory.GetFiles(storagePath).ToList();
 
             if (files.Count == 0)
             {
@@ -75,62 +76,70 @@ namespace TeamServer.Services
         }
 
         /// <summary>
-        /// Saves a file to the uploads directory.
+        /// Saves a file to the storage/uploads directory.
         /// </summary>
         /// <param name="file"></param>
-        /// <returns></returns>
-        // public async Task<Result<string>> SaveFileAsync(IFormFile file)
-        // {
-        //     if (file == null || file.Length == 0)
-        //     {
-        //         return FileError.EmptyFile();
-        //     }
+        /// <returns>The stored file name.</returns>
+        public async Task<Result<string>> SaveFileAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return FileError.EmptyFile();
+            }
 
-        //     // Ensure the uploads directory exists
-        //     var storagePath = Path.Combine(
-        //         _webHostEnvironment.ContentRootPath,
-        //         "uploads");
+            // Ensure the storage/uploads directory exists
+            var storagePath = Path.Combine(
+                _webHostEnvironment.ContentRootPath,
+                "storage",
+                "uploads");
 
-        //     if (!Directory.Exists(storagePath))
-        //     {
-        //         Directory.CreateDirectory(storagePath);
-        //     }
+            if (!Directory.Exists(storagePath))
+            {
+                Directory.CreateDirectory(storagePath);
+            }
 
-        //     // Generate a unique file name to avoid overwriting existing files
-        //     var fileName = Path.GetFileName(file.FileName);
-        //     var fileNameWithoutExtension =
-        //         Path.GetFileNameWithoutExtension(fileName);
+            // Strip any directory information supplied by the client.
+            var fileName = Path.GetFileName(file.FileName);
 
-        //     var extension = Path.GetExtension(fileName);
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return FileError.EmptyFile();
+            }
 
-        //     var destinationPath = Path.Combine(
-        //         storagePath,
-        //         fileName);
+            var fileNameWithoutExtension =
+                Path.GetFileNameWithoutExtension(fileName);
 
-        //     var counter = 1;
+            var extension =
+                Path.GetExtension(fileName);
 
-        //     // If a file with the same name already exists, append a number to the file name
-        //     while (File.Exists(destinationPath))
-        //     {
-        //         var newFileName =
-        //             $"{fileNameWithoutExtension}({counter}){extension}";
+            var destinationPath = Path.Combine(
+                storagePath,
+                fileName);
 
-        //         destinationPath = Path.Combine(
-        //             storagePath,
-        //             newFileName);
+            var counter = 1;
 
-        //         counter++;
-        //     }
+            // Avoid overwriting an existing file.
+            while (File.Exists(destinationPath))
+            {
+                var newFileName =
+                    $"{fileNameWithoutExtension}({counter}){extension}";
 
-        //     // Save the file to the uploads directory
-        //     await using var stream = new FileStream(
-        //         destinationPath,
-        //         FileMode.Create);
+                destinationPath = Path.Combine(
+                    storagePath,
+                    newFileName);
 
-        //     await file.CopyToAsync(stream);
+                counter++;
+            }
 
-        //     return destinationPath;
-        // }
+            // Save the file to the storage/uploads directory
+            await using var stream = new FileStream(
+                destinationPath,
+                FileMode.CreateNew);
+
+            await file.CopyToAsync(stream);
+
+            return Path.GetFileName(destinationPath);
+        }
     }
 }
 // ======================================= { END OF FILE } ======================================= //

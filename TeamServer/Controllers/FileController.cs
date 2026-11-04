@@ -66,6 +66,23 @@ namespace TeamServer.Controllers
 
             return Ok(result.Response);
         }
+        /// <summary>
+        /// Uploads a file to the uploads directory.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> UploadFile(IFormFile file)
+        {
+            var result = await _fileStorageService.SaveFileAsync(file);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok(result.Response);
+        }
     }
 }
 // ============================================== { END OF FILE } ============================================== //

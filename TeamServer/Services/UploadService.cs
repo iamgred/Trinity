@@ -20,7 +20,7 @@ namespace TeamServer.Services
                 configuration["StoragePath"]
                 ?? Path.Combine(environment.ContentRootPath, "storage"));
 
-            _filesDirectory = Path.Combine(root, "files");
+            _filesDirectory = Path.Combine(root, "loot");
 
             Directory.CreateDirectory(_filesDirectory);
         }

@@ -8,6 +8,7 @@ namespace TeamServer.Interface
         // Task<Result<string>> SaveFileAsync(IFormFile file);
         Task<Result<byte[]>> GetFileAsync(string fileName);
         Result<List<string>> ListFiles();
+        Task<Result<string>> SaveFileAsync(IFormFile file);
     }
 }
 // ============================================== { END OF FILE } ============================================== //

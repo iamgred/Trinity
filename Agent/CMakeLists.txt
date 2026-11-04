@@ -16,6 +16,7 @@ set(INPUT_HOSTS "localhost" CACHE STRING "List of target host addresses")
 string(STRIP "${INPUT_HOSTS}" INPUT_HOSTS)
 string(REPLACE ";" "\", L\"" HOSTS_INITIALIZER \"${INPUT_HOSTS}\")
 set(WIDE_HOSTS_LIST "L${HOSTS_INITIALIZER}")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Payload UUID Configuration
 set(INPUT_PAYLOAD_UUID "e8ebbf8c-dbfb-41ab-8699-9ac18afded4a" CACHE STRING "The payload unique identifier")

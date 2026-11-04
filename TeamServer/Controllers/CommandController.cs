@@ -22,15 +22,6 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Queues a PowerShell task for the specified agent and returns the asynchronous command response.
-        /// </summary>
-        /// <remarks>Uses the command service to enqueue the task; the response contains the assigned
-        /// TaskID when successful.</remarks>
-        /// <param name="agentID">Target agent identifier.</param>
-        /// <param name="powershellDTO">Payload describing the PowerShell command and execution options.</param>
-        /// <returns>An IActionResult containing an AsyncCommandResponseDTO. Returns 200 OK with the response when the task is
-        /// queued and 400 Bad Request if the task could not be created.</returns>
         [HttpPost("{agentID}/spawn/powershell")]
         public async Task<IActionResult> QueuePowerShellCommand([FromRoute] int agentID, PowerShellDTO powershellDTO)
         {
@@ -38,6 +29,7 @@ namespace TeamServer.Controllers
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("{agentID}/execute/persist")]
         public async Task<IActionResult> QueuewinTaskCommand([FromRoute] int agentID, WinTaskDTO winTaskDTO)
         {
@@ -46,12 +38,6 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        /// <summary>
-        /// Execute a command using shell.
-        /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="shellDTO"></param>
-        /// <returns></returns>
         [HttpPost("{agentID}/spawn/shell")]
         public async Task<IActionResult> QueueShellCommand([FromRoute] int agentID, ShellDTO shellDTO)
         {

@@ -34,7 +34,7 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> UploadToolAsync([FromForm] ToolCreationRequest request)
         {
             var result = await _toolService.UploadAsync(request);
-            return result.IsSuccess ? CreatedAtAction(nameof(UploadToolAsync), result) : BadRequest(result.Error);
+            return result.IsSuccess ? StatusCode(StatusCodes.Status201Created) : BadRequest(result.Error);
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

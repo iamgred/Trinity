@@ -41,12 +41,15 @@ namespace TeamServer
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddScoped<ToolService>();
+            builder.Services.AddScoped<IDownloadService, DownloadService>();
 
             // Handlers 
             builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();
             builder.Services.AddScoped<SuccessStrategy>();
             builder.Services.AddScoped<RunningStrategy>();
             builder.Services.AddScoped<ErrorStrategy>();
+            builder.Services.AddScoped<UploadChunkStrategy>();
+            builder.Services.AddScoped<DownloadChunkStrategy>();
 
             // Validators
             builder.Services.AddValidatorsFromAssemblyContaining<OperatorValidator>();

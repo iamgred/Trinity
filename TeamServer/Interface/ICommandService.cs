@@ -12,7 +12,7 @@ namespace TeamServer.Interface
             TaskType type,
             TaskCode code,
             ICommand command);
-
+        Task<Result> QueueDownloadTaskAsync(int agentID, DownloadDTO command);
         Task<Result> QueueNetAsmTask(int agentID, TaskType type, TaskCode code, DotNetAsmDTO command);
     }
 }

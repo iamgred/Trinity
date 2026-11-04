@@ -1,6 +1,9 @@
 //========================================================= {START OF FILE} =========================================================//
 using TeamServer.Repositories;
+using Trinity.Shared.DTOs.Notification;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Errors;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 
@@ -15,11 +18,16 @@ namespace TeamServer.Services
     {
         private readonly CampaignBridgeRepository _campaignBridgeRepository;
         private readonly CampaignRepository _campaignRepository;
+        private readonly INotificationHub _hub;
 
-        public CampaignService(CampaignBridgeRepository campaignBridgeRepository, CampaignRepository campaignRepository)
+        public CampaignService(
+            CampaignBridgeRepository campaignBridgeRepository, 
+            CampaignRepository campaignRepository,
+            INotificationHub notificationHub)
         {
             _campaignBridgeRepository = campaignBridgeRepository;
             _campaignRepository = campaignRepository;
+            _hub = notificationHub;
         }
 
         public async Task<Result<List<Campaign>>> GetCampaignsAsync()
@@ -83,6 +91,12 @@ namespace TeamServer.Services
                 return CampaignError.NotFound(campaignID);
             }
             await _campaignBridgeRepository.CommitAsync();
+            await _hub.SendEventLogAsync(
+                campaignID.ToString(),
+                new EventLog(
+                    DateTime.UtcNow,
+                    EventLogType.OPERATOR,
+                    $"Operator, {operatorID} assigned to campaign {campaignID}"));
             return Result.Success();
         }
         public async Task<Result> RemoveOperatorFromCampaignAsync(int operatorID, int campaignID)
@@ -93,6 +107,12 @@ namespace TeamServer.Services
                 return CampaignError.NotFound(campaignID);
             }
             await _campaignBridgeRepository.CommitAsync();
+            await _hub.SendEventLogAsync(
+                campaignID.ToString(),
+                new EventLog(
+                    DateTime.UtcNow,
+                    EventLogType.OPERATOR,
+                    $"Operator, {operatorID} removed from campaign {campaignID}"));
             return Result.Success();
         }
     }

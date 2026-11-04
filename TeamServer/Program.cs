@@ -40,16 +40,21 @@ namespace TeamServer
             builder.Services.AddScoped<CampaignService>();
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<DatabaseService>();
-            builder.Services.AddScoped<IFileTransferService, FileTransferService>();
             builder.Services.AddScoped<IReceivedFileService, ReceivedFileService>();
             builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
             builder.Services.AddScoped<ToolService>();
+            builder.Services.AddScoped<IDownloadService, DownloadService>();
+            builder.Services.AddScoped<IUploadService, UploadService>();
+            builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
 
             // Handlers 
             builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();
             builder.Services.AddScoped<SuccessStrategy>();
             builder.Services.AddScoped<RunningStrategy>();
             builder.Services.AddScoped<ErrorStrategy>();
+            builder.Services.AddScoped<UploadChunkStrategy>();
+            builder.Services.AddScoped<DownloadChunkStrategy>();
+            builder.Services.AddScoped<KeyloggerStrategy>();
 
             // Validators
             builder.Services.AddValidatorsFromAssemblyContaining<OperatorValidator>();

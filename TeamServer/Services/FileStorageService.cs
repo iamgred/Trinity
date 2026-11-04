@@ -1,5 +1,6 @@
 // ======================================= { START OF FILE } ======================================= //
 using TeamServer.Interface;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Results;
 
@@ -15,25 +16,25 @@ namespace TeamServer.Services
         }
 
         /// <summary>
-        /// Retrieves a file from the uploads directory.
+        /// Retrieves a file from the storage/uploads directory.
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public async Task<Result<byte[]>> GetFileAsync(string fileName)
+        public async Task<Result<byte[]>> GetFileAsync(string fileName,FileFolders folderName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 return FileError.FileNotFound(fileName);
             }
 
-            // Check if the file exists in the uploads directory
+            // Check if the file exists in the storage/uploads directory
             var storagePath = Path.Combine(
                 _webHostEnvironment.ContentRootPath,
-                "uploads");
+                "storage",
+                folderName.ToString());
 
             var safeFileName = Path.GetFileName(fileName);
 
-            // Ensure the uploads directory exists
             var filePath = Path.Combine(
                 storagePath,
                 safeFileName);
@@ -48,23 +49,24 @@ namespace TeamServer.Services
         }
 
         /// <summary>
-        /// Lists all files in the uploads directory.
+        /// Lists all files in the storage/uploads directory.
         /// </summary>
         /// <returns></returns>
-        public Result<List<string>> ListFiles()
+        public Result<List<string>> ListFiles(FileFolders folderName)
         {
-            // Ensure the uploads directory exists
+            // Ensure the storage/uploads directory exists
             var storagePath = Path.Combine(
                 _webHostEnvironment.ContentRootPath,
-                "uploads");
+                "storage",
+                folderName.ToString());
 
             if (!Directory.Exists(storagePath))
             {
                 Directory.CreateDirectory(storagePath);
             }
 
-            // Get all files in the uploads directory and return their names
-            var files = Directory.GetFiles(storagePath).Select(Path.GetFileName).Where(f => f != null).ToList()!;
+            // Get all files in the storage/uploads directory
+            var files = Directory.GetFiles(storagePath).ToList();
 
             if (files.Count == 0)
             {
@@ -75,10 +77,10 @@ namespace TeamServer.Services
         }
 
         /// <summary>
-        /// Saves a file to the uploads directory.
+        /// Saves a file to the storage/uploads directory.
         /// </summary>
         /// <param name="file"></param>
-        /// <returns></returns>
+        /// <returns>The stored file name.</returns>
         public async Task<Result<string>> SaveFileAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -86,22 +88,30 @@ namespace TeamServer.Services
                 return FileError.EmptyFile();
             }
 
-            // Ensure the uploads directory exists
+            // Ensure the storage/uploads directory exists
             var storagePath = Path.Combine(
                 _webHostEnvironment.ContentRootPath,
-                "uploads");
+                "storage",
+                FileFolders.Uploads.ToString());
 
             if (!Directory.Exists(storagePath))
             {
                 Directory.CreateDirectory(storagePath);
             }
 
-            // Generate a unique file name to avoid overwriting existing files
+            // Strip any directory information supplied by the client.
             var fileName = Path.GetFileName(file.FileName);
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return FileError.EmptyFile();
+            }
+
             var fileNameWithoutExtension =
                 Path.GetFileNameWithoutExtension(fileName);
 
-            var extension = Path.GetExtension(fileName);
+            var extension =
+                Path.GetExtension(fileName);
 
             var destinationPath = Path.Combine(
                 storagePath,
@@ -109,7 +119,7 @@ namespace TeamServer.Services
 
             var counter = 1;
 
-            // If a file with the same name already exists, append a number to the file name
+            // Avoid overwriting an existing file.
             while (File.Exists(destinationPath))
             {
                 var newFileName =
@@ -122,14 +132,14 @@ namespace TeamServer.Services
                 counter++;
             }
 
-            // Save the file to the uploads directory
+            // Save the file to the storage/uploads directory
             await using var stream = new FileStream(
                 destinationPath,
-                FileMode.Create);
+                FileMode.CreateNew);
 
             await file.CopyToAsync(stream);
 
-            return destinationPath;
+            return Path.GetFileName(destinationPath);
         }
     }
 }

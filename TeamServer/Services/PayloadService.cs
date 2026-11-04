@@ -4,9 +4,11 @@ using System.Text;
 using TeamServer.Interface;
 using TeamServer.Repositories;
 using TeamServer.Utils;
+using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Payload;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Errors;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 
@@ -18,14 +20,21 @@ namespace TeamServer.Services
         private readonly ListenerRespository _listenerRepository;
         private readonly IPayloadBuilder _payloadBuilder;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly INotificationHub _hub;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public PayloadService(PayloadRepository payloadRepository, ListenerRespository listenerRepository, IPayloadBuilder payloadBuilder, IWebHostEnvironment webHostEnvironment)
+        public PayloadService(
+            PayloadRepository payloadRepository, 
+            ListenerRespository listenerRepository, 
+            IPayloadBuilder payloadBuilder, 
+            IWebHostEnvironment webHostEnvironment,
+            INotificationHub notificationHub)
         {
-            this._payloadRepository = payloadRepository;
-            this._listenerRepository = listenerRepository;
-            this._payloadBuilder = payloadBuilder;
-            this._webHostEnvironment = webHostEnvironment;
+            _payloadRepository = payloadRepository;
+            _listenerRepository = listenerRepository;
+            _payloadBuilder = payloadBuilder;
+            _webHostEnvironment = webHostEnvironment;
+            _hub = notificationHub;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -45,12 +54,20 @@ namespace TeamServer.Services
 
             var payloadUUID = Guid.NewGuid().ToString();
 
+            // Call the payload builder to build the payload
             var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
 
-            //if (!buildResult.IsSuccess)
-            //{
-            //    return PayloadError.GenerationFailed();
-            //}
+            // If the build failed, return an error
+            if (!buildResult.IsSuccess)
+            {
+                await _hub.SendEventLogAsync(
+                payloadCreationDTO.CampaignID.ToString(),
+                new EventLog(
+                    DateTime.UtcNow,
+                    EventLogType.PAYLOAD,
+                    $"Payload, {payloadCreationDTO.Name}, generated failed for campaign: {payloadCreationDTO.CampaignID}."));
+                return PayloadError.GenerationFailed();
+            }
 
             var payload = new Payload
             {
@@ -69,6 +86,13 @@ namespace TeamServer.Services
 
             await _payloadRepository.InsertPayloadAsync(payload);
             await _payloadRepository.CommitAsync();
+
+            await _hub.SendEventLogAsync(
+                payloadCreationDTO.CampaignID.ToString(),
+                new EventLog(
+                    DateTime.UtcNow,
+                    EventLogType.PAYLOAD,
+                    $"Payload, {payloadCreationDTO.Name}, generated successfully for campaign: {payloadCreationDTO.CampaignID}."));
 
             return Result.Success();
         }

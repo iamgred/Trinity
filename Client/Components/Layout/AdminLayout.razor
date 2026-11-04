@@ -1,0 +1,95 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@using Client.Components.Shell
+@using Client.Components.UI
+@using Client.Services
+@inject ServerApiClient ServerApi
+@inject TeamServerConnection Connection
+@inject IConfiguration Config
+@inject NavigationManager Nav
+
+<HeadContent>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
+</HeadContent>
+
+@* needed for the New Campaign popup *@
+<MudPopoverProvider />
+<MudDialogProvider />
+
+<div class="ts ts-admin">
+    <TopBar Admin="true" Connected="_connected" OnUserLoaded="u => SetSignedInAs(u.Name)" />
+
+    <div class="ts-admin__body">
+        <aside class="ts-admin__aside">
+            <div class="ts-admin__label">ADMIN</div>
+            <a class="ts-admin__link @(IsCurrent("campaigns") ? "is-active" : null)" href="campaigns">
+                <Icon Name="lucide-flag.svg" /> Campaigns <span class="ts-admin__count">@CampaignCount</span>
+            </a>
+            <a class="ts-admin__link @(IsCurrent("admin/operators") ? "is-active" : null)" href="admin/operators">
+                <Icon Name="lucide-users.svg" /> Operators <span class="ts-admin__count">@OperatorCount</span>
+            </a>
+            <p class="ts-admin__note">Only admins can see this page. Operators reach the workspace only.</p>
+        </aside>
+
+        <main class="ts-admin__main">
+            <CascadingValue Value="this">@Body</CascadingValue>
+        </main>
+    </div>
+
+    <StatusBar Connected="_connected" Items="StatusItems" />
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private bool _connected;
+
+    public int? CampaignCount { get; private set; }
+    public int? OperatorCount { get; private set; }
+    public string? SignedInAs { get; private set; }
+
+    private IEnumerable<string> StatusItems => SignedInAs is null ? [] : [$"signed in as {SignedInAs}"];
+
+    // pages send their counts to the sidebar
+    public void SetCounts(int? campaigns = null, int? operators = null)
+    {
+        CampaignCount = campaigns ?? CampaignCount;
+        OperatorCount = operators ?? OperatorCount;
+        StateHasChanged();
+    }
+
+    public void SetSignedInAs(string name)
+    {
+        SignedInAs = name;
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Connection.BaseAddress is null && Config["TeamServer:BaseUrl"] is { Length: > 0 } baseUrl)
+        {
+            Connection.Configure(baseUrl);
+        }
+
+        try
+        {
+            _connected = await ServerApi.GetServerStatusAsync();
+        }
+        catch (Exception e) when (e is HttpRequestException or InvalidOperationException or TaskCanceledException)
+        {
+            _connected = false;
+        }
+    }
+
+    private bool IsCurrent(string href) => Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].Equals(href, StringComparison.OrdinalIgnoreCase);
+}

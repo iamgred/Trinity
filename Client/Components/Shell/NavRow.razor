@@ -1,0 +1,52 @@
+@using Client.Components.UI
+@inject NavigationManager Nav
+@implements IDisposable
+
+<nav class="ts-nav">
+    @Item("Listeners", "nav-listeners.svg", null)
+    @Item("Pivot Graph", "nav-pivot.svg", null)
+    @Item("Agents", "nav-agents.svg", null)
+    <span class="ts-nav__divider"></span>
+    @Item("Event Log", "nav-eventlog.svg", "logs")
+    @Item("Loot", "nav-loot.svg", "loot")
+    @Item("Armoury", "nav-armoury.svg", null)
+    <span class="ts-nav__divider"></span>
+    <a class="ts-nav__item ts-nav__item--accent @(IsCurrent("payloads") ? "is-active" : null)" href="payloads?generate=1">
+        <Icon Name="nav-generate.svg" /> Generate Payload
+    </a>
+
+    <label class="ts-nav__search">
+        <Icon Name="icon-search.svg" Size="13" />
+        <input type="text" placeholder="Filter agents by host, user, id…" value="@State.Filter" @oninput="OnFilter" />
+    </label>
+</nav>
+
+@code {
+    [CascadingParameter] public WorkspaceState State { get; set; } = default!;
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    private bool IsCurrent(string href) => Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].Equals(href, StringComparison.OrdinalIgnoreCase);
+
+    private RenderFragment Item(string label, string icon, string? href) => __builder =>
+    {
+        if (href is null)
+        {
+            <span class="ts-nav__item is-disabled" title="@label is not in the new shell yet"><Icon Name="@icon" /> @label</span>
+        }
+        else
+        {
+            <a class="ts-nav__item @(IsCurrent(href) ? "is-active" : null)" href="@href"><Icon Name="@icon" /> @label</a>
+        }
+    };
+
+    private void OnFilter(ChangeEventArgs e)
+    {
+        State.Filter = e.Value?.ToString() ?? "";
+        State.Notify();
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

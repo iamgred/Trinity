@@ -1,0 +1,8 @@
+@* image path starts from the site root *@
+<span class="ts-ico @Class" style="--i:url('/img/shell/@Name');--s:@(Size)px" aria-hidden="true"></span>
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    [Parameter] public int Size { get; set; } = 15;
+    [Parameter] public string? Class { get; set; }
+}

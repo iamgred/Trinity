@@ -1,0 +1,9 @@
+.ts-actionbar {
+    flex: 0 0 53px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--ts-surface);
+    border-top: 1px solid var(--ts-border);
+}

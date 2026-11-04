@@ -14,6 +14,9 @@ namespace TeamServer.Services.Factories
         /// <param name="task"></param>
         /// <returns></returns>
         public string Create(Trinity.Shared.Models.Task? task)
+            => Create(task, null);
+
+        public string Create(Trinity.Shared.Models.Task? task, JsonDocument? commandOverride)
         {
             return task != null ? JsonSerializer.Serialize(
                 new TaskRequest
@@ -21,7 +24,7 @@ namespace TeamServer.Services.Factories
                     TaskID = task.ID,
                     TaskType = (int)task.CommandType,
                     TaskCode = (int)task.Code,
-                    Command = task.Command,
+                    Command = commandOverride ?? task.Command,
                     Status = (int)task.Status
                 }
             ) : string.Empty;

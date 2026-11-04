@@ -1,5 +1,6 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
+using TeamServer.Interface;
 using TeamServer.Services;
 
 
@@ -9,10 +10,10 @@ namespace TeamServer.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        private readonly TaskService _taskService;
+        private readonly ITaskService _taskService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public TaskController(TaskService taskService)
+        public TaskController(ITaskService taskService)
         {
             _taskService = taskService;
         }
@@ -23,7 +24,7 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("tasks")]
-        public async Task<IActionResult> GetTasks() 
+        public async Task<IActionResult> GetTasks()
         {
             var result = await _taskService.GetAllAgentTasks();
             return Ok(result.Response);
@@ -94,7 +95,7 @@ namespace TeamServer.Controllers
         /// <param name="agentID">Identifier of the agent whose queued tasks to clear.</param>
         /// <returns>An IActionResult: 200 (OK) when the queue is cleared; 400 (Bad Request) with an error on failure.</returns>
         [HttpDelete("/{agentID}/clearQueue")]
-        public async Task<IActionResult> ClearQueue([FromRoute] int agentID) 
+        public async Task<IActionResult> ClearQueue([FromRoute] int agentID)
         {
             var result = await _taskService.ClearAgentTasksAsync(agentID);
             return result.IsSuccess ? Ok() : BadRequest(result.Error);

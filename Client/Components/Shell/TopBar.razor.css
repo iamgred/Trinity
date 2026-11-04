@@ -1,0 +1,143 @@
+button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.ts-topbar {
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 0 14px;
+    background: var(--ts-orange);
+    color: var(--ts-on-orange);
+}
+
+.ts-topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ts-topbar__logo {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 13px;
+    background: #fff;
+}
+
+.ts-topbar__word {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 4.2px;
+}
+
+.ts-topbar__badge {
+    padding: 4px 9px;
+    border-radius: 5px;
+    background: var(--ts-on-orange);
+    color: var(--ts-orange);
+    font-family: var(--ts-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+}
+
+.ts-topbar__help {
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.ts-topbar__help:hover {
+    opacity: 1;
+}
+
+.ts-topbar__right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ts-topbar__server {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: rgba(14, 14, 16, 0.88);
+    color: var(--ts-green);
+    font-family: var(--ts-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+}
+
+.ts-topbar__server:has(.is-down) {
+    color: var(--ts-red);
+}
+
+.ts-topbar__user {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ts-on-orange);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.ts-topbar__user b {
+    font-weight: 700;
+}
+
+.ts-topbar__user span {
+    font-size: 12px;
+    opacity: 0.65;
+}
+
+a.ts-topbar__user:hover b {
+    text-decoration: underline;
+}
+
+.ts-topbar__back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 25px;
+    padding: 0 11px;
+    border-radius: 6px;
+    border: 1px solid rgba(26, 13, 3, 0.45);
+    color: var(--ts-on-orange);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.ts-topbar__back:hover {
+    background: rgba(26, 13, 3, 0.08);
+    color: var(--ts-on-orange);
+}
+
+.ts-topbar__logout {
+    display: grid;
+    place-items: center;
+    color: var(--ts-on-orange);
+}
+
+.ts-dot {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 3.5px;
+    background: var(--ts-green);
+}
+
+.ts-dot.is-down {
+    background: var(--ts-red);
+}

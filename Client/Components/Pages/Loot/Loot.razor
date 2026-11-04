@@ -1,0 +1,125 @@
+@page "/loot"
+@layout WorkspaceLayout
+@using Client.Components.Shell
+@using Client.Components.UI
+
+<PageTitle>Trinity · Loot</PageTitle>
+
+@if (_loadError is not null)
+{
+    <div class="ts-notice" role="status">
+        <span>@_loadError</span>
+        <button type="button" @onclick="LoadDownloadsAsync">Retry</button>
+    </div>
+}
+
+<div class="loot__filters">
+    <span class="loot__label">Agent</span>
+    <label class="ts-select">
+        <select @bind="_agentFilter" aria-label="Agent">
+            <option value="">All agents</option>
+            @foreach (var id in AgentIds)
+            {
+                <option value="@id">Agent @id</option>
+            }
+        </select>
+        <Icon Name="select-chevron.svg" Size="12" />
+    </label>
+
+    <span class="loot__label">Type</span>
+    <label class="ts-select">
+        <select @bind="_typeFilter" aria-label="Type">
+            <option value="">All</option>
+            <option value="Download">Download</option>
+            <option value="Credential">Credential</option>
+            <option value="Note">Note</option>
+        </select>
+        <Icon Name="select-chevron.svg" Size="12" />
+    </label>
+
+    <span class="loot__summary">Downloads land here as they arrive · @Filtered.Count() items</span>
+</div>
+
+<div class="loot__scroll">
+    <table class="ts-table">
+        <colgroup>
+            <col style="width:4.9%" /><col style="width:10.3%" /><col style="width:11.9%" /><col style="width:21.8%" />
+            <col style="width:5.8%" /><col style="width:24.2%" /><col style="width:9.2%" /><col style="width:11.9%" />
+        </colgroup>
+        <thead>
+            <tr><th>agent</th><th>type</th><th>name</th><th>path / value</th><th>size</th><th>received</th><th>status</th><th>collected</th></tr>
+        </thead>
+        <tbody>
+            @if (!Filtered.Any())
+            {
+                <tr class="ts-empty"><td colspan="8">@(_isLoading ? "Loading downloads…" : "Nothing collected yet.")</td></tr>
+            }
+            @foreach (var item in Filtered)
+            {
+                <tr class="@(item == _selected ? "is-selected" : null)" @onclick="() => _selected = item">
+                    <td>@(item.AgentId?.ToString() ?? "–")</td>
+                    <td><span class="loot__type"><Icon Name="@TypeIcon(item.Type)" Size="13" /> @item.Type</span></td>
+                    <td>@item.Name</td>
+                    <td class="@(item.Type == "Credential" ? "loot__secret" : null)">@(item.Type == "Credential" ? "••••••••••" : item.PathOrValue)</td>
+                    <td>@(item.Size is null ? "–" : FormatSize(item.Size.Value))</td>
+                    <td>
+                        @if (item.Type == "Download")
+                        {
+                            <span class="loot__received">
+                                <span class="loot__bar"><span class="loot__fill @(item.Status == "complete" ? "is-done" : null)" style="width:@(ProgressPercent(item))%"></span></span>
+                                <span class="ts-muted">@ReceivedLabel(item)</span>
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="ts-muted">–</span>
+                        }
+                    </td>
+                    <td><StatusPill Text="@item.Status" Tone="@StatusTone(item.Status)" /></td>
+                    <td>@item.Collected.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<ActionBar>
+    <button type="button" class="ts-btn ts-btn--primary" disabled="@(!CanSave)" @onclick="SaveToDiskAsync"><Icon Name="btn-save.svg" Size="13" /> Save to Disk</button>
+    <button type="button" class="ts-btn" disabled="@(!CanCancel)" @onclick="CancelDownload">Cancel Download</button>
+    <button type="button" class="ts-btn" disabled="@(_selected is null)" @onclick="CopyValueAsync"><Icon Name="btn-copy.svg" Size="13" /> @(_copyStatus ?? "Copy Value")</button>
+    <button type="button" class="ts-btn" @onclick="OpenNote"><Icon Name="btn-plus.svg" Size="13" /> Add Note</button>
+    <button type="button" class="ts-btn ts-btn--danger" disabled="@(_selected is null)" @onclick="Remove">Remove</button>
+</ActionBar>
+
+@if (_noteOpen)
+{
+    <Modal Title="Add Note" Subtitle="Saved to loot for an agent" IconName="loot-note.svg" OnClose="() => _noteOpen = false"
+           FootNote="Notes stay with the agent's loot." Error="@_noteError">
+        <ChildContent>
+            <div class="ts-modal__row">
+                <label for="note-agent">Agent</label>
+                <div class="ts-field">
+                    <select id="note-agent" @bind="_noteAgent">
+                        @foreach (var id in AgentIds)
+                        {
+                            <option value="@id">Agent @id</option>
+                        }
+                    </select>
+                    <Icon Name="select-chevron.svg" Size="12" />
+                </div>
+            </div>
+            <div class="ts-modal__row">
+                <label for="note-name">Title</label>
+                <div class="ts-field"><input id="note-name" @bind="_noteName" @bind:event="oninput" /></div>
+            </div>
+            <div class="ts-modal__row">
+                <label for="note-text">Note</label>
+                <div class="ts-field"><input id="note-text" @bind="_noteText" @bind:event="oninput" /></div>
+            </div>
+        </ChildContent>
+        <Footer>
+            <button type="button" class="ts-btn" @onclick="() => _noteOpen = false">Cancel</button>
+            <button type="button" class="ts-btn ts-btn--primary" @onclick="SaveNote">Add Note</button>
+        </Footer>
+    </Modal>
+}

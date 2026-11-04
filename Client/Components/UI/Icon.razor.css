@@ -1,0 +1,10 @@
+/* icons are coloured using masks */
+.ts-ico {
+    display: inline-block;
+    flex-shrink: 0;
+    width: var(--s, 15px);
+    height: var(--s, 15px);
+    background-color: currentColor;
+    -webkit-mask: var(--i) center / contain no-repeat;
+    mask: var(--i) center / contain no-repeat;
+}

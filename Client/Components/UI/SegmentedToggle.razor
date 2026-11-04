@@ -1,0 +1,18 @@
+<div class="ts-seg" role="radiogroup">
+    @foreach (var option in Options)
+    {
+        <button type="button" role="radio" aria-checked="@(option == Value)" class="@(option == Value ? "is-on" : null)"
+                @onclick="() => Select(option)">@Label(option)</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<string> Options { get; set; } = [];
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public Func<string, string>? LabelFor { get; set; }
+
+    private string Label(string option) => LabelFor?.Invoke(option) ?? option;
+
+    private Task Select(string option) => option == Value ? Task.CompletedTask : ValueChanged.InvokeAsync(option);
+}

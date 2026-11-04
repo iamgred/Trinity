@@ -21,7 +21,7 @@ public partial class Settings
     };
     private string _category = "C2 Framework";
 
-    // C2 Framework settings state
+    // settings form values
     private bool _enableC2 = true;
     private bool _autoRegister = true;
     private bool _logTraffic = true;
@@ -32,7 +32,7 @@ public partial class Settings
     private string _clientExpiry = "90 Days";
     private string _killDate = "2026-02-15";
 
-    // Live TeamServer liveness (GET /server/status); null = not yet checked.
+    // is the server up? (null = not checked yet)
     private bool? _serverOnline;
     private int HealthPercent => _serverOnline == true ? 100 : 0;
     private string HealthLabel => _serverOnline switch
@@ -74,7 +74,7 @@ public partial class Settings
                 _profiles.Clear();
                 foreach (var listener in listeners)
                 {
-                    // Live listener data from GET /api/v1/listeners (name + protocol only).
+                    // real listeners from the server (name and type only)
                     _channels.Add(new Channel(listener.name, listener.protocol, "Not provided", "Not provided", 0));
                     _profiles.Add(new Profile(listener.id, listener.name, listener.protocol, "Not provided", "Not provided", "Unknown", "gray"));
                 }
@@ -83,7 +83,7 @@ public partial class Settings
         }
         catch
         {
-            // Not connected or endpoint unavailable: keep the sample tables.
+            // cant reach the server, keep the example tables
             _liveListeners = false;
         }
 
@@ -118,7 +118,7 @@ public partial class Settings
             ShowToast(ok ? "Listener restarted." : "TeamServer could not restart the listener.");
         }
         catch (InvalidOperationException exception) { ShowToast(exception.Message); }
-        catch (HttpRequestException exception) { ShowToast($"Could not reach the TeamServer: {exception.Message}"); }
+        catch (HttpRequestException exception) { ShowToast(ServerDown.Is(exception) ? ServerDown.Message : $"Could not reach the TeamServer: {exception.Message}"); }
     }
 
     private async Task DeleteProfile(int id)
@@ -138,7 +138,7 @@ public partial class Settings
             }
         }
         catch (InvalidOperationException exception) { ShowToast(exception.Message); }
-        catch (HttpRequestException exception) { ShowToast($"Could not reach the TeamServer: {exception.Message}"); }
+        catch (HttpRequestException exception) { ShowToast(ServerDown.Is(exception) ? ServerDown.Message : $"Could not reach the TeamServer: {exception.Message}"); }
     }
 
     private void OpenCreateProfile()
@@ -196,7 +196,7 @@ public partial class Settings
         }
         catch (HttpRequestException exception)
         {
-            ShowToast($"Could not reach the TeamServer: {exception.Message}");
+            ShowToast(ServerDown.Is(exception) ? ServerDown.Message : $"Could not reach the TeamServer: {exception.Message}");
         }
     }
 

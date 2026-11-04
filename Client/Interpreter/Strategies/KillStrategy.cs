@@ -1,5 +1,4 @@
-﻿using Trinity.Shared.DTOs.Command;
-using Trinity.Shared.Errors;
+﻿using Trinity.Shared.Errors;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
 
@@ -27,7 +26,7 @@ namespace Client.Interpreter.Strategies
         /// <param name="agentID">The unique identifier of the agent.</param>
         /// <param name="command">The runAs command to execute.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the command output.</returns>
-        public async Task<Result<CommandCreationResponse>> ProcessCommandAsync(int agentID, string? command)
+        public async Task<Result<string>> ProcessCommandAsync(int agentID, string? command)
         {
             if (!string.IsNullOrEmpty(command))
             {
@@ -35,7 +34,8 @@ namespace Client.Interpreter.Strategies
                 return CommandError.TooFewArgs(Keyword);
             }
 
-            return await _client.QueueKillAgentCommandAsync(agentID);
+            var taskID = await _client.QueueKillAgentCommandAsync(agentID);
+            return $"Tasked agent terminate #{taskID}";
         }
     }
 }

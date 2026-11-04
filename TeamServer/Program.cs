@@ -42,6 +42,8 @@ namespace TeamServer
             builder.Services.AddScoped<DatabaseService>();
             builder.Services.AddScoped<ToolService>();
             builder.Services.AddScoped<IDownloadService, DownloadService>();
+            builder.Services.AddScoped<IUploadService, UploadService>();
+            builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
 
             // Handlers 
             builder.Services.AddScoped<ICheckinResponseHandler, CheckinResponseHandler>();
@@ -50,6 +52,7 @@ namespace TeamServer
             builder.Services.AddScoped<ErrorStrategy>();
             builder.Services.AddScoped<UploadChunkStrategy>();
             builder.Services.AddScoped<DownloadChunkStrategy>();
+            builder.Services.AddScoped<KeyloggerStrategy>();
 
             // Validators
             builder.Services.AddValidatorsFromAssemblyContaining<OperatorValidator>();

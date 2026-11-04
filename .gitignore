@@ -397,3 +397,11 @@ FodyWeavers.xsd
 
 # Local CMake test/build output
 Agent/build-test/
+
+# CMake build output
+Agent/build/
+Agent/out/build/
+
+# Local payload build/test output
+Agent/build-payload-test/
+TeamServer/PayloadBuilds/

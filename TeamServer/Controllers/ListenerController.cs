@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Listener.Http;
+using Trinity.Shared.DTOs.Listener.Https;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
 
@@ -38,6 +39,7 @@ namespace TeamServer.Controllers
             return Ok(result.Response);
         }
 
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("http/restart/{ID}")]
         public async Task<IActionResult> RestartListenerAsync([FromRoute] int ID)
         {
@@ -57,6 +59,14 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> StartHttpListener([FromBody] CreateHttpListenerRequest request)
         {
             var result = await _listenerService.CreateHttpListenerAsync(request);
+            return result.IsSuccess ? Created() : BadRequest(result.Error);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("https")]
+        public async Task<IActionResult> CreateHttpsListener([FromBody] CreateHttpsListenerRequest request)
+        {
+            var result = await _listenerService.CreateHttpsListenerAsync(request);
             return result.IsSuccess ? Created() : BadRequest(result.Error);
         }
 
@@ -121,6 +131,14 @@ namespace TeamServer.Controllers
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPut("https/{ID}")]
+        public async Task<IActionResult> UpdateHttpsListenerAsync([FromRoute] int ID, [FromBody] UpdateHttpsListenerRequest request)
+        {
+            var result = await _listenerService.UpdateHttpsListenerAsync(ID, request.Config);
+            return result.IsSuccess ? Ok() : BadRequest(result.Error);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Deletes the listener with the specified identifier and returns an HTTP response indicating success or
         /// failure.
@@ -129,7 +147,7 @@ namespace TeamServer.Controllers
         /// <returns>An IActionResult that is 200 OK if the deletion succeeds, or 400 Bad Request with an error message if it
         /// fails.</returns>
         [HttpDelete("{ID}")]
-        public async Task<IActionResult> DeleteListenerAsync([FromRoute] int ID) 
+        public async Task<IActionResult> DeleteListenerAsync([FromRoute] int ID)
         {
             var result = await _listenerService.RemoveListenerAsync(ID);
             return result.IsSuccess ? Ok() : BadRequest(result.Error);

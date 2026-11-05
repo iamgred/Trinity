@@ -1,26 +1,23 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
-using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json;
 using TeamServer.Repositories;
 using TeamServer.Services.Factories;
 using Trinity.Shared.DTOs.Listener;
 using Trinity.Shared.DTOs.Listener.Http;
+using Trinity.Shared.DTOs.Listener.Https;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
-using Trinity.Shared.Modules;
 
 namespace TeamServer.Services
 {
-    public class ListenerService 
+    public class ListenerService
     {
         private ILogger _logger;
         private ListenerRespository _listenerRepo;
-        private ProtocolRespository _protocolRepo;
-        private ConcurrentDictionary<int, HttpModule> _httpCommModules;
         private readonly ListenerFactory _listenerFactory;
         private readonly HttpModuleFactory _moduleFactory;
         private readonly HttpListenerManager _httpListenerManager;
@@ -31,12 +28,10 @@ namespace TeamServer.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpFactory"></param>
-        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ProtocolRespository protocolrepo, ListenerFactory factory, HttpModuleFactory moduleFactory, HttpListenerManager httpListenerManager)
+        public ListenerService(ILogger<ListenerService> logger, ListenerRespository listenerRepo, ListenerFactory factory, HttpModuleFactory moduleFactory, HttpListenerManager httpListenerManager)
         {
             _logger = logger;
-            _httpCommModules = new();
             _listenerRepo = listenerRepo;
-            _protocolRepo = protocolrepo;
             _listenerFactory = factory;
             _moduleFactory = moduleFactory;
             _httpListenerManager = httpListenerManager;
@@ -70,8 +65,7 @@ namespace TeamServer.Services
                 var module = _moduleFactory.Create(request.Config.BindPort);
                 _ = System.Threading.Tasks.Task.Run(async () => module.StartPolling());
 
-                int protocolID = await _protocolRepo.GetProtocolIDAsync("HTTP");
-                Listener listener = _listenerFactory.CreateHttpListener(request, protocolID);
+                Listener listener = _listenerFactory.CreateHttpListener(request);
                 await _listenerRepo.AddListenerAsync(listener);
                 await _listenerRepo.CommitAsync();
 
@@ -86,6 +80,16 @@ namespace TeamServer.Services
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<Result> CreateHttpsListenerAsync(CreateHttpsListenerRequest request)
+        {
+            Listener listener = _listenerFactory.CreateHttpsListener(request);
+            await _listenerRepo.AddListenerAsync(listener);
+            await _listenerRepo.CommitAsync();
+
+            return Result.Success();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Creates a TCP listener from the specified request, persists it, and returns the created listener response.
         /// </summary>
@@ -96,14 +100,13 @@ namespace TeamServer.Services
         /// containing details of the created and persisted listener.</returns>
         public async Task<Result> CreateTCPListenerAsync(CreateTcpListenerRequest request)
         {
-            int protocolID = await _protocolRepo.GetProtocolIDAsync("TCP");
-            Listener listener = _listenerFactory.CreateTcpListener(request, protocolID);
+            Listener listener = _listenerFactory.CreateTcpListener(request);
             await _listenerRepo.AddListenerAsync(listener);
 
             await _listenerRepo.CommitAsync();
             return Result.Success();
         }
-            
+
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Creates an SMB listener from the specified request, resolves the TCP protocol identifier, and adds the
@@ -115,8 +118,7 @@ namespace TeamServer.Services
         /// <returns>A Result indicating the outcome of the create operation.</returns>
         public async Task<Result> CreateSmbListenerAsync(CreateSmbRequest request)
         {
-            int protocolID = await _protocolRepo.GetProtocolIDAsync("TCP");
-            Listener listener = _listenerFactory.CreateSmbListener(request, protocolID);
+            Listener listener = _listenerFactory.CreateSmbListener(request);
             await _listenerRepo.AddListenerAsync(listener);
 
             await _listenerRepo.CommitAsync();
@@ -146,14 +148,11 @@ namespace TeamServer.Services
         public async Task<Result> DeleteListenerAsync(int ID)
         {
             var listener = await _listenerRepo.GetListenerAsync(ID);
-
-            if (listener == null)
-            {
-                return ListenerError.NotFound(ID);
-            }
+            if (listener == null) return ListenerError.NotFound(ID);
 
             _listenerRepo.DeleteListener(listener);
             await _listenerRepo.CommitAsync();
+
             return Result.Success();
         }
 
@@ -170,10 +169,20 @@ namespace TeamServer.Services
         public async Task<Result> UpdateHttpListenerAsync(int ID, HttpConfig config)
         {
             var listener = await _listenerRepo.GetListenerAsync(ID);
-            if (listener == null)
-            {
-                return ListenerError.NotFound(ID);
-            }
+            if (listener == null) return ListenerError.NotFound(ID);
+
+            listener.Config = JsonDocument.Parse(JsonSerializer.Serialize(config));
+            await _listenerRepo.CommitAsync();
+
+            return Result.Success();
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        public async Task<Result> UpdateHttpsListenerAsync(int ID, HttpsConfig config)
+        {
+            var listener = await _listenerRepo.GetListenerAsync(ID);
+            if (listener == null) return ListenerError.NotFound(ID);
+
             listener.Config = JsonDocument.Parse(JsonSerializer.Serialize(config));
             await _listenerRepo.CommitAsync();
 
@@ -190,37 +199,29 @@ namespace TeamServer.Services
         public async Task<Result> RestartListenerAsync(int ID)
         {
             var module = _httpListenerManager.GetModuleByID(ID);
-
-            if (module == null)
-            {
-                return ListenerError.NotFound(ID);
-            }
+            if (module == null) return ListenerError.NotFound(ID);
 
             await module.RestartAsync();
             return Result.Success();
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        ///
         public async Task<Result> RemoveListenerAsync(int ID)
         {
             var listener = await _listenerRepo.GetListenerAsync(ID);
+            if (listener == null) return ListenerError.NotFound(ID);
 
-            if (listener == null)
+            if (listener.Type.Equals(Trinity.Shared.Enums.ListenerType.HTTP))
             {
-                return ListenerError.NotFound(ID);
+                var module = _httpListenerManager.GetModuleByID(ID);
+                if (module == null) return ListenerError.ModuleNotFound(ID);
+                await module.ShutdownAsync();
+                _httpListenerManager.RemoveModule(ID);
             }
 
             _listenerRepo.DeleteListener(listener);
             await _listenerRepo.CommitAsync();
 
-            var module = _httpListenerManager.GetModuleByID(ID);
-
-            if (module != null)
-            {
-                await module.ShutdownAsync();
-                _httpListenerManager.RemoveModule(ID);
-            }
             return Result.Success();
         }
     }

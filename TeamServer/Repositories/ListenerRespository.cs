@@ -1,12 +1,9 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 using TeamServer.Data;
 using Trinity.Shared.DTOs.Listener;
-using Trinity.Shared.Errors;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
-using Trinity.Shared.Results;
 
 namespace TeamServer.Repositories
 {
@@ -44,11 +41,10 @@ namespace TeamServer.Repositories
         public async Task<List<ListenerResponse>> GetListenersAsync()
         {
             var listeners = await _dbSet
-                .Include(l => l.Protocol)
                 .Select(l => new ListenerResponse(
                     l.ID,
                     l.Name,
-                    l.Protocol.Name))
+                    Enum.GetName(l.Type)!))
                 .ToListAsync();
             return listeners;
         }

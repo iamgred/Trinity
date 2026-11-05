@@ -24,6 +24,7 @@ namespace TeamServer.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "arch", new[] { "x32", "x64", "x86" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "listenerType", new[] { "http", "https", "smb", "tcp", "tor" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status", new[] { "dispatched", "error", "more_to_follow", "no_flag", "no_more_to_follow", "queued", "running", "success" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskCode", new[] { "cancel_download", "download", "kill_process", "no_code", "run", "run_as", "run_u", "sleep", "spawn_to", "update_hosts" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskType", new[] { "download", "escalate", "get_uid", "intial_checkin", "kill", "net_asm", "nop", "object_file", "powershell", "process", "set", "shell", "upload", "win_task" });
@@ -254,8 +255,11 @@ namespace TeamServer.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("ProtocolID")
+                    b.Property<int?>("ProtocolID")
                         .HasColumnType("integer");
+
+                    b.Property<ListenerType>("Type")
+                        .HasColumnType("\"listenerType\"");
 
                     b.HasKey("ID");
 
@@ -549,13 +553,9 @@ namespace TeamServer.Migrations
 
             modelBuilder.Entity("Trinity.Shared.Models.Listener", b =>
                 {
-                    b.HasOne("Trinity.Shared.Models.Protocol", "Protocol")
+                    b.HasOne("Trinity.Shared.Models.Protocol", null)
                         .WithMany("Listeners")
-                        .HasForeignKey("ProtocolID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Protocol");
+                        .HasForeignKey("ProtocolID");
                 });
 
             modelBuilder.Entity("Trinity.Shared.Models.Task", b =>

@@ -16,115 +16,137 @@
 
 <PageTitle>Trinity · Campaigns</PageTitle>
 
-<div class="ts-admin-head">
-    <div>
-        <h3>Campaigns</h3>
-        <p>Agents, payloads and operator access are scoped to a campaign.</p>
-    </div>
-    <button type="button" class="ts-btn ts-btn--primary" @onclick="NewCampaignAsync"><Icon Name="btn-plus.svg" Size="13" /> New Campaign</button>
-</div>
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h5" Style="font-weight:700;">Campaigns</MudText>
+        <MudText Typo="Typo.body2" Class="mud-text-secondary">Agents, payloads and operator access are scoped to a campaign.</MudText>
+    </MudStack>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="NewCampaignAsync">New Campaign</MudButton>
+</MudStack>
 
 @if (_error is not null)
 {
-    <p class="camp__error" role="alert">@_error</p>
+    <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3" role="alert">@_error</MudAlert>
 }
 
-<div class="camp">
-    <div class="camp__list">
-        @if (_campaigns.Count == 0 && _error is null)
-        {
-            <p class="camp__empty">@(_loading ? "Loading campaigns…" : "No campaigns yet.")</p>
-        }
-        @foreach (var campaign in _campaigns)
-        {
-            <button type="button" class="camp__card @(campaign.ID == _selected?.ID ? "is-selected" : null)" @onclick="() => SelectAsync(campaign)">
-                <span class="camp__card-top">
-                    <Icon Name="lucide-flag.svg" Size="14" />
-                    <span class="camp__card-name">@campaign.Name</span>
-                    @* TODO(connect to backend): campaigns have no status yet *@
-                    <StatusPill Text="active" Tone="green" />
-                </span>
-                <span class="camp__card-meta">
-                    @* TODO(connect to backend): agents aren't linked to campaigns yet *@
-                    <Icon Name="lucide-monitor.svg" Size="11" /> – agents ·
-                    <Icon Name="lucide-users.svg" Size="11" /> @OperatorCount(campaign) operators
-                </span>
-            </button>
-        }
-    </div>
+<MudGrid Spacing="3">
+    <MudItem xs="12" md="4">
+        <MudStack Spacing="2">
+            @if (_campaigns.Count == 0 && _error is null)
+            {
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">@(_loading ? "Loading campaigns…" : "No campaigns yet.")</MudText>
+            }
+            @foreach (var campaign in _campaigns)
+            {
+                var selected = campaign.ID == _selected?.ID;
+                <MudPaper Outlined="true" Class="pa-3" @onclick="() => SelectAsync(campaign)"
+                          Style="@($"cursor:pointer;{(selected ? "border-color:var(--mud-palette-primary);background:rgba(232,119,34,0.08);" : "")}")">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" Color="@(selected ? Color.Primary : Color.Default)" />
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:600;">@campaign.Name</MudText>
+                        <MudSpacer />
+                        <StatusPill Text="active" Tone="green" />
+                    </MudStack>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1 mud-text-secondary">
+                        <MudIcon Icon="@Icons.Material.Filled.Monitor" Style="font-size:14px;" />
+                        <MudText Typo="Typo.caption">– agents ·</MudText>
+                        <MudIcon Icon="@Icons.Material.Filled.Group" Style="font-size:14px;" />
+                        <MudText Typo="Typo.caption">@OperatorCount(campaign) operators</MudText>
+                    </MudStack>
+                </MudPaper>
+            }
+        </MudStack>
+    </MudItem>
 
     @if (_selected is not null)
     {
-        <div class="camp__detail">
-            <div class="camp__detail-head">
-                <div>
-                    <h4>@_selected.Name <StatusPill Text="active" Tone="green" /></h4>
-                    @* TODO(connect to backend): no created date or creator yet *@
-                    <p>Campaign #@_selected.ID</p>
-                </div>
-                <button type="button" class="ts-btn" @onclick="OpenRename"><Icon Name="lucide-pencil.svg" Size="13" /> Rename</button>
-                <button type="button" class="ts-btn ts-btn--danger" disabled title="Needs a campaign status in the API">Close Campaign</button>
-            </div>
+        <MudItem xs="12" md="8">
+            <MudPaper Outlined="true" Class="pa-4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+                    <MudStack Spacing="0">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudText Typo="Typo.h6">@_selected.Name</MudText>
+                            <StatusPill Text="active" Tone="green" />
+                        </MudStack>
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">Campaign #@_selected.ID</MudText>
+                    </MudStack>
+                    <MudSpacer />
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit" OnClick="OpenRename">Rename</MudButton>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Error" Disabled="true" title="Needs a campaign status in the API">Close Campaign</MudButton>
+                </MudStack>
 
-            <div class="camp__panels">
-                <section class="camp__panel">
-                    <h5>ASSIGNED OPERATORS</h5>
-                    @foreach (var op in AssignedOperators)
-                    {
-                        <div class="camp__op">
-                            <span class="camp__avatar">@op.Username[..1].ToUpperInvariant()</span>
-                            <span class="camp__op-text"><b>@op.Username</b><small>operator</small></span>
-                            <button type="button" title="Remove @op.Username from this campaign" @onclick="() => UnassignAsync(op)"><Icon Name="lucide-x.svg" Size="13" /></button>
-                        </div>
-                    }
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" lg="6">
+                        <MudText Typo="Typo.overline" Class="mud-text-secondary">ASSIGNED OPERATORS</MudText>
+                        <MudList T="string" Dense="true" Padding="false">
+                            @foreach (var op in AssignedOperators)
+                            {
+                                <MudListItem T="string">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                        <MudAvatar Size="Size.Small" Color="Color.Primary">@op.Username[..1].ToUpperInvariant()</MudAvatar>
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.body2" Style="font-weight:600;">@op.Username</MudText>
+                                            <MudText Typo="Typo.caption" Class="mud-text-secondary">operator</MudText>
+                                        </MudStack>
+                                        <MudSpacer />
+                                        <MudTooltip Text="@($"Remove {op.Username} from this campaign")">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="() => UnassignAsync(op)" />
+                                        </MudTooltip>
+                                    </MudStack>
+                                </MudListItem>
+                            }
+                        </MudList>
 
-                    @if (_assignOpen)
-                    {
-                        <div class="camp__assign-pick">
+                        <MudMenu Label="Assign operator…" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Class="mt-1">
                             @foreach (var op in UnassignedOperators)
                             {
-                                <button type="button" @onclick="() => AssignAsync(op)">@op.Username</button>
+                                <MudMenuItem OnClick="() => AssignAsync(op)">@op.Username</MudMenuItem>
                             }
                             @if (!UnassignedOperators.Any())
                             {
-                                <span>Every operator is already assigned.</span>
+                                <MudMenuItem Disabled="true">Every operator is already assigned.</MudMenuItem>
                             }
-                        </div>
-                    }
-                    <button type="button" class="camp__assign" @onclick="() => _assignOpen = !_assignOpen">
-                        <Icon Name="btn-plus.svg" Size="13" /> Assign operator…
-                    </button>
-                </section>
+                        </MudMenu>
+                    </MudItem>
 
-                <section class="camp__panel">
-                    <h5>AGENTS IN CAMPAIGN</h5>
-                    @* TODO(connect to backend): agents and payloads don't say which campaign they're in *@
-                    <p class="camp__na">Not available yet: the agents API does not say which campaign an agent belongs to.</p>
+                    <MudItem xs="12" lg="6">
+                        <MudText Typo="Typo.overline" Class="mud-text-secondary">AGENTS IN CAMPAIGN</MudText>
+                        <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined" Class="mb-3">Not available yet: the agents API does not say which campaign an agent belongs to.</MudAlert>
 
-                    <h5 class="camp__panel-sub">PAYLOADS BUILT FOR THIS CAMPAIGN</h5>
-                    <p class="camp__na">Not available yet: the payloads API does not return the campaign.</p>
-                </section>
-            </div>
-        </div>
+                        <MudText Typo="Typo.overline" Class="mud-text-secondary">PAYLOADS BUILT FOR THIS CAMPAIGN</MudText>
+                        <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined">Not available yet: the payloads API does not return the campaign.</MudAlert>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
     }
-</div>
+</MudGrid>
 
-@if (_renameOpen && _selected is not null)
-{
-    <Modal Title="Rename Campaign" Subtitle="@($"Campaign #{_selected.ID}")" IconName="lucide-pencil.svg" Error="@_renameError"
-           OnClose="() => _renameOpen = false">
-        <ChildContent>
-            <div class="ts-modal__row">
-                <label for="rename-name">Name</label>
-                <div class="ts-field"><input id="rename-name" @bind="_renameValue" @bind:event="oninput" /></div>
-            </div>
-        </ChildContent>
-        <Footer>
-            <button type="button" class="ts-btn" @onclick="() => _renameOpen = false">Cancel</button>
-            <button type="button" class="ts-btn ts-btn--primary" @onclick="RenameAsync">Rename</button>
-        </Footer>
-    </Modal>
-}
+<MudDialog @bind-Visible="_renameOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" />
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h6">Rename Campaign</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">Campaign #@_selected?.ID</MudText>
+            </MudStack>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_renameValue" Label="Name" Variant="Variant.Outlined" Immediate="true" AutoFocus="true" />
+            @if (_renameError is not null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_renameError</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _renameOpen = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="RenameAsync">Rename</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     [CascadingParameter] private AdminLayout Layout { get; set; } = default!;
@@ -135,11 +157,12 @@
     private Campaign? _selected;
     private string? _error;
     private bool _loading;
-    private bool _assignOpen;
 
     private bool _renameOpen;
     private string _renameValue = "";
     private string? _renameError;
+
+    private readonly DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
 
     private HttpClient Http => HttpFactory.CreateClient("TeamServer");
 
@@ -168,9 +191,9 @@
             _error = null;
             Layout.SetCounts(campaigns: _campaigns.Count, operators: _operators.Count);
         }
-        catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
         {
-            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not load campaigns: {e.Message}";
+            _error = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the campaigns: {ex.Message}";
         }
         finally
         {
@@ -184,11 +207,9 @@
     private Task SelectAsync(Campaign campaign)
     {
         _selected = campaign;
-        _assignOpen = false;
         return Task.CompletedTask;
     }
 
-    // opens the teammate's New Campaign popup (screen 10)
     private async Task NewCampaignAsync()
     {
         var dialog = await DialogService.ShowAsync<CreateNewCampaignDialog>(string.Empty, new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
@@ -218,7 +239,6 @@
             }
 
             _assigned[_selected.ID] = await LoadAssignedAsync(_selected.ID);
-            _assignOpen = false;
             _error = null;
         }
         catch (HttpRequestException e)

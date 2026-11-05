@@ -14,6 +14,11 @@ public sealed class WorkspaceState
 
     public List<ShellTab> Tabs { get; } = [new("Event Log", "logs")];
 
+    // filled live by EventLogFeed
+    public List<Trinity.Shared.DTOs.Notification.EventLog> Events { get; } = [];
+    public bool EventsLive { get; set; }
+    public string? EventsError { get; set; }
+
     public event Action? Changed;
 
     public void Notify() => Changed?.Invoke();

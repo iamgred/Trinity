@@ -1,352 +1,296 @@
 @page "/clients"
 @layout TrinityLayout
+@using Client.Components.UI
 
 <PageTitle>Trinity · Clients</PageTitle>
 
-<div class="clients-page">
-
-    @if (_loadError is not null || _taskLoadError is not null)
-    {
-        <div class="mock-banner" role="status">
-            @if (Connection.BaseAddress is null)
-            {
+@if (_loadError is not null || _taskLoadError is not null)
+{
+    <MudAlert Severity="Severity.Warning" Class="mb-4" role="status">
+        @if (Connection.BaseAddress is null)
+        {
+            <MudStack Row="true" AlignItems="AlignItems.Center">
                 <span>Connect to a TeamServer from the Login page before viewing clients.</span>
-                <button type="button" class="export-btn" @onclick="GoToLogin">Go to Login</button>
-            }
-            else
-            {
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="GoToLogin">Go to Login</MudButton>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="1">
                 @if (_loadError is not null)
                 {
-                    <span>@_loadError</span>
-                    <button type="button" class="export-btn" @onclick="LoadAgentsAsync">Retry agents</button>
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <span>@_loadError</span>
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="LoadAgentsAsync">Retry agents</MudButton>
+                    </MudStack>
                 }
                 @if (_taskLoadError is not null)
                 {
-                    <span>@_taskLoadError</span>
-                    <button type="button" class="export-btn" @onclick="LoadTasksAsync">Retry task history</button>
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <span>@_taskLoadError</span>
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="LoadTasksAsync">Retry task history</MudButton>
+                    </MudStack>
                 }
-            }
-        </div>
-    }
-
-    <section class="header">
-        <h1>Clients</h1>
-        <p class="subtitle">Manage and monitor all connected clients</p>
-    </section>
-
-    <section class="stats-row">
-        @foreach (var stat in BuildStats())
-        {
-            <div class="stat-card t-card">
-                <div class="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                        @((MarkupString)stat.Icon)
-                    </svg>
-                </div>
-                <div class="stat-body">
-                    <div class="label">@stat.Label</div>
-                    <div class="value">@stat.Value</div>
-                </div>
-            </div>
+            </MudStack>
         }
-    </section>
+    </MudAlert>
+}
 
-    <div class="clients-grid">
+<MudStack Spacing="0" Class="mb-4">
+    <MudText Typo="Typo.h4" Style="font-weight:700;">Clients</MudText>
+    <MudText Typo="Typo.body2" Class="mud-text-secondary">Manage and monitor all connected clients</MudText>
+</MudStack>
 
-        <div class="col-main">
-
-            <section class="table-section t-card">
-                <div class="table-toolbar">
-                    <h2>All Clients</h2>
-                    <div class="toolbar-controls">
-                        <div class="search-field">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                            <input type="text" placeholder="Search..." @bind="_search" @bind:event="oninput" @bind:after="ResetPage" />
-                        </div>
-                        <select class="filter-select" @bind="_statusFilter" @bind:after="ResetPage">
-                            <option>All Status</option>
-                            <option>Online</option>
-                            <option>Offline</option>
-                        </select>
-                        <select class="filter-select" @bind="_osFilter" @bind:after="ResetPage">
-                            <option>All Architectures</option>
-                            <option>x64</option>
-                            <option>x86</option>
-                        </select>
-                        <button type="button" class="export-btn" @onclick="ExportClients">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                            Export
-                        </button>
-                        <button type="button" class="export-btn" @onclick="RefreshDataAsync">Refresh</button>
-                    </div>
-                </div>
-
-                <table class="client-table">
-                    <thead>
-                        <tr>
-                            <th>Client Name</th>
-                            <th>IP Address</th>
-                            <th>Architecture</th>
-                            <th>Status</th>
-                            <th>Last Seen</th>
-                            <th>User</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (!PageItems.Any())
-                        {
-                            <tr><td colspan="6" class="empty-row">@( _loadError ?? (_isLoading ? "Loading agents from TeamServer..." : "No clients match your filters."))</td></tr>
-                        }
-                        @foreach (var row in PageItems)
-                        {
-                            <tr class="@(row == _selected ? "selected" : null)" @onclick="() => SelectRow(row)">
-                                <td>@row.Name @if (row.IsSample) { <span>(Sample)</span> }</td>
-                                <td>@row.Ip</td>
-                                <td>@row.Os</td>
-                                <td>
-                                    <span class="status-dot status-@StatusColor(row.Status)"></span>
-                                    @row.Status
-                                </td>
-                                <td>@row.LastSeen</td>
-                                <td>@row.User</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-
-                <div class="table-footer">
-                    <span class="showing">@ShowingText</span>
-                    <div class="pagination">
-                        <button type="button" class="page-btn" disabled="@(CurrentPage <= 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹</button>
-                        @for (var p = 1; p <= TotalPages; p++)
-                        {
-                            var pg = p;
-                            <button type="button" class="page-btn @(pg == CurrentPage ? "active" : null)" @onclick="() => GoToPage(pg)">@pg</button>
-                        }
-                        <button type="button" class="page-btn" disabled="@(CurrentPage >= TotalPages)" @onclick="() => GoToPage(CurrentPage + 1)">›</button>
-                    </div>
-                </div>
-            </section>
-
-            <section class="timeline-section t-card">
-                <h2>Client Activity Timeline</h2>
-                <ul class="timeline">
-                    @if (_timeline.Count == 0 && _taskLoadError is null)
-                    {
-                        <li class="timeline-item"><span class="timeline-text">No task history is available from TeamServer.</span></li>
-                    }
-                    @foreach (var ev in _timeline)
-                    {
-                        <li class="timeline-item">
-                            <span class="timeline-time">@ev.When</span>
-                            <span class="timeline-dot status-@ev.Color"></span>
-                            <span class="timeline-text">@ev.Text</span>
-                        </li>
-                    }
-                </ul>
-            </section>
-
-        </div>
-
-        <div class="col-side">
-
-            <section class="panel-map t-card">
-                <div class="panel-head">
-                    <h2>Client Locations</h2>
-                    <select class="filter-select">
-                        <option>All Clients</option>
-                    </select>
-                </div>
-                <div class="map-box">
-                    <p>TeamServer does not provide agent location coordinates.</p>
-                    <svg class="world-map" viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
-                        <g class="landmass">
-                            @foreach (var d in LandDots)
-                            {
-                                <circle cx="@Fmt(d.X)" cy="@Fmt(d.Y)" r="0.7" />
-                            }
-                        </g>
-                        <g class="map-markers">
-                            @foreach (var m in MapMarkers)
-                            {
-                                <circle class="m-@m.Color" cx="@Fmt(m.X)" cy="@Fmt(m.Y)" r="1.4" />
-                            }
-                        </g>
-                    </svg>
-                    <div class="map-zoom">
-                        <button type="button" title="Zoom in (mock)">+</button>
-                        <button type="button" title="Zoom out (mock)">−</button>
-                    </div>
-                </div>
-            </section>
-
-            <section class="panel-os t-card">
-                <div class="panel-head">
-                    <h2>Client Architecture Distribution</h2>
-                </div>
-                <div class="os-body">
-                    <div class="donut">
-                        <div class="donut-ring" style="background: conic-gradient(@DonutGradient());"></div>
-                        <div class="donut-center">
-                            <span class="donut-num">@_clients.Count</span>
-                            <span class="donut-label">Total</span>
-                        </div>
-                    </div>
-                    <ul class="os-legend">
-                        @foreach (var os in BuildOsBreakdown())
-                        {
-                            <li>
-                                <span class="legend-dot status-@os.Color"></span>
-                                <span class="legend-label">@os.Name</span>
-                                <span class="legend-value">@os.Count (@os.Percent%)</span>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </section>
-
-            <section class="panel-actions t-card">
-                <div class="panel-head">
-                    <h2>Quick Actions</h2>
-                </div>
-                <div class="actions-grid">
-                    @foreach (var a in Actions)
-                    {
-                        <button type="button" class="action-btn" disabled="@(a.Label is not ("View All Clients" or "Execute Job"))" title="@(a.Label is ("View All Clients" or "Execute Job") ? null : "TeamServer does not support this action from the Clients page.")" @onclick="a.OnClick">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                @((MarkupString)a.Icon)
-                            </svg>
-                            <span>@a.Label</span>
-                        </button>
-                    }
-                </div>
-            </section>
-
-        </div>
-
-    </div>
+<div class="d-flex flex-wrap gap-3 mb-4">
+    @foreach (var stat in BuildStats())
+    {
+        <MudPaper Class="pa-4 d-flex align-center gap-3" Style="flex:1 1 180px;">
+            <MudAvatar Color="Color.Primary" Variant="Variant.Outlined" Rounded="true"><MudIcon Icon="@stat.Icon" /></MudAvatar>
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">@stat.Label</MudText>
+                <MudText Typo="Typo.h5" Style="font-weight:700;">@stat.Value</MudText>
+            </MudStack>
+        </MudPaper>
+    }
 </div>
 
-@if (_toast is not null)
-{
-    <div class="toast">@_toast</div>
-}
+<MudGrid Spacing="3">
+    <MudItem xs="12" lg="8">
+        <MudStack Spacing="3">
+            <MudPaper Elevation="1">
+                <div class="d-flex flex-wrap align-center gap-3 px-4 pt-4 pb-2">
+                    <MudText Typo="Typo.h6" Style="white-space:nowrap;">All Clients</MudText>
+                    <MudSpacer />
+                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+                        <MudTextField T="string" Value="_search" ValueChanged="OnSearch" Immediate="true" Placeholder="Search..."
+                                      Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" Style="max-width:200px;" />
+                        <MudSelect T="string" Value="_statusFilter" ValueChanged="OnStatusFilter" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Style="max-width:150px;">
+                            <MudSelectItem T="string" Value="@("All Status")">All Status</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Online")">Online</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Offline")">Offline</MudSelectItem>
+                        </MudSelect>
+                        <MudSelect T="string" Value="_osFilter" ValueChanged="OnOsFilter" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Style="max-width:180px;">
+                            <MudSelectItem T="string" Value="@("All Architectures")">All Architectures</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("x64")">x64</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("x86")">x86</MudSelectItem>
+                        </MudSelect>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Download" OnClick="ExportClients">Export</MudButton>
+                        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="RefreshDataAsync">Refresh</MudButton>
+                    </MudStack>
+                </div>
+                <MudTable T="ClientRow" Items="Filtered" Dense="true" Hover="true" RowsPerPage="PageSize" @bind-CurrentPage="_page"
+                      Loading="_isLoading" OnRowClick="e => SelectRow(e.Item!)" RowStyleFunc="RowStyle" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Client Name</MudTh>
+                    <MudTh>IP Address</MudTh>
+                    <MudTh>Architecture</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Last Seen</MudTh>
+                    <MudTh>User</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Client Name">
+                        @context.Name
+                        @if (context.IsSample)
+                        {
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="my-0">Sample</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="IP Address">@context.Ip</MudTd>
+                    <MudTd DataLabel="Architecture">@context.Os</MudTd>
+                    <MudTd DataLabel="Status"><Dot Tone="@StatusColor(context.Status)" /> @context.Status</MudTd>
+                    <MudTd DataLabel="Last Seen">@context.LastSeen</MudTd>
+                    <MudTd DataLabel="User">@context.User</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">@(_loadError ?? "No clients match your filters.")</MudText>
+                </NoRecordsContent>
+                <LoadingContent>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Loading agents from TeamServer...</MudText>
+                </LoadingContent>
+                <PagerContent>
+                    <MudTablePager HideRowsPerPage="true" InfoFormat="Showing {first_item}–{last_item} of {all_items} clients" />
+                </PagerContent>
+            </MudTable>
+            </MudPaper>
 
-@if (_showAdd)
-{
-    <div class="modal-overlay" @onclick="CloseModals">
-        <div class="modal-card" @onclick:stopPropagation="true">
-            <h3>Add New Client</h3>
-            <label class="modal-label">Client Name (auto-assigned)</label>
-            <input class="modal-input" value="@_form.Name" readonly />
-            <label class="modal-label">IP Address</label>
-            <input class="modal-input" @bind="_form.Ip" placeholder="192.168.1.20" />
-            <label class="modal-label">Operating System</label>
-            <select class="modal-input" @bind="_form.Os">
-                <option>Windows 10</option>
-                <option>Windows 11</option>
-                <option>Ubuntu 22.04</option>
-                <option>macOS 14</option>
-            </select>
-            <label class="modal-label">User</label>
-            <input class="modal-input" @bind="_form.User" placeholder="Jane Doe" />
-            <div class="modal-actions">
-                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
-                <button type="button" class="btn-primary" @onclick="AddClient">Add Client</button>
-            </div>
-        </div>
-    </div>
-}
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-2">Client Activity Timeline</MudText>
+                @if (_timeline.Count == 0 && _taskLoadError is null)
+                {
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">No task history is available from TeamServer.</MudText>
+                }
+                <MudTimeline TimelinePosition="TimelinePosition.Start" TimelineAlign="TimelineAlign.Default" Class="pa-0">
+                    @foreach (var ev in _timeline)
+                    {
+                        <MudTimelineItem Color="TrinityTheme.ToColor(ev.Color)" Size="Size.Small">
+                            <MudText Typo="Typo.body2">@ev.Text</MudText>
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@ev.When</MudText>
+                        </MudTimelineItem>
+                    }
+                </MudTimeline>
+            </MudPaper>
+        </MudStack>
+    </MudItem>
 
-@if (_showAnnounce)
-{
-    <div class="modal-overlay" @onclick="CloseModals">
-        <div class="modal-card" @onclick:stopPropagation="true">
-            <h3>Send Announcement</h3>
-            <label class="modal-label">Message (broadcast to all clients)</label>
-            <textarea class="modal-input" rows="4" @bind="_announceText" placeholder="Type your announcement..."></textarea>
-            <div class="modal-actions">
-                <button type="button" class="btn-ghost" @onclick="CloseModals">Cancel</button>
-                <button type="button" class="btn-primary" @onclick="SendAnnouncement">Send</button>
-            </div>
-        </div>
-    </div>
-}
+    <MudItem xs="12" lg="4">
+        <MudStack Spacing="3">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-2">Client Locations</MudText>
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2" Class="pa-6"
+                          Style="border:1px dashed var(--mud-palette-divider);border-radius:8px;">
+                    <MudIcon Icon="@Icons.Material.Outlined.Public" Size="Size.Large" Class="mud-text-secondary" />
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary" Align="Align.Center">TeamServer does not provide agent location coordinates.</MudText>
+                </MudStack>
+            </MudPaper>
 
-@if (_showExecute)
-{
-    <div class="modal-overlay" @onclick="CloseModals">
-        <div class="modal-card" @onclick:stopPropagation="true">
-            <h3>Execute Job</h3>
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-2">Client Architecture Distribution</MudText>
+                @{ var archs = BuildOsBreakdown(); }
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    @if (_clients.Count > 0)
+                    {
+                        <MudChart T="double" ChartType="ChartType.Donut" ChartSeries="DonutSeries(archs)" ChartLabels="archs.Select(a => a.Name).ToArray()"
+                                  ChartOptions="DonutOptions(archs)" Width="150px" Height="150px">
+                            <CustomGraphics>
+                                <text x="50%" y="46%" dominant-baseline="middle" text-anchor="middle" fill="white" font-weight="bold" font-size="1.4em">@_clients.Count</text>
+                                <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="#AAA" font-size="0.65em">Total</text>
+                            </CustomGraphics>
+                        </MudChart>
+                    }
+                    else
+                    {
+                        <MudProgressCircular Value="0" Size="Size.Large" Color="Color.Default" StrokeWidth="6" />
+                    }
+                    <MudStack Spacing="1">
+                        @foreach (var os in archs)
+                        {
+                            <MudText Typo="Typo.body2"><Dot Tone="@os.Color" /> @os.Name <span class="mud-text-secondary">@os.Count (@os.Percent%)</span></MudText>
+                        }
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
 
-            <label class="modal-label">Target</label>
-            <select class="modal-input" @bind="_jobTargetId">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-2">Quick Actions</MudText>
+                <MudGrid Spacing="2">
+                    @foreach (var a in Actions)
+                    {
+                        var enabled = a.Label is "View All Clients" or "Execute Job";
+                        <MudItem xs="6">
+                            <MudTooltip Text="@(enabled ? null : "TeamServer does not support this action from the Clients page.")" RootStyle="width:100%;">
+                                <MudButton Variant="Variant.Outlined" FullWidth="true" StartIcon="@a.Icon" Disabled="!enabled" OnClick="a.OnClick"
+                                           Style="justify-content:flex-start;text-transform:none;">@a.Label</MudButton>
+                            </MudTooltip>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudPaper>
+        </MudStack>
+    </MudItem>
+</MudGrid>
+
+<MudDialog @bind-Visible="_showAdd" Options="_dialogOptions">
+    <TitleContent><MudText Typo="Typo.h6">Add New Client</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField Value="_form.Name" Label="Client Name (auto-assigned)" Variant="Variant.Outlined" ReadOnly="true" />
+            <MudTextField @bind-Value="_form.Ip" Label="IP Address" Placeholder="192.168.1.20" Variant="Variant.Outlined" />
+            <MudSelect T="string" @bind-Value="_form.Os" Label="Operating System" Variant="Variant.Outlined">
+                <MudSelectItem T="string" Value="@("Windows 10")">Windows 10</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Windows 11")">Windows 11</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Ubuntu 22.04")">Ubuntu 22.04</MudSelectItem>
+                <MudSelectItem T="string" Value="@("macOS 14")">macOS 14</MudSelectItem>
+            </MudSelect>
+            <MudTextField @bind-Value="_form.User" Label="User" Placeholder="Jane Doe" Variant="Variant.Outlined" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseModals">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="AddClient">Add Client</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @bind-Visible="_showAnnounce" Options="_dialogOptions">
+    <TitleContent><MudText Typo="Typo.h6">Send Announcement</MudText></TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_announceText" Label="Message (broadcast to all clients)" Placeholder="Type your announcement..."
+                      Variant="Variant.Outlined" Lines="4" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseModals">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SendAnnouncement">Send</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @bind-Visible="_showExecute" Options="_dialogOptions">
+    <TitleContent><MudText Typo="Typo.h6">Execute Job</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudSelect T="int" @bind-Value="_jobTargetId" Label="Target" Variant="Variant.Outlined">
                 @foreach (var client in _clients)
                 {
-                    <option value="@client.AgentId">@client.Name</option>
+                    <MudSelectItem T="int" Value="@client.AgentId">@client.Name</MudSelectItem>
                 }
-            </select>
+            </MudSelect>
 
-            <label class="modal-label">Job</label>
-            <select class="modal-input" @bind="_jobName">
+            <MudSelect T="string" @bind-Value="_jobName" Label="Job" Variant="Variant.Outlined">
                 @foreach (var job in _jobCatalogue)
                 {
-                    <option value="@job.Name">@job.Name</option>
+                    <MudSelectItem T="string" Value="@job.Name">@job.Name</MudSelectItem>
                 }
-            </select>
+            </MudSelect>
 
             @if (JobLabel1 is not null)
             {
-                <label class="modal-label">@JobLabel1</label>
-                <input class="modal-input" @bind="_jobArg" />
+                <MudTextField @bind-Value="_jobArg" Label="@JobLabel1" Variant="Variant.Outlined" />
             }
             @if (JobLabel2 is not null)
             {
-                <label class="modal-label">@JobLabel2</label>
-                <input class="modal-input" @bind="_jobArg2" />
+                <MudTextField @bind-Value="_jobArg2" Label="@JobLabel2" Variant="Variant.Outlined" />
             }
             @if (JobLabel3 is not null)
             {
-                <label class="modal-label">@JobLabel3</label>
-                <input class="modal-input" @bind="_jobArg3" />
+                <MudTextField @bind-Value="_jobArg3" Label="@JobLabel3" Variant="Variant.Outlined" />
             }
 
-            <label class="modal-label">Execution Options</label>
-            <div class="radio-row">
-                <button type="button" class="radio-pill @(_jobImmediate ? "on" : null)" @onclick="() => _jobImmediate = true">
-                    <span class="radio-dot"></span> Immediate
-                </button>
-                <button type="button" class="radio-pill @(!_jobImmediate ? "on" : null)" @onclick="() => _jobImmediate = false">
-                    <span class="radio-dot"></span> Scheduled
-                </button>
+            <div>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mb-1">Execution Options</MudText>
+                <MudToggleGroup T="bool" @bind-Value="_jobImmediate" Color="Color.Primary" Size="Size.Small" Outlined="true" CheckMark="true">
+                    <MudToggleItem Value="true" Text="Immediate" />
+                    <MudToggleItem Value="false" Text="Scheduled" />
+                </MudToggleGroup>
             </div>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseModals">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="RunJob">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
 
-            <div class="modal-actions">
-                <button type="button" class="btn-primary" @onclick="RunJob">Confirm</button>
-            </div>
-        </div>
-    </div>
-}
-
-@if (_showShell)
-{
-    <div class="modal-overlay" @onclick="CloseModals">
-        <div class="modal-card shell-card" @onclick:stopPropagation="true">
-            <h3>Remote Shell — @(_selected?.Name ?? "none selected")</h3>
-            <div class="shell-output">
-                @foreach (var line in _shellLog)
-                {
-                    <div class="shell-line">@line</div>
-                }
-            </div>
-            <div class="shell-input-row">
-                <span class="shell-prompt">&gt;</span>
-                <input class="modal-input" @bind="_shellInput" @onkeydown="ShellKey" placeholder="whoami" />
-                <button type="button" class="btn-primary" @onclick="RunShell">Run</button>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn-ghost" @onclick="CloseModals">Close</button>
-            </div>
-        </div>
-    </div>
-}
+<MudDialog @bind-Visible="_showShell" Options="_shellDialogOptions">
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Terminal" Color="Color.Primary" />
+            <MudText Typo="Typo.h6">Remote Shell — @(_selected?.Name ?? "none selected")</MudText>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Outlined="true" Class="pa-3 mb-3" Style="height:260px;overflow:auto;background:#0b0b0d;font-family:'JetBrains Mono',monospace;font-size:13px;">
+            @foreach (var line in _shellLog)
+            {
+                <div>@line</div>
+            }
+        </MudPaper>
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+            <MudTextField @bind-Value="_shellInput" Placeholder="whoami" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                          Adornment="Adornment.Start" AdornmentText=">" OnKeyDown="ShellKey" Style="font-family:'JetBrains Mono',monospace;" />
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="RunShell">Run</MudButton>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseModals">Close</MudButton>
+    </DialogActions>
+</MudDialog>

@@ -4,6 +4,7 @@ using Client.Components.Shell;
 using Client.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazor;
 
 namespace Client.Components.Pages.Loot;
 
@@ -108,9 +109,9 @@ public partial class Loot
             _items.InsertRange(0, downloads.OrderByDescending(d => d.Collected));
             _loadError = null;
         }
-        catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
         {
-            _loadError = ServerDown.Is(e) ? ServerDown.Message : $"Could not load downloads from the team server: {e.Message}";
+            _loadError = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the downloads: {ex.Message}";
         }
         finally
         {
@@ -142,9 +143,9 @@ public partial class Loot
 
     private static string TypeIcon(string type) => type switch
     {
-        "Credential" => "loot-credential.svg",
-        "Note" => "loot-note.svg",
-        _ => "loot-download.svg",
+        "Credential" => Icons.Material.Filled.Key,
+        "Note" => Icons.Material.Filled.StickyNote2,
+        _ => Icons.Material.Filled.Download,
     };
 
     private static string StatusTone(string status) => status switch

@@ -1,74 +1,67 @@
-@using Client.Components.UI
 @using Trinity.Shared.DTOs.Agent
 @inject NavigationManager Nav
 
-<div class="ts-agents__strip">
-    <span class="ts-agents__count">AGENTS · @State.Agents.Count</span>
-    <span class="ts-agents__hint">Right-click an agent for actions · double-click to interact</span>
-    <div class="ts-agents__view">
-        <button type="button" class="is-on"><Icon Name="toggle-table.svg" Size="12" /> Table</button>
-        @* TODO: Pivot Graph view (teammate's screen 02) *@
-        <button type="button" disabled title="Pivot Graph is not in the new shell yet"><Icon Name="toggle-graph.svg" Size="12" /> Graph</button>
-    </div>
-</div>
+<MudToolBar Dense="true" Gutters="true" Class="gap-3" Style="flex:0 0 auto;min-height:36px;">
+    <MudText Typo="Typo.overline" Style="font-weight:700;">AGENTS · @State.Agents.Count</MudText>
+    <MudText Typo="Typo.caption" Class="mud-text-secondary">Right-click an agent for actions · double-click to interact</MudText>
+    <MudSpacer />
+    <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
+        <MudButton StartIcon="@Icons.Material.Filled.TableRows" Color="Color.Primary" Variant="Variant.Filled">Table</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Hub" Disabled="true" title="Pivot Graph is not in the new shell yet">Graph</MudButton>
+    </MudButtonGroup>
+</MudToolBar>
 
-<div class="ts-agents__scroll">
-    <table class="ts-table">
-        <colgroup>
-            <col style="width:6.5%" /><col style="width:10.8%" /><col style="width:10.8%" /><col style="width:9.4%" />
-            <col style="width:20.6%" /><col style="width:11.5%" /><col style="width:5.2%" /><col style="width:4.9%" />
-            <col style="width:8.2%" /><col style="width:6.5%" /><col style="width:5.6%" />
-        </colgroup>
-        <thead>
-            <tr>
-                <th>id</th><th>external</th><th>internal</th><th>listener</th><th>user</th><th>process</th>
-                <th>pid</th><th>arch</th><th>integrity</th>
-                <th class="is-sorted">last <Icon Name="sort-chevron.svg" Size="11" /></th>
-                <th>sleep</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (State.AgentsError is not null)
+<MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true"
+                Style="flex:1;min-height:0;overflow:auto;font-family:'JetBrains Mono',monospace;">
+    <thead>
+        <tr>
+            <th>id</th><th>external</th><th>internal</th><th>listener</th><th>user</th><th>process</th>
+            <th>pid</th><th>arch</th><th>integrity</th>
+            <th>last <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" Style="vertical-align:middle;" /></th>
+            <th>sleep</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (State.AgentsError is not null)
+        {
+            <tr><td colspan="11" class="mud-text-secondary" style="text-align:center;">@State.AgentsError</td></tr>
+        }
+        else if (!State.Agents.Any())
+        {
+            <tr><td colspan="11" class="mud-text-secondary" style="text-align:center;">No agents have checked in yet.</td></tr>
+        }
+        else
+        {
+            @foreach (var agent in State.FilteredAgents)
             {
-                <tr class="ts-empty"><td colspan="11">@State.AgentsError</td></tr>
+                var selected = agent.agentID == State.SelectedAgentId;
+                var smb = WorkspaceState.IsSmb(agent);
+                <tr style="@RowStyle(agent, selected)"
+                    @onclick="() => Select(agent)"
+                    @ondblclick="() => Interact(agent)"
+                    @oncontextmenu="e => OpenMenu(agent, e)" @oncontextmenu:preventDefault="true">
+                    <td>
+                        <span class="d-inline-flex align-center gap-2" style="@(smb ? "padding-left:14px" : null)">
+                            <MudIcon Icon="@(smb ? Icons.Material.Filled.Lan : Icons.Material.Filled.Computer)" Size="Size.Small"
+                                     Color="@(smb ? Color.Info : selected ? Color.Primary : Color.Default)" />
+                            @agent.agentID
+                        </span>
+                    </td>
+                    <td>@(smb ? "–" : agent.externalIP)</td>
+                    <td>@agent.internalIP</td>
+                    <td>@agent.listener</td>
+                    <td>@agent.username</td>
+                    <td>@agent.processName</td>
+                    <td>@agent.PID</td>
+                    <td>@agent.arch</td>
+                    <td class="@(IsHigh(agent) ? "mud-error-text" : null)">@agent.integrity</td>
+                    <td>@WorkspaceState.FormatAgo(WorkspaceState.SinceLastCheckIn(agent))</td>
+                    <td>@(agent.sleep)s</td>
+                </tr>
             }
-            else if (!State.Agents.Any())
-            {
-                <tr class="ts-empty"><td colspan="11">No agents have checked in yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var agent in State.FilteredAgents)
-                {
-                    var selected = agent.agentID == State.SelectedAgentId;
-                    var smb = WorkspaceState.IsSmb(agent);
-                    <tr class="@(selected ? "is-selected" : null) @(WorkspaceState.IsStale(agent) ? "is-stale" : null)"
-                        @onclick="() => Select(agent)"
-                        @ondblclick="() => Interact(agent)"
-                        @oncontextmenu="e => OpenMenu(agent, e)" @oncontextmenu:preventDefault="true">
-                        <td>
-                            <span class="ts-agents__id @(smb ? "is-child" : null)">
-                                <Icon Name="@(smb ? "agent-smb.svg" : "agent-direct.svg")" Size="13"
-                                      Class="@(smb ? "is-smb" : selected ? "is-selected" : null)" />
-                                @agent.agentID
-                            </span>
-                        </td>
-                        <td>@(smb ? "–" : agent.externalIP)</td>
-                        <td>@agent.internalIP</td>
-                        <td>@agent.listener</td>
-                        <td>@agent.username</td>
-                        <td>@agent.processName</td>
-                        <td>@agent.PID</td>
-                        <td>@agent.arch</td>
-                        <td class="@(IsHigh(agent) ? "ts-agents__high" : null)">@agent.integrity</td>
-                        <td>@WorkspaceState.FormatAgo(WorkspaceState.SinceLastCheckIn(agent))</td>
-                        <td>@(agent.sleep)s</td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-</div>
+        }
+    </tbody>
+</MudSimpleTable>
 
 @if (_menuAgent is not null)
 {
@@ -88,6 +81,9 @@
     private static bool IsHigh(AgentResponse agent) =>
         agent.integrity.Equals("High", StringComparison.OrdinalIgnoreCase) || agent.integrity.Equals("System", StringComparison.OrdinalIgnoreCase);
 
+    private static string RowStyle(AgentResponse agent, bool selected) =>
+        "cursor:pointer;" + (selected ? "background:rgba(232,119,34,0.13);" : "") + (WorkspaceState.IsStale(agent) ? "opacity:0.5;" : "");
+
     private void Select(AgentResponse agent)
     {
         State.SelectedAgentId = agent.agentID;
@@ -104,7 +100,6 @@
 
     private void CloseMenu() => _menuAgent = null;
 
-    // opens the teammate's Interact page
     private void Interact(AgentResponse agent) => Nav.NavigateTo($"agents/{agent.agentID}/interact");
 
     private void OpenLoot(AgentResponse agent)

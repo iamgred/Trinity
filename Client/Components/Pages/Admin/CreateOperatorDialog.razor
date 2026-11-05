@@ -1,5 +1,4 @@
 @using System.Net.Http.Json
-@using Client.Components.UI
 @using Client.Services
 @using Campaign = Trinity.Shared.Models.Campaign
 @using Operator = Trinity.Shared.Models.Operator
@@ -8,84 +7,77 @@
 @inject AdminService AdminService
 @inject IHttpClientFactory HttpFactory
 
-<Modal Title="@Title" Subtitle="@Subtitle" IconName="topbar-user.svg" Error="@_error"
-       FootNote="Share the password with the operator directly." OnClose="OnClose">
-    <ChildContent>
-        @if (Mode != OperatorDialogMode.ResetPassword)
-        {
-            <div class="ts-modal__row">
-                <label for="op-username">Username</label>
-                <div class="ts-field">
-                    <Icon Name="topbar-user.svg" Size="14" />
-                    <input id="op-username" autocomplete="off" @bind="_username" @bind:event="oninput" />
-                </div>
-            </div>
-        }
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" />
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h6">@Title</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">@Subtitle</MudText>
+            </MudStack>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (Mode != OperatorDialogMode.ResetPassword)
+            {
+                <MudTextField @bind-Value="_username" Label="Username" Variant="Variant.Outlined" Immediate="true"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" autocomplete="off" />
+            }
 
-        @if (Mode != OperatorDialogMode.Edit)
-        {
-            <div class="ts-modal__row">
-                <label for="op-password">Password</label>
-                <div class="ts-field">
-                    <Icon Name="icon-key.svg" Size="14" />
-                    <input id="op-password" type="password" autocomplete="new-password" @bind="_password" @bind:event="oninput" />
-                </div>
-            </div>
-            <div class="ts-modal__row">
-                <label for="op-confirm">Confirm Password</label>
-                <div class="ts-field">
-                    <Icon Name="icon-key.svg" Size="14" />
-                    <input id="op-confirm" type="password" autocomplete="new-password" @bind="_confirm" @bind:event="oninput" />
-                </div>
-            </div>
-        }
+            @if (Mode != OperatorDialogMode.Edit)
+            {
+                <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined" Immediate="true" InputType="InputType.Password"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Key" autocomplete="new-password" />
+                <MudTextField @bind-Value="_confirm" Label="Confirm Password" Variant="Variant.Outlined" Immediate="true" InputType="InputType.Password"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Key" autocomplete="new-password" />
+            }
 
-        @if (Mode == OperatorDialogMode.Create)
-        {
-            <div class="ts-modal__row">
-                <label>Role</label>
-                <SegmentedToggle Options="Roles" @bind-Value="_role" LabelFor="RoleLabel" />
-            </div>
-        }
-
-        @if (Mode != OperatorDialogMode.ResetPassword && _role == "operator")
-        {
-            <div class="ts-modal__row">
-                <label>Campaigns</label>
-                <div class="op-chips">
-                    @foreach (var campaign in Campaigns.Where(c => _campaignIds.Contains(c.ID)))
-                    {
-                        <Chip Text="@campaign.Name" IconName="lucide-flag.svg" OnRemove="() => _campaignIds.Remove(campaign.ID)" />
-                    }
-                    @if (Campaigns.Any(c => !_campaignIds.Contains(c.ID)))
-                    {
-                        <Chip Text="Add" Tone="ghost" IconName="btn-plus.svg" OnClick="() => _pickerOpen = !_pickerOpen" />
-                    }
-                    @if (_pickerOpen)
-                    {
-                        <div class="op-picker">
-                            @foreach (var campaign in Campaigns.Where(c => !_campaignIds.Contains(c.ID)))
-                            {
-                                <button type="button" @onclick="() => AddCampaign(campaign.ID)">@campaign.Name</button>
-                            }
-                        </div>
-                    }
+            @if (Mode == OperatorDialogMode.Create)
+            {
+                <div>
+                    <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mb-1">Role</MudText>
+                    <MudToggleGroup T="string" @bind-Value="_role" Color="Color.Primary" Size="Size.Small" Outlined="true" CheckMark="true">
+                        @foreach (var role in Roles)
+                        {
+                            <MudToggleItem Value="@role" Text="@RoleLabel(role)" />
+                        }
+                    </MudToggleGroup>
                 </div>
-            </div>
-        }
-    </ChildContent>
-    <Footer>
-        <button type="button" class="ts-btn" @onclick="OnClose">Cancel</button>
-        <button type="button" class="ts-btn ts-btn--primary" disabled="@_busy" @onclick="SubmitAsync">@SubmitLabel</button>
-    </Footer>
-</Modal>
+            }
+
+            @if (Mode != OperatorDialogMode.ResetPassword && _role == "operator")
+            {
+                <MudSelect T="int" Label="Campaigns" Variant="Variant.Outlined" MultiSelection="true"
+                           SelectedValues="_campaignIds" SelectedValuesChanged="v => _campaignIds = v.ToHashSet()"
+                           MultiSelectionTextFunc="CampaignText"
+                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Flag"
+                           Disabled="Campaigns.Count == 0" HelperText="@(Campaigns.Count == 0 ? "No campaigns yet" : null)">
+                    @foreach (var campaign in Campaigns)
+                    {
+                        <MudSelectItem T="int" Value="@campaign.ID">@campaign.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+
+            @if (_error is not null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_error</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudText Typo="Typo.caption" Class="mud-text-secondary mr-auto ml-2">Share the password with the operator directly.</MudText>
+        <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_busy" OnClick="SubmitAsync">@SubmitLabel</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     [Parameter] public OperatorDialogMode Mode { get; set; }
     [Parameter] public OperatorRow? Existing { get; set; }
     [Parameter] public IReadOnlyList<Campaign> Campaigns { get; set; } = [];
-    [Parameter] public EventCallback OnClose { get; set; }
-    [Parameter] public EventCallback OnSaved { get; set; }
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private static readonly IReadOnlyList<string> Roles = ["operator", "admin"];
 
@@ -94,7 +86,6 @@
     private string _confirm = "";
     private string _role = "operator";
     private HashSet<int> _campaignIds = [];
-    private bool _pickerOpen;
     private bool _busy;
     private string? _error;
 
@@ -131,11 +122,8 @@
         }
     }
 
-    private void AddCampaign(int id)
-    {
-        _campaignIds.Add(id);
-        _pickerOpen = false;
-    }
+    private string CampaignText(IReadOnlyList<string> ids) =>
+        string.Join(", ", Campaigns.Where(c => _campaignIds.Contains(c.ID)).Select(c => c.Name));
 
     private async Task SubmitAsync()
     {
@@ -157,7 +145,7 @@
 
             if (_error is null)
             {
-                await OnSaved.InvokeAsync();
+                MudDialog.Close(DialogResult.Ok(true));
             }
         }
         catch (HttpRequestException e)
@@ -206,12 +194,10 @@
             return "The team server refused the new operator.";
         }
 
-        // server dosent send the new account back so look it up
         var created = (await OperatorService.GetAllAsync()).FirstOrDefault(o => o.Username == username);
         return created is null ? "The operator was created but could not be found to assign campaigns." : await SyncCampaignsAsync(created.ID, []);
     }
 
-    // TODO(connect to backend): editing an account also needs its password
     private async Task<string?> SaveEditAsync()
     {
         if (Existing is null)

@@ -11,34 +11,35 @@
 @inject AdminService AdminService
 @inject CampaignService CampaignService
 @inject IHttpClientFactory HttpFactory
+@inject IDialogService DialogService
 
 <PageTitle>Trinity · Operators</PageTitle>
 
-<div class="ts-admin-head">
-    <div>
-        <h3>Operators</h3>
-        <p>Admins create every account. There is no self-registration.</p>
-    </div>
-    <button type="button" class="ts-btn ts-btn--primary" @onclick="() => Open(OperatorDialogMode.Create)"><Icon Name="btn-plus.svg" Size="13" /> Create Operator</button>
-</div>
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h5" Style="font-weight:700;">Operators</MudText>
+        <MudText Typo="Typo.body2" Class="mud-text-secondary">Admins create every account. There is no self-registration.</MudText>
+    </MudStack>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="() => OpenAsync(OperatorDialogMode.Create)">Create Operator</MudButton>
+</MudStack>
 
 @if (_error is not null)
 {
-    <p class="ops__error" role="alert">@_error</p>
+    <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3" role="alert">@_error</MudAlert>
 }
 
-<div class="ops__card">
-    <table class="ts-table">
-        <colgroup><col style="width:5.6%" /><col style="width:15.5%" /><col style="width:15.2%" /><col style="width:42.7%" /><col style="width:21%" /></colgroup>
+<MudPaper Outlined="true">
+    <MudSimpleTable Dense="true" Hover="true" Elevation="0" Style="font-family:'JetBrains Mono',monospace;">
         <thead><tr><th>id</th><th>username</th><th>role</th><th>campaigns</th><th>last login</th></tr></thead>
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr class="ts-empty"><td colspan="5">@(_loading ? "Loading accounts…" : "No accounts yet.")</td></tr>
+                <tr><td colspan="5" class="mud-text-secondary" style="text-align:center;">@(_loading ? "Loading accounts…" : "No accounts yet.")</td></tr>
             }
             @foreach (var row in _rows)
             {
-                <tr class="@(row == _selected ? "is-selected" : null)" @onclick="() => _selected = row">
+                <tr style="cursor:pointer;@(row == _selected ? "background:rgba(232,119,34,0.13);" : null)" @onclick="() => Select(row)">
                     <td>@row.Id</td>
                     <td>@row.Username</td>
                     <td><StatusPill Text="@(row.IsAdmin ? "admin" : "operator")" Tone="@(row.IsAdmin ? "orange" : "blue")" /></td>
@@ -47,20 +48,14 @@
                 </tr>
             }
         </tbody>
-    </table>
-</div>
+    </MudSimpleTable>
+</MudPaper>
 
-<div class="ops__actions">
-    <button type="button" class="ts-btn" disabled="@(_selected is null)" @onclick="() => Open(OperatorDialogMode.Edit)"><Icon Name="lucide-pencil.svg" Size="13" /> Edit</button>
-    <button type="button" class="ts-btn" disabled="@(_selected is null)" @onclick="() => Open(OperatorDialogMode.ResetPassword)"><Icon Name="icon-key.svg" Size="13" /> Reset Password</button>
-    <button type="button" class="ts-btn ts-btn--danger" disabled="@(_selected is null)" @onclick="RemoveAsync"><Icon Name="lucide-trash-2.svg" Size="13" /> @(_confirmRemove ? $"Remove {_selected?.Username}?" : "Remove")</button>
-</div>
-
-@if (_dialogMode is { } mode)
-{
-    <CreateOperatorDialog Mode="mode" Existing="@(mode == OperatorDialogMode.Create ? null : _selected)" Campaigns="_campaigns"
-                          OnClose="() => _dialogMode = null" OnSaved="OnSavedAsync" />
-}
+<MudStack Row="true" Spacing="2" Class="mt-3">
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" Disabled="_selected is null" OnClick="() => OpenAsync(OperatorDialogMode.Edit)">Edit</MudButton>
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Key" Disabled="_selected is null" OnClick="() => OpenAsync(OperatorDialogMode.ResetPassword)">Reset Password</MudButton>
+    <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Disabled="_selected is null" OnClick="RemoveAsync">@(_confirmRemove ? $"Remove {_selected?.Username}?" : "Remove")</MudButton>
+</MudStack>
 
 @code {
     [CascadingParameter] private AdminLayout Layout { get; set; } = default!;
@@ -68,7 +63,6 @@
     private List<OperatorRow> _rows = [];
     private List<Campaign> _campaigns = [];
     private OperatorRow? _selected;
-    private OperatorDialogMode? _dialogMode;
     private bool _confirmRemove;
     private bool _loading;
     private string? _error;
@@ -106,9 +100,9 @@
             _error = null;
             Layout.SetCounts(campaigns: _campaigns.Count, operators: _rows.Count);
         }
-        catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
         {
-            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not load accounts: {e.Message}";
+            _error = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the accounts: {ex.Message}";
         }
         finally
         {
@@ -120,19 +114,31 @@
         ? "all"
         : row.CampaignIds.Count == 0 ? "–" : string.Join(", ", _campaigns.Where(c => row.CampaignIds.Contains(c.ID)).Select(c => c.Name));
 
-    private void Open(OperatorDialogMode mode)
+    private void Select(OperatorRow row)
+    {
+        _selected = row;
+        _confirmRemove = false;
+    }
+
+    private async Task OpenAsync(OperatorDialogMode mode)
     {
         _confirmRemove = false;
-        _dialogMode = mode;
+        var parameters = new DialogParameters<CreateOperatorDialog>
+        {
+            { d => d.Mode, mode },
+            { d => d.Existing, mode == OperatorDialogMode.Create ? null : _selected },
+            { d => d.Campaigns, _campaigns },
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateOperatorDialog>(string.Empty, parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true });
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            await LoadAsync();
+        }
     }
 
-    private async Task OnSavedAsync()
-    {
-        _dialogMode = null;
-        await LoadAsync();
-    }
-
-    // click twice to confirm
     private async Task RemoveAsync()
     {
         if (_selected is null)
@@ -154,9 +160,9 @@
             _selected = null;
             await LoadAsync();
         }
-        catch (HttpRequestException e)
+        catch (HttpRequestException ex)
         {
-            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not reach the team server: {e.Message}";
+            _error = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't reach the team server: {ex.Message}";
         }
     }
 }

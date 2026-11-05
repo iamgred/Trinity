@@ -6,6 +6,8 @@ using Client.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using MudBlazor;
+using Client.Components.UI;
 using Trinity.Shared.DTOs.Agent;
 using Trinity.Shared.DTOs.Task;
 
@@ -38,10 +40,11 @@ public partial class Clients
     private string _search = "";
     private string _statusFilter = "All Status";
     private string _osFilter = "All Architectures";
-    private int _page = 1;
+    private int _page; // MudTable pages start at 0
     private const int PageSize = 6;
 
-    private string? _toast;
+    private readonly DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+    private readonly DialogOptions _shellDialogOptions = new() { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
     private string? _loadError;
     private string? _taskLoadError;
     private bool _isLoading;
@@ -63,6 +66,9 @@ public partial class Clients
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
 
     private void GoToLogin() => Navigation.NavigateTo("/login");
 
@@ -144,23 +150,11 @@ public partial class Clients
         {
             var agents = await AgentApiClient.GetAgentsAsync();
             _clients.AddRange(agents.OrderBy(agent => agent.agentID).Select(ToClientRow));
-            _page = 1;
+            _page = 0;
         }
-        catch (InvalidOperationException exception)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException or InvalidOperationException)
         {
-            _loadError = exception.Message;
-        }
-        catch (HttpRequestException exception)
-        {
-            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"Could not load agents from TeamServer: {exception.Message}";
-        }
-        catch (TaskCanceledException exception)
-        {
-            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"The TeamServer agent request timed out: {exception.Message}";
-        }
-        catch (JsonException exception)
-        {
-            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"TeamServer returned an invalid agent response: {exception.Message}";
+            _loadError = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the agents: {ex.Message}";
         }
         finally
         {
@@ -207,21 +201,9 @@ public partial class Clients
                     $"{names.GetValueOrDefault(task.agentID, $"Agent {task.agentID}")} · {task.commandType} · {task.status}",
                     TaskStatuses.IsFailed(task.status) ? "red" : "green")));
         }
-        catch (InvalidOperationException exception)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException or InvalidOperationException)
         {
-            _taskLoadError = exception.Message;
-        }
-        catch (HttpRequestException exception)
-        {
-            _taskLoadError = ServerDown.Is(exception) ? ServerDown.Message : $"Could not load task history from TeamServer: {exception.Message}";
-        }
-        catch (TaskCanceledException exception)
-        {
-            _taskLoadError = ServerDown.Is(exception) ? ServerDown.Message : $"The TeamServer task request timed out: {exception.Message}";
-        }
-        catch (JsonException exception)
-        {
-            _taskLoadError = ServerDown.Is(exception) ? ServerDown.Message : $"TeamServer returned an invalid task response: {exception.Message}";
+            _taskLoadError = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the task history: {ex.Message}";
         }
     }
 
@@ -235,25 +217,28 @@ public partial class Clients
 
     private int FilteredCount => Filtered.Count();
     private int SampleCount => _clients.Count(client => client.IsSample);
-    private int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredCount / (double)PageSize));
-    private int CurrentPage => Math.Clamp(_page, 1, TotalPages);
-    private IEnumerable<ClientRow> PageItems => Filtered.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
 
-    private string ShowingText
+    // filters go back to the first page
+    private void OnSearch(string? value)
     {
-        get
-        {
-            if (_isLoading) return "Loading agents...";
-            if (_loadError is not null) return "Agents unavailable";
-            if (FilteredCount == 0) return "No clients to show";
-            var start = (CurrentPage - 1) * PageSize + 1;
-            var end = Math.Min(CurrentPage * PageSize, FilteredCount);
-            return $"Showing {start}–{end} of {FilteredCount} clients";
-        }
+        _search = value ?? "";
+        _page = 0;
     }
 
-    private void ResetPage() => _page = 1;
-    private void GoToPage(int p) => _page = Math.Clamp(p, 1, TotalPages);
+    private void OnStatusFilter(string value)
+    {
+        _statusFilter = value;
+        _page = 0;
+    }
+
+    private void OnOsFilter(string value)
+    {
+        _osFilter = value;
+        _page = 0;
+    }
+
+    private string RowStyle(ClientRow row, int index) => row == _selected ? "cursor:pointer;background:rgba(232,119,34,0.13);" : "cursor:pointer;";
+
     private void SelectRow(ClientRow row) => _selected = row == _selected ? null : row;
 
     private static string StatusColor(string status) => status switch
@@ -271,16 +256,11 @@ public partial class Clients
 
         return new List<StatVm>
         {
-            new("Total Clients",   total.ToString(),    "From TeamServer", true,
-                "<circle cx='12' cy='8' r='4.5'/><path d='M4 21v-1a7 7 0 0 1 7-7h2a7 7 0 0 1 7 7v1'/>"),
-            new("Online Clients",  online.ToString(),   "Checked in recently", true,
-                "<rect x='2' y='3' width='20' height='14' rx='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/>"),
-            new("Offline Clients", offline.ToString(),  "No recent check-in", false,
-                "<rect x='2' y='3' width='20' height='14' rx='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/><circle cx='19.5' cy='4.5' r='2.6' fill='#E5484D' stroke='#1C1C1F' stroke-width='1.6'/>"),
-            new("New Clients",     "Not provided",       "TeamServer does not provide this count", true,
-                "<circle cx='10' cy='7' r='4'/><path d='M3 21v-1a6 6 0 0 1 6-6h2'/><line x1='19' y1='11' x2='19' y2='17'/><line x1='16' y1='14' x2='22' y2='14'/>"),
-            new("Inactive Clients","Not provided", "TeamServer does not provide this count", false,
-                "<circle cx='10' cy='7' r='4'/><path d='M3 21v-1a6 6 0 0 1 6-6h3'/><circle cx='18' cy='16' r='4.5'/><path d='M18 14v2l1.3 1'/>"),
+            new("Total Clients", total.ToString(), "From TeamServer", true, Icons.Material.Outlined.Person),
+            new("Online Clients", online.ToString(), "Checked in recently", true, Icons.Material.Outlined.DesktopWindows),
+            new("Offline Clients", offline.ToString(), "No recent check-in", false, Icons.Material.Outlined.DesktopAccessDisabled),
+            new("New Clients", "Not provided", "TeamServer does not provide this count", true, Icons.Material.Outlined.PersonAdd),
+            new("Inactive Clients", "Not provided", "TeamServer does not provide this count", false, Icons.Material.Outlined.PersonOff),
         };
     }
 
@@ -304,49 +284,24 @@ public partial class Clients
         }).ToList();
     }
 
-    private string DonutGradient()
+    // one series, one slice per architecture
+    private static List<ChartSeries<double>> DonutSeries(List<OsVm> slices) =>
+        [new ChartSeries<double> { Name = "Clients", Data = slices.Select(x => (double)x.Count).ToArray() }];
+
+    private static DonutChartOptions DonutOptions(List<OsVm> slices) => new()
     {
-        var colorVar = new Dictionary<string, string>
-        {
-            ["green"] = "var(--status-green)", ["blue"] = "var(--status-blue)",
-            ["yellow"] = "var(--status-yellow)", ["red"] = "var(--status-red)", ["gray"] = "var(--text-muted)"
-        };
-        int total = Math.Max(1, _clients.Count);
-        var sb = new StringBuilder();
-        double acc = 0;
-        var stops = new List<string>();
-        foreach (var f in _families)
-        {
-            int count = _clients.Count(c => Family(c.Os) == f.Name);
-            if (count == 0) continue;
-            double start = acc / total * 100;
-            acc += count;
-            double end = acc / total * 100;
-            stops.Add($"{colorVar[f.Color]} {start.ToString("0.##", CultureInfo.InvariantCulture)}% {end.ToString("0.##", CultureInfo.InvariantCulture)}%");
-        }
-        return string.Join(", ", stops);
-    }
+        ShowLegend = false,
+        ChartPalette = slices.Select(x => TrinityTheme.Hex(x.Color)).ToArray(),
+    };
 
     private ActionVm[] Actions => new[]
     {
-        new ActionVm("Add New Client",
-            "<circle cx='9' cy='7' r='4'/><path d='M2 21v-1a6 6 0 0 1 6-6h2'/><line x1='19' y1='11' x2='19' y2='17'/><line x1='16' y1='14' x2='22' y2='14'/>",
-            OpenAdd),
-        new ActionVm("Send Announcement",
-            "<path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/>",
-            () => { _showAnnounce = true; }),
-        new ActionVm("Execute Job",
-            "<rect x='2' y='3' width='20' height='14' rx='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/>",
-            OpenExecute),
-        new ActionVm("Lock Client",
-            "<rect x='3' y='11' width='18' height='11' rx='2'/><path d='M7 11V7a5 5 0 0 1 10 0v4'/>",
-            LockClient),
-        new ActionVm("Remote Shell",
-            "<polyline points='4 17 10 11 4 5'/><line x1='12' y1='19' x2='20' y2='19'/>",
-            OpenShell),
-        new ActionVm("View All Clients",
-            "<line x1='3' y1='6' x2='21' y2='6'/><line x1='3' y1='12' x2='21' y2='12'/><line x1='3' y1='18' x2='21' y2='18'/>",
-            ClearFilters),
+        new ActionVm("Add New Client", Icons.Material.Filled.PersonAdd, OpenAdd),
+        new ActionVm("Send Announcement", Icons.Material.Filled.Campaign, () => { _showAnnounce = true; }),
+        new ActionVm("Execute Job", Icons.Material.Filled.PlayArrow, OpenExecute),
+        new ActionVm("Lock Client", Icons.Material.Filled.Lock, LockClient),
+        new ActionVm("Remote Shell", Icons.Material.Filled.Terminal, OpenShell),
+        new ActionVm("View All Clients", Icons.Material.Filled.FormatListBulleted, ClearFilters),
     };
 
     private void OpenAdd()
@@ -374,7 +329,7 @@ public partial class Clients
         AddTimeline($"{_form.Name} added ({_form.Ip})", "green");
         ShowToast($"{_form.Name} added");
         _showAdd = false;
-        _page = 1;
+        _page = 0;
     }
 
     private void SendAnnouncement()
@@ -426,7 +381,7 @@ public partial class Clients
         };
     }
 
-    // Run As: split DOMAIN\user (domain defaults to ".")
+    // run as: split DOMAIN\user (domain defaults to ".")
     private object BuildRunAsBody()
     {
         var parts = _jobArg.Split('\\', 2);
@@ -467,13 +422,9 @@ public partial class Clients
                 ShowToast($"TeamServer rejected the {_jobName} command.");
             }
         }
-        catch (InvalidOperationException exception)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
         {
-            ShowToast(exception.Message);
-        }
-        catch (HttpRequestException exception)
-        {
-            ShowToast(ServerDown.Is(exception) ? ServerDown.Message : $"Could not reach the TeamServer: {exception.Message}");
+            ShowToast(ServerDown.Is(ex) ? ServerDown.Message : ex.Message);
         }
     }
 
@@ -519,7 +470,7 @@ public partial class Clients
         _search = "";
         _statusFilter = "All Status";
         _osFilter = "All Architectures";
-        _page = 1;
+        _page = 0;
         ShowToast("Showing all clients");
     }
 
@@ -558,13 +509,7 @@ public partial class Clients
 
     private void AddTimeline(string text, string color) => _timeline.Insert(0, new Event("just now", text, color));
 
-    private async void ShowToast(string msg)
-    {
-        _toast = msg;
-        StateHasChanged();
-        await Task.Delay(2600);
-        if (_toast == msg) { _toast = null; StateHasChanged(); }
-    }
+    private void ShowToast(string msg) => Snackbar.Add(msg, Severity.Info);
 
     private void CloseModals()
     {
@@ -572,31 +517,4 @@ public partial class Clients
     }
 
     private static string Truncate(string s, int n) => s.Length <= n ? s : s[..n] + "…";
-    private static string Fmt(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
-
-    private record Marker(double X, double Y, string Color);
-
-    private readonly List<(double X, double Y)> LandDots = new();
-
-
-    // rough continent shapes for the map
-    private static readonly (double Cx, double Cy, double Rx, double Ry)[] _continents =
-    {
-        (22, 15, 12, 9),
-        (24, 24, 3, 4),
-        (30, 35, 6, 10),
-        (40, 8, 4, 3),
-        (50, 14, 5, 4),
-        (52, 30, 8, 11),
-        (68, 15, 16, 9),
-        (67, 26, 4, 4),
-        (80, 30, 6, 3),
-        (85, 38, 6, 4),
-    };
-
-    private static readonly Marker[] MapMarkers = [];
-
-    private void BuildLandDots()
-    {
-    }
 }

@@ -6,31 +6,29 @@
 
 <PageTitle>Trinity · Event Log</PageTitle>
 
-@if (_loadError is not null)
+@if (State.EventsError is not null)
 {
-    <div class="ts-notice" role="status">
-        <span>@_loadError</span>
-        <button type="button" @onclick="LoadAsync">Retry</button>
-    </div>
+    <MudAlert Severity="Severity.Warning" Dense="true" Square="true" role="status">@State.EventsError</MudAlert>
 }
 
-<div class="events" role="log" aria-live="polite">
-    @if (_events.Count == 0 && _loadError is null)
+<div role="log" aria-live="polite" style="flex:1;min-height:0;overflow:auto;">
+    @if (State.Events.Count == 0 && State.EventsError is null)
     {
-        <p class="events__empty">@(_isLoading ? "Loading events…" : "No events yet.")</p>
+        <MudText Typo="Typo.body2" Class="mud-text-secondary pa-4">@EmptyText</MudText>
     }
-
-    @foreach (var entry in _events)
+    else
     {
-        <div class="events__row">
-            <span class="events__time">@entry.Time.ToString("HH:mm:ss")</span>
-            <span class="events__cat"><StatusPill Text="@entry.Category" Tone="@entry.Tone" /></span>
-            <span class="events__msg">
-                @foreach (var part in entry.Parts)
+        <MudSimpleTable Dense="true" Hover="true" Elevation="0" Square="true" Style="font-family:'JetBrains Mono',monospace;">
+            <tbody>
+                @foreach (var entry in State.Events)
                 {
-                    <span class="@part.Style">@part.Text</span>
+                    <tr>
+                        <td class="mud-text-secondary" style="width:90px;">@LocalTime(entry.Timestamp)</td>
+                        <td style="width:110px;"><StatusPill Text="@entry.Type.ToString()" Tone="@ToneFor(entry.Type)" /></td>
+                        <td>@entry.message</td>
+                    </tr>
                 }
-            </span>
-        </div>
+            </tbody>
+        </MudSimpleTable>
     }
 </div>

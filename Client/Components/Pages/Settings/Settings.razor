@@ -1,165 +1,102 @@
 @page "/settings"
 @layout TrinityLayout
+@using Client.Components.UI
 
 <PageTitle>Trinity · Settings</PageTitle>
 
-<div class="settings-page">
+<MudAlert Severity="Severity.Info" Class="mb-4" role="status">Settings shown here are UI-only and are not saved to TeamServer.</MudAlert>
 
-    <div class="mock-banner" role="status">Settings shown here are UI-only and are not saved to TeamServer.</div>
+<MudStack Spacing="0" Class="mb-4">
+    <MudText Typo="Typo.h4" Style="font-weight:700;">Settings</MudText>
+    <MudText Typo="Typo.body2" Class="mud-text-secondary">Configure and manage your system and preferences</MudText>
+</MudStack>
 
-    <section class="header">
-        <h1>Settings</h1>
-        <p class="subtitle">Configure and manage your system and preferences</p>
-    </section>
+<div class="d-flex flex-wrap gap-3 mb-4">
+    @foreach (var stat in BuildStats())
+    {
+        <MudPaper Class="pa-4 d-flex align-center gap-3" Style="flex:1 1 180px;">
+            <MudAvatar Color="Color.Primary" Variant="Variant.Outlined" Rounded="true"><MudIcon Icon="@stat.Icon" /></MudAvatar>
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">@stat.Label</MudText>
+                <MudText Typo="Typo.h5" Style="font-weight:700;">@stat.Value</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">@stat.Sub</MudText>
+            </MudStack>
+        </MudPaper>
+    }
+</div>
 
-    <section class="stats-row">
-        @foreach (var stat in BuildStats())
-        {
-            <div class="stat-card t-card">
-                <div class="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                        @((MarkupString)stat.Icon)
-                    </svg>
-                </div>
-                <div class="stat-body">
-                    <div class="label">@stat.Label</div>
-                    <div class="value">@stat.Value</div>
-                    <div class="sub">@stat.Sub</div>
-                </div>
-            </div>
-        }
-    </section>
-
-    <div class="settings-grid">
-
-        <aside class="categories t-card">
-            <h2>Settings Categories</h2>
-            <nav class="category-list">
+<MudGrid Spacing="3">
+    <MudItem xs="12" md="3" lg="2">
+        <MudPaper Class="py-2">
+            <MudText Typo="Typo.subtitle1" Class="px-4 py-2" Style="font-weight:600;">Settings Categories</MudText>
+            <MudList T="string" SelectedValue="_category" SelectedValueChanged="v => SelectCategory(v!)" Color="Color.Primary" Dense="true">
                 @foreach (var c in _categories)
                 {
-                    <button type="button" class="category-item @(c == _category ? "active" : null)" @onclick="() => SelectCategory(c)">
-                        <span>@c</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-                    </button>
+                    <MudListItem T="string" Value="@c" Text="@c" />
                 }
-            </nav>
-        </aside>
+            </MudList>
+        </MudPaper>
+    </MudItem>
 
-        <div class="col-main">
+    <MudItem xs="12" md="9" lg="6">
+        <MudStack Spacing="3">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-2">C2 Framework Settings</MudText>
 
-            <section class="framework-section t-card">
-                <h2>C2 Framework Settings</h2>
+                <SettingRow Label="Enable C2 Framework" Description="Enable the command and control framework">
+                    <MudSwitch T="bool" @bind-Value="_enableC2" Color="Color.Primary" />
+                </SettingRow>
+                <SettingRow Label="Default C2 Profile" Description="Select the default communication profile">
+                    <MudSelect T="string" @bind-Value="_defaultProfile" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                        <MudSelectItem T="string" Value="@("HTTPS Beacon")">HTTPS Beacon</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("WebDAV")">WebDAV</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Custom (RAW)")">Custom (RAW)</MudSelectItem>
+                    </MudSelect>
+                </SettingRow>
+                <SettingRow Label="Default Response Profile" Description="Select default response behaviour for new clients">
+                    <MudSelect T="string" @bind-Value="_responseProfile" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                        <MudSelectItem T="string" Value="@("Aggressive")">Aggressive</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Balanced")">Balanced</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Stealth")">Stealth</MudSelectItem>
+                    </MudSelect>
+                </SettingRow>
+                <SettingRow Label="Default Sleep (Jitter)" Description="Default sleep interval with jitter">
+                    <MudSelect T="string" @bind-Value="_sleepJitter" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                        <MudSelectItem T="string" Value="@("10s (10%)")">10s (10%)</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("30s (25%)")">30s (25%)</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("60s (50%)")">60s (50%)</MudSelectItem>
+                    </MudSelect>
+                </SettingRow>
+                <SettingRow Label="Max Concurrent Clients" Description="Maximum number of clients allowed">
+                    <MudTextField @bind-Value="_maxClients" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </SettingRow>
+                <SettingRow Label="Auto Register New Clients" Description="Automatically approve new client registrations">
+                    <MudSwitch T="bool" @bind-Value="_autoRegister" Color="Color.Primary" />
+                </SettingRow>
+                <SettingRow Label="Client Expiry" Description="Automatically remove inactive clients">
+                    <MudSelect T="string" @bind-Value="_clientExpiry" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                        <MudSelectItem T="string" Value="@("30 Days")">30 Days</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("90 Days")">90 Days</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Never")">Never</MudSelectItem>
+                    </MudSelect>
+                </SettingRow>
+                <SettingRow Label="Kill Date" Description="Date to automatically disable framework">
+                    <MudTextField @bind-Value="_killDate" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </SettingRow>
+                <SettingRow Label="Log C2 Traffic" Description="Log all command and control traffic">
+                    <MudSwitch T="bool" @bind-Value="_logTraffic" Color="Color.Primary" />
+                </SettingRow>
 
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Enable C2 Framework</span>
-                        <span class="setting-desc">Enable the command and control framework</span>
-                    </div>
-                    <button type="button" class="toggle @(_enableC2 ? "on" : null)" @onclick="() => _enableC2 = !_enableC2" role="switch" aria-checked="@_enableC2">
-                        <span class="toggle-knob"></span>
-                    </button>
+                <div class="d-flex justify-end mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" OnClick="SaveChanges">Save Changes</MudButton>
                 </div>
+            </MudPaper>
 
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Default C2 Profile</span>
-                        <span class="setting-desc">Select the default communication profile</span>
-                    </div>
-                    <select class="setting-select" @bind="_defaultProfile">
-                        <option>HTTPS Beacon</option>
-                        <option>WebDAV</option>
-                        <option>Custom (RAW)</option>
-                    </select>
-                </div>
-
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Default Response Profile</span>
-                        <span class="setting-desc">Select default response behaviour for new clients</span>
-                    </div>
-                    <select class="setting-select" @bind="_responseProfile">
-                        <option>Aggressive</option>
-                        <option>Balanced</option>
-                        <option>Stealth</option>
-                    </select>
-                </div>
-
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Default Sleep (Jitter)</span>
-                        <span class="setting-desc">Default sleep interval with jitter</span>
-                    </div>
-                    <select class="setting-select" @bind="_sleepJitter">
-                        <option>10s (10%)</option>
-                        <option>30s (25%)</option>
-                        <option>60s (50%)</option>
-                    </select>
-                </div>
-
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Max Concurrent Clients</span>
-                        <span class="setting-desc">Maximum number of clients allowed</span>
-                    </div>
-                    <input class="setting-input" type="text" @bind="_maxClients" />
-                </div>
-
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Auto Register New Clients</span>
-                        <span class="setting-desc">Automatically approve new client registrations</span>
-                    </div>
-                    <button type="button" class="toggle @(_autoRegister ? "on" : null)" @onclick="() => _autoRegister = !_autoRegister" role="switch" aria-checked="@_autoRegister">
-                        <span class="toggle-knob"></span>
-                    </button>
-                </div>
-
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Client Expiry</span>
-                        <span class="setting-desc">Automatically remove inactive clients</span>
-                    </div>
-                    <select class="setting-select" @bind="_clientExpiry">
-                        <option>30 Days</option>
-                        <option>90 Days</option>
-                        <option>Never</option>
-                    </select>
-                </div>
-
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Kill Date</span>
-                        <span class="setting-desc">Date to automatically disable framework</span>
-                    </div>
-                    <input class="setting-input" type="text" @bind="_killDate" />
-                </div>
-
-                <div class="setting-row">
-                    <div class="setting-text">
-                        <span class="setting-label">Log C2 Traffic</span>
-                        <span class="setting-desc">Log all command and control traffic</span>
-                    </div>
-                    <button type="button" class="toggle @(_logTraffic ? "on" : null)" @onclick="() => _logTraffic = !_logTraffic" role="switch" aria-checked="@_logTraffic">
-                        <span class="toggle-knob"></span>
-                    </button>
-                </div>
-
-                <div class="save-row">
-                    <button type="button" class="btn-primary" @onclick="SaveChanges">Save Changes</button>
-                </div>
-            </section>
-
-            <section class="channels-section t-card">
-                <h2>Active C2 Channels</h2>
-                <table class="data-table">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-2">Active C2 Channels</MudText>
+                <MudSimpleTable Dense="true" Hover="true" Elevation="0">
                     <thead>
-                        <tr>
-                            <th>Profile</th>
-                            <th>Transport</th>
-                            <th>Local Address</th>
-                            <th>Port</th>
-                            <th>Clients</th>
-                        </tr>
+                        <tr><th>Profile</th><th>Transport</th><th>Local Address</th><th>Port</th><th>Clients</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var ch in _channels)
@@ -167,42 +104,35 @@
                             <tr>
                                 <td>@ch.Profile</td>
                                 <td>@ch.Transport</td>
-                                <td class="mono">@ch.Local</td>
-                                <td class="mono">@ch.Port</td>
+                                <td style="font-family:'JetBrains Mono',monospace;">@ch.Local</td>
+                                <td style="font-family:'JetBrains Mono',monospace;">@ch.Port</td>
                                 <td>@ch.Clients</td>
                             </tr>
                         }
                     </tbody>
-                </table>
+                </MudSimpleTable>
                 @if (_serverIpV4 is not null)
                 {
-                    <p class="server-ip">TeamServer: <span class="mono">@_serverIpV4</span>@(string.IsNullOrEmpty(_serverIpV6) ? "" : $" · {_serverIpV6}")</p>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary mt-3">
+                        TeamServer: <span style="font-family:'JetBrains Mono',monospace;">@_serverIpV4</span>@(string.IsNullOrEmpty(_serverIpV6) ? "" : $" · {_serverIpV6}")
+                    </MudText>
                 }
-                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all C2 channels (mock)"))">View all channels →</a>
-            </section>
+                <MudLink Typo="Typo.body2" Class="d-block mt-3" OnClick="@(() => ShowToast("Showing all C2 channels (mock)"))">View all channels →</MudLink>
+            </MudPaper>
+        </MudStack>
+    </MudItem>
 
-        </div>
-
-        <div class="col-side">
-
-            <section class="profiles-section t-card">
-                <div class="panel-head">
-                    <h2>C2 Profiles</h2>
-                    <button type="button" class="pill-btn" @onclick="@(() => ShowToast("Manage C2 profiles (mock)"))">
-                        Manage Profiles
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-                    </button>
-                </div>
-                <table class="data-table">
+    <MudItem xs="12" lg="4">
+        <MudStack Spacing="3">
+            <MudPaper Class="pa-4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                    <MudText Typo="Typo.h6">C2 Profiles</MudText>
+                    <MudSpacer />
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.ArrowDropDown" OnClick="@(() => ShowToast("Manage C2 profiles (mock)"))">Manage Profiles</MudButton>
+                </MudStack>
+                <MudSimpleTable Dense="true" Hover="true" Elevation="0">
                     <thead>
-                        <tr>
-                            <th>Profile</th>
-                            <th>Protocol</th>
-                            <th>Local Address</th>
-                            <th>Port</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
+                        <tr><th>Profile</th><th>Protocol</th><th>Local Address</th><th>Port</th><th>Status</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var p in _profiles)
@@ -210,129 +140,112 @@
                             <tr>
                                 <td>@p.Name</td>
                                 <td>@p.Protocol</td>
-                                <td class="mono">@p.Local</td>
-                                <td class="mono">@p.Port</td>
-                                <td>
-                                    <span class="status-dot status-@p.StatusColor"></span>
-                                    @p.Status
-                                </td>
+                                <td style="font-family:'JetBrains Mono',monospace;">@p.Local</td>
+                                <td style="font-family:'JetBrains Mono',monospace;">@p.Port</td>
+                                <td><Dot Tone="@p.StatusColor" /> @p.Status</td>
                                 <td>
                                     @if (p.Id > 0)
                                     {
-                                        <button type="button" class="row-action" @onclick="() => RestartProfile(p.Id)">Restart</button>
-                                        <button type="button" class="row-action danger" @onclick="() => DeleteProfile(p.Id)">Delete</button>
+                                        <MudTooltip Text="Restart">
+                                            <MudIconButton Icon="@Icons.Material.Filled.RestartAlt" Size="Size.Small" OnClick="() => RestartProfile(p.Id)" />
+                                        </MudTooltip>
+                                        <MudTooltip Text="Delete">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteProfile(p.Id)" />
+                                        </MudTooltip>
                                     }
                                     else
                                     {
-                                        <span class="row-muted">—</span>
+                                        <span class="mud-text-secondary">—</span>
                                     }
                                 </td>
                             </tr>
                         }
                     </tbody>
-                </table>
-                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all C2 profiles (mock)"))">View all C2 profiles →</a>
-            </section>
+                </MudSimpleTable>
+                <MudLink Typo="Typo.body2" Class="d-block mt-3" OnClick="@(() => ShowToast("Showing all C2 profiles (mock)"))">View all C2 profiles →</MudLink>
+            </MudPaper>
 
-            <section class="policies-section t-card">
-                <div class="panel-head">
-                    <h2>AI Agent Behaviour Policies</h2>
-                    <button type="button" class="pill-btn" @onclick="@(() => ShowToast("Manage AI policies (mock)"))">
-                        Manage Policies
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-                    </button>
-                </div>
-                <ul class="policy-list">
+            <MudPaper Class="pa-4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                    <MudText Typo="Typo.h6">AI Agent Behaviour Policies</MudText>
+                    <MudSpacer />
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.ArrowDropDown" OnClick="@(() => ShowToast("Manage AI policies (mock)"))">Manage Policies</MudButton>
+                </MudStack>
+                <MudList T="string" Dense="true" Padding="false">
                     @foreach (var p in _policies)
                     {
-                        <li>
-                            <div class="policy-text">
-                                <span class="policy-name">@p.Name</span>
-                                <span class="policy-desc">@p.Desc</span>
-                            </div>
-                            <span class="policy-badge" style="color:@Css(p.BadgeColor); border-color:@Css(p.BadgeColor);">@p.Badge</span>
-                        </li>
+                        <MudListItem T="string">
+                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.body2" Style="font-weight:600;">@p.Name</MudText>
+                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@p.Desc</MudText>
+                                </MudStack>
+                                <MudSpacer />
+                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="TrinityTheme.ToColor(p.BadgeColor)">@p.Badge</MudChip>
+                            </MudStack>
+                        </MudListItem>
                     }
-                </ul>
-                <a class="view-all-link" href="#" @onclick:preventDefault="true" @onclick="@(() => ShowToast("Showing all AI policies (mock)"))">View all policies →</a>
-            </section>
+                </MudList>
+                <MudLink Typo="Typo.body2" Class="d-block mt-3" OnClick="@(() => ShowToast("Showing all AI policies (mock)"))">View all policies →</MudLink>
+            </MudPaper>
 
-            <section class="status-section t-card">
-                <h2>C2 Framework Status</h2>
-                <div class="gauge-body">
-                    <div class="gauge">
-                        <div class="gauge-ring" style="background: conic-gradient(@HealthGauge);"></div>
-                        <div class="gauge-center">
-                            <span class="gauge-num">@HealthPercent%</span>
-                            <span class="gauge-label">@HealthLabel</span>
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-3">C2 Framework Status</MudText>
+                <div class="d-flex justify-center">
+                    <div style="position:relative;width:140px;height:140px;">
+                        <MudProgressCircular Value="HealthPercent" Color="@(_serverOnline == false ? Color.Error : Color.Success)"
+                                             Indeterminate="_serverOnline is null" StrokeWidth="5" Style="width:140px;height:140px;" />
+                        <div class="d-flex flex-column align-center justify-center" style="position:absolute;inset:0;">
+                            <MudText Typo="Typo.h5" Style="font-weight:700;">@HealthPercent%</MudText>
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@HealthLabel</MudText>
                         </div>
                     </div>
                 </div>
-            </section>
+            </MudPaper>
 
-            <section class="panel-actions t-card">
-                <div class="panel-head">
-                    <h2>Quick Actions</h2>
-                </div>
-                <div class="actions-grid">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-2">Quick Actions</MudText>
+                <MudGrid Spacing="2">
                     @foreach (var a in Actions)
                     {
-                        <button type="button" class="action-btn" @onclick="a.OnClick">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                @((MarkupString)a.Icon)
-                            </svg>
-                            <span>@a.Label</span>
-                        </button>
+                        <MudItem xs="6">
+                            <MudButton Variant="Variant.Outlined" FullWidth="true" StartIcon="@a.Icon" OnClick="a.OnClick"
+                                       Style="justify-content:flex-start;text-transform:none;">@a.Label</MudButton>
+                        </MudItem>
                     }
-                </div>
-            </section>
+                </MudGrid>
+            </MudPaper>
+        </MudStack>
+    </MudItem>
+</MudGrid>
 
-        </div>
-
-    </div>
-</div>
-
-@if (_showCreateProfile)
-{
-    <div class="modal-overlay" @onclick="CloseCreateProfile">
-        <div class="modal-card" @onclick:stopPropagation="true">
-            <h3>Create New C2 Profile</h3>
-
-            <label class="modal-label">Profile Name</label>
-            <input class="modal-input" @bind="_profileName" placeholder="HTTPS Beacon" />
-
-            <label class="modal-label">Protocol</label>
-            <select class="modal-input" @bind="_profileProtocol">
-                <option>HTTP</option>
-                <option>TCP</option>
-                <option>SMB</option>
-            </select>
+<MudDialog @bind-Visible="_showCreateProfile" Options="_dialogOptions">
+    <TitleContent><MudText Typo="Typo.h6">Create New C2 Profile</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_profileName" Label="Profile Name" Placeholder="HTTPS Beacon" Variant="Variant.Outlined" />
+            <MudSelect T="string" @bind-Value="_profileProtocol" Label="Protocol" Variant="Variant.Outlined">
+                <MudSelectItem T="string" Value="@("HTTP")">HTTP</MudSelectItem>
+                <MudSelectItem T="string" Value="@("TCP")">TCP</MudSelectItem>
+                <MudSelectItem T="string" Value="@("SMB")">SMB</MudSelectItem>
+            </MudSelect>
 
             @if (_profileProtocol == "SMB")
             {
-                <label class="modal-label">Pipe Name</label>
-                <input class="modal-input" @bind="_profilePipe" placeholder="trinity-pipe" />
+                <MudTextField @bind-Value="_profilePipe" Label="Pipe Name" Placeholder="trinity-pipe" Variant="Variant.Outlined" />
             }
             else
             {
                 @if (_profileProtocol == "HTTP")
                 {
-                    <label class="modal-label">Local Address</label>
-                    <input class="modal-input" @bind="_profileHost" placeholder="0.0.0.0" />
+                    <MudTextField @bind-Value="_profileHost" Label="Local Address" Placeholder="0.0.0.0" Variant="Variant.Outlined" />
                 }
-
-                <label class="modal-label">Port</label>
-                <input class="modal-input" @bind="_profilePort" placeholder="8443" />
+                <MudTextField @bind-Value="_profilePort" Label="Port" Placeholder="8443" Variant="Variant.Outlined" />
             }
-
-            <div class="modal-actions">
-                <button type="button" class="btn-primary" @onclick="CreateProfile">Confirm</button>
-            </div>
-        </div>
-    </div>
-}
-
-@if (_toast is not null)
-{
-    <div class="toast">@_toast</div>
-}
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseCreateProfile">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="CreateProfile">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>

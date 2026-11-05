@@ -2,49 +2,60 @@
 @page "/login"
 @layout AuthLayout
 @namespace Client.Components.Pages.Login
-@using Client.Components.UI
 @inject NavigationManager Nav
-
-<HeadContent>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
-</HeadContent>
 
 <PageTitle>Trinity · Sign In</PageTitle>
 
-<div class="login">
-    <img class="login__bg-logo" src="img/shell/login-bg-logo.svg" alt="" width="980" height="980" />
+<div class="d-flex flex-column align-center justify-center" style="position:relative;min-height:100vh;overflow:hidden;">
+    <img src="img/shell/login-bg-logo.svg" alt="" width="980" height="980"
+         style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0.05;pointer-events:none;max-width:none;" />
 
-    <form class="login__card" @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
-        <img class="login__logo" src="img/shell/login-logo.svg" alt="Trinity logo" width="150" height="150" />
-        <div class="login__word">TRINITY</div>
-        <div class="login__sub">Sign in to the team server</div>
+    <MudPaper Elevation="8" Class="pa-8" Style="position:relative;width:100%;max-width:420px;">
+        <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
+            <MudStack AlignItems="AlignItems.Center" Spacing="1" Class="mb-6">
+                <img src="img/shell/login-logo.svg" alt="Trinity logo" width="110" height="110" />
+                <MudText Typo="Typo.h4" Style="font-weight:800;letter-spacing:0.18em;">TRINITY</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">Sign in to the team server</MudText>
+            </MudStack>
 
-        <label class="login__label" for="login-username">USERNAME</label>
-        <div class="login__field">
-            <Icon Name="icon-user.svg" Size="16" />
-            <input id="login-username" type="text" autocomplete="username" @bind="_username" @bind:event="oninput" />
-        </div>
+            <MudStack Spacing="4">
+                <MudTextField @bind-Value="_username" Label="Username" Variant="Variant.Outlined" Immediate="true"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
+                              autocomplete="username" />
 
-        <label class="login__label" for="login-password">PASSWORD</label>
-        <div class="login__field">
-            <Icon Name="icon-key.svg" Size="16" />
-            <input id="login-password" class="@(_showPassword ? null : "is-secret")" type="@(_showPassword ? "text" : "password")"
-                   autocomplete="current-password" @bind="_password" @bind:event="oninput" />
-            <button type="button" class="login__eye" title="@(_showPassword ? "Hide password" : "Show password")"
-                    @onclick="() => _showPassword = !_showPassword">
-                <Icon Name="@(_showPassword ? "lucide-eye-off.svg" : "lucide-eye.svg")" Size="16" />
-            </button>
-        </div>
+                <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined" Immediate="true"
+                              InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                              AdornmentAriaLabel="@(_showPassword ? "Hide password" : "Show password")"
+                              OnAdornmentClick="() => _showPassword = !_showPassword"
+                              autocomplete="current-password" />
 
-        @if (_error is not null)
-        {
-            <p class="login__error" role="alert">@_error</p>
-        }
+                @if (_error is not null)
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_error</MudAlert>
+                }
 
-        <button type="submit" class="login__submit" disabled="@_isSigningIn">@(_isSigningIn ? "Signing in…" : "Sign In")</button>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                           FullWidth="true" Disabled="_isSigningIn">
+                    @if (_isSigningIn)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+                        <span>Signing in…</span>
+                    }
+                    else
+                    {
+                        <span>Sign In</span>
+                    }
+                </MudButton>
 
-        <div class="login__note"><Icon Name="icon-lock.svg" Size="12" /> Accounts are created by an admin</div>
-    </form>
+                <MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mud-text-secondary" />
+                    <MudText Typo="Typo.caption" Class="mud-text-secondary">Accounts are created by an admin</MudText>
+                </MudStack>
+            </MudStack>
+        </form>
+    </MudPaper>
 
-    <div class="login__footer">TRINITY · C2 FRAMEWORK</div>
+    <MudText Typo="Typo.overline" Class="mud-text-secondary mt-6" Style="position:relative;letter-spacing:0.3em;">TRINITY · C2 FRAMEWORK</MudText>
 </div>

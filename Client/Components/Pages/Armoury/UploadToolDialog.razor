@@ -1,0 +1,152 @@
+@using Client.Components.Shell
+@using Client.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject IHttpClientFactory HttpFactory
+@inject OperatorService OperatorService
+@inject ProtectedSessionStorage Session
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Upload" Color="Color.Primary" />
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h6">Upload Tool</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">Add a .NET assembly to the armoury</MudText>
+            </MudStack>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudFileUpload T="IBrowserFile" Files="_file" FilesChanged="OnFileChanged" Accept=".exe,.dll" MaxFileSize="MaxBytes">
+                <CustomContent>
+                    <MudPaper Outlined="true" Class="pa-4 d-flex align-center gap-3" Style="cursor:pointer;" @onclick="context.OpenFilePickerAsync">
+                        <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Color="@(_file is null ? Color.Default : Color.Primary)" />
+                        <MudStack Spacing="0" Style="flex:1;min-width:0;">
+                            @if (_file is null)
+                            {
+                                <MudText Typo="Typo.body2">Choose a file…</MudText>
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">.exe or .dll, up to @(MaxBytes / 1_048_576) MB</MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Style="font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;">@_file.Name</MudText>
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@FormatSize(_file.Size)</MudText>
+                            }
+                        </MudStack>
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined">@(_file is null ? "Browse" : "Change")</MudButton>
+                    </MudPaper>
+                </CustomContent>
+                <SelectedTemplate />
+            </MudFileUpload>
+
+            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Immediate="true"
+                          HelperText="What operators will see in the armoury" />
+
+            <MudStack Row="true" Spacing="2">
+                <MudChip T="string" Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="ma-0">x64</MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="ma-0">.NET assembly</MudChip>
+            </MudStack>
+
+            @if (_error is not null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_error</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="_busy">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_busy" OnClick="UploadAsync">@(_busy ? "Uploading…" : "Upload")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private const long MaxBytes = 50L * 1024 * 1024;
+
+    private IBrowserFile? _file;
+    private string _name = "";
+    private string? _error;
+    private bool _busy;
+
+    private void OnFileChanged(IBrowserFile? file)
+    {
+        _file = file;
+        _error = null;
+
+        if (file is not null && string.IsNullOrWhiteSpace(_name))
+        {
+            _name = Path.GetFileNameWithoutExtension(file.Name);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task UploadAsync()
+    {
+        _error = null;
+        if (_file is null || string.IsNullOrWhiteSpace(_name))
+        {
+            _error = "Pick a file and give it a name.";
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var operatorId = await GetOperatorIdAsync();
+            if (operatorId is null)
+            {
+                _error = "Your account isn't in the operator list, so the team server won't accept the upload.";
+                return;
+            }
+
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent(_name.Trim()), "Name");
+            form.Add(new StringContent(operatorId.Value.ToString()), "OperatorID");
+            var fileContent = new StreamContent(_file.OpenReadStream(MaxBytes));
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            form.Add(fileContent, "file", _file.Name);
+
+            var http = HttpFactory.CreateClient("TeamServer");
+            var response = await http.PostAsync("/api/v1/armoury/upload", form);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _error = body.Contains("Tools.Conflict")
+                    ? $"A tool called {_file.Name} is already in the armoury."
+                    : $"The team server refused the upload ({(int)response.StatusCode}).";
+                return;
+            }
+
+            MudDialog.Close(DialogResult.Ok(_name.Trim()));
+        }
+        catch (IOException e)
+        {
+            _error = $"Could not read the file: {e.Message}";
+        }
+        catch (HttpRequestException e)
+        {
+            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not reach the team server: {e.Message}";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task<int?> GetOperatorIdAsync()
+    {
+        var stored = await Session.GetAsync<ShellUser>(ShellUser.StorageKey);
+        if (!stored.Success || stored.Value is null)
+        {
+            return null;
+        }
+
+        var operators = await OperatorService.GetAllAsync();
+        return operators.FirstOrDefault(o => o.Username.Equals(stored.Value.Name, StringComparison.OrdinalIgnoreCase))?.ID;
+    }
+
+    private static string FormatSize(long bytes) => bytes >= 1_048_576 ? $"{bytes / 1_048_576.0:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024.0))} KB";
+}

@@ -8,30 +8,27 @@
 @inject IConfiguration Config
 @inject NavigationManager Nav
 
-<HeadContent>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
-</HeadContent>
+<TrinityProviders />
 
-@* needed for the New Campaign popup *@
-<MudPopoverProvider />
-<MudDialogProvider />
-
-<div class="ts ts-admin">
+<div class="admin-shell">
     <TopBar Admin="true" Connected="_connected" OnUserLoaded="u => SetSignedInAs(u.Name)" />
 
-    <div class="ts-admin__body">
-        <aside class="ts-admin__aside">
-            <div class="ts-admin__label">ADMIN</div>
-            <a class="ts-admin__link @(IsCurrent("campaigns") ? "is-active" : null)" href="campaigns">
-                <Icon Name="lucide-flag.svg" /> Campaigns <span class="ts-admin__count">@CampaignCount</span>
-            </a>
-            <a class="ts-admin__link @(IsCurrent("admin/operators") ? "is-active" : null)" href="admin/operators">
-                <Icon Name="lucide-users.svg" /> Operators <span class="ts-admin__count">@OperatorCount</span>
-            </a>
-            <p class="ts-admin__note">Only admins can see this page. Operators reach the workspace only.</p>
-        </aside>
+    <div class="admin-body">
+        <MudPaper Square="true" Elevation="0" Class="pa-3 d-flex flex-column gap-1"
+                  Style="width:220px;flex:0 0 220px;border-right:1px solid var(--mud-palette-divider);background:var(--mud-palette-background-gray);">
+            <MudText Typo="Typo.overline" Class="mud-text-secondary px-2">ADMIN</MudText>
+            <MudNavMenu Color="Color.Primary" Dense="true">
+                <MudNavLink Href="campaigns" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Flag">
+                    <span class="d-flex align-center">Campaigns<MudSpacer /><MudChip T="string" Size="Size.Small" Class="my-0">@(CampaignCount?.ToString() ?? "–")</MudChip></span>
+                </MudNavLink>
+                <MudNavLink Href="admin/operators" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group">
+                    <span class="d-flex align-center">Operators<MudSpacer /><MudChip T="string" Size="Size.Small" Class="my-0">@(OperatorCount?.ToString() ?? "–")</MudChip></span>
+                </MudNavLink>
+            </MudNavMenu>
+            <MudText Typo="Typo.caption" Class="mud-text-secondary px-2 mt-2">Only admins can see this page. Operators reach the workspace only.</MudText>
+        </MudPaper>
 
-        <main class="ts-admin__main">
+        <main class="admin-main">
             <CascadingValue Value="this">@Body</CascadingValue>
         </main>
     </div>
@@ -54,7 +51,6 @@
 
     private IEnumerable<string> StatusItems => SignedInAs is null ? [] : [$"signed in as {SignedInAs}"];
 
-    // pages send their counts to the sidebar
     public void SetCounts(int? campaigns = null, int? operators = null)
     {
         CampaignCount = campaigns ?? CampaignCount;
@@ -85,11 +81,9 @@
         {
             _connected = await ServerApi.GetServerStatusAsync();
         }
-        catch (Exception e) when (e is HttpRequestException or InvalidOperationException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or TaskCanceledException)
         {
             _connected = false;
         }
     }
-
-    private bool IsCurrent(string href) => Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].Equals(href, StringComparison.OrdinalIgnoreCase);
 }

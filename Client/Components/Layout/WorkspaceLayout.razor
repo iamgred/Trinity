@@ -2,39 +2,40 @@
 @implements IAsyncDisposable
 @using System.Text.Json
 @using Client.Components.Shell
+@using Client.Components.UI
 @using Client.Services
 @inject AgentApiClient AgentApi
 @inject ListenerApiClient ListenerApi
 @inject ServerApiClient ServerApi
 @inject TeamServerConnection Connection
 @inject IConfiguration Config
+@inject IHttpClientFactory HttpFactory
+@inject Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage.ProtectedSessionStorage Session
 
-<HeadContent>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
-</HeadContent>
+<TrinityProviders />
 
 <CascadingValue Value="State">
-    <div class="ts ts-workspace">
+    <div class="ws-shell">
         <TopBar Connected="State.Connected" />
         <NavRow />
 
-        <section class="ts-agents" style="height:@(State.AgentsPanelHeight)px">
+        <section class="ws-agents" style="height:@(State.AgentsPanelHeight)px">
             <AgentsPanel />
         </section>
 
-        <div class="ts-splitter" title="Drag to resize" @onpointerdown="StartResize">
+        <div class="ws-splitter" title="Drag to resize" @onpointerdown="StartResize">
             <i></i><i></i><i></i>
         </div>
 
         <BottomTabs />
 
-        <main class="ts-page">@Body</main>
+        <main class="ws-page">@Body</main>
 
         <StatusBar Connected="State.Connected" Items="StatusItems" />
 
         @if (_resizing)
         {
-            <div class="ts-resize-capture" @onpointermove="Resize" @onpointerup="StopResize" @onpointerleave="StopResize"></div>
+            <div class="ws-resize-capture" @onpointermove="Resize" @onpointerup="StopResize" @onpointerleave="StopResize"></div>
         }
     </div>
 </CascadingValue>
@@ -74,7 +75,34 @@
 
     private void OnStateChanged() => InvokeAsync(StateHasChanged);
 
-    // refresh agents every 5s, server every 15s
+    private EventLogFeed? _events;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || Config["TeamServer:BaseUrl"] is not { Length: > 0 } baseUrl)
+        {
+            return;
+        }
+
+        ShellUser? user = null;
+        try
+        {
+            var stored = await Session.GetAsync<ShellUser>(ShellUser.StorageKey);
+            user = stored.Success ? stored.Value : null;
+        }
+        catch (Exception)
+        {
+        }
+
+        if (user is null)
+        {
+            return;
+        }
+
+        _events = new EventLogFeed(State, HttpFactory, baseUrl);
+        await _events.StartAsync(user);
+    }
+
     private async Task PollAsync()
     {
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
@@ -110,9 +138,9 @@
             State.Agents = await AgentApi.GetAgentsAsync(_stop.Token);
             State.AgentsError = null;
         }
-        catch (Exception e) when (e is HttpRequestException or InvalidOperationException or JsonException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or JsonException or TaskCanceledException)
         {
-            State.AgentsError = ServerDown.Is(e) ? ServerDown.Message : $"Could not load agents: {e.Message}";
+            State.AgentsError = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the agents: {ex.Message}";
         }
     }
 
@@ -123,7 +151,7 @@
             State.Connected = await ServerApi.GetServerStatusAsync(_stop.Token);
             State.ListenerCount = (await ListenerApi.GetListenersAsync(_stop.Token)).Count;
         }
-        catch (Exception e) when (e is HttpRequestException or InvalidOperationException or JsonException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or JsonException or TaskCanceledException)
         {
             State.Connected = false;
         }
@@ -136,17 +164,19 @@
         _resizeStartHeight = State.AgentsPanelHeight;
     }
 
-    // keep the agents panel 120–640px tall
     private void Resize(PointerEventArgs e) =>
         State.AgentsPanelHeight = Math.Clamp(_resizeStartHeight + (int)(e.ClientY - _resizeStartY), 120, 640);
 
     private void StopResize() => _resizing = false;
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         State.Changed -= OnStateChanged;
         _stop.Cancel();
         _stop.Dispose();
-        return ValueTask.CompletedTask;
+        if (_events is not null)
+        {
+            await _events.DisposeAsync();
+        }
     }
 }

@@ -2,61 +2,59 @@
 @layout WorkspaceLayout
 @using System.Text.Json
 @using Client.Components.Shell
-@using Client.Components.UI
 @using Client.Services
 @using Trinity.Shared.DTOs.Payload
 @inject PayloadService PayloadService
 @inject NavigationManager Nav
+@inject IDialogService DialogService
 
 <PageTitle>Trinity · Payloads</PageTitle>
 
 @if (_loadError is not null)
 {
-    <div class="ts-notice" role="status">
-        <span>@_loadError</span>
-        <button type="button" @onclick="LoadAsync">Retry</button>
-    </div>
+    <MudAlert Severity="Severity.Warning" Dense="true" Square="true" role="status">
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            <span>@_loadError</span>
+            <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="LoadAsync">Retry</MudButton>
+        </MudStack>
+    </MudAlert>
 }
 
-<div class="payloads__scroll">
-    <table class="ts-table">
-        <colgroup>
-            <col style="width:30%" /><col style="width:16.9%" /><col style="width:16.9%" /><col style="width:11.8%" /><col style="width:24.4%" />
-        </colgroup>
+<div style="flex:1;min-height:0;overflow:auto;">
+    <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true" Style="font-family:'JetBrains Mono',monospace;">
         <thead>
             <tr><th>name</th><th>type</th><th>listener</th><th>size</th><th>created</th></tr>
         </thead>
         <tbody>
             @if (_payloads.Count == 0)
             {
-                <tr class="ts-empty"><td colspan="5">@(_loading ? "Loading payloads…" : "No payloads yet. Use Generate to build one.")</td></tr>
+                <tr><td colspan="5" class="mud-text-secondary" style="text-align:center;">@(_loading ? "Loading payloads…" : "No payloads yet. Use Generate to build one.")</td></tr>
             }
             @foreach (var payload in _payloads)
             {
-                <tr class="@(payload == _selected ? "is-selected" : null)" @onclick="() => _selected = payload">
-                    <td><span class="payloads__name"><Icon Name="lucide-file.svg" Size="13" /> @payload.Name</span></td>
+                <tr style="cursor:pointer;@(payload == _selected ? "background:rgba(232,119,34,0.13);" : null)" @onclick="() => _selected = payload">
+                    <td>
+                        <span class="d-inline-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Size="Size.Small" /> @payload.Name
+                        </span>
+                    </td>
                     <td>@payload.Type</td>
-                    @* TODO(connect to backend): payloads don't say which listener they use *@
-                    <td class="ts-muted">–</td>
+                    <td class="mud-text-secondary">–</td>
                     <td>@FormatSize(payload.Size)</td>
                     <td>@payload.CreateTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                 </tr>
             }
         </tbody>
-    </table>
+    </MudSimpleTable>
 </div>
 
 <ActionBar>
-    <button type="button" class="ts-btn ts-btn--primary" @onclick="() => _generateOpen = true"><Icon Name="nav-generate.svg" Size="13" /> Generate</button>
-    @* TODO(connect to backend): payloads have no ID, so Save and Remove stay off *@
-    <button type="button" class="ts-btn" disabled title="Needs a payload ID from the API"><Icon Name="btn-save.svg" Size="13" /> Save to Disk</button>
-    <button type="button" class="ts-btn ts-btn--danger" disabled title="The team server has no delete route for payloads yet">Remove</button>
+    <MudSpacer />
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Build" OnClick="OpenGenerateAsync">Generate</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Save" Disabled="true" title="Needs a payload ID from the API">Save to Disk</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" Disabled="true" title="The team server has no delete route for payloads yet">Remove</MudButton>
+    <MudSpacer />
 </ActionBar>
-
-@if (_generateOpen)
-{
-    <GeneratePayloadDialog OnClose="CloseGenerate" OnGenerated="OnGeneratedAsync" />
-}
 
 @code {
     [CascadingParameter] private WorkspaceState State { get; set; } = default!;
@@ -68,7 +66,7 @@
     private PayloadDTO? _selected;
     private string? _loadError;
     private bool _loading;
-    private bool _generateOpen;
+    private bool _openFromNav;
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,12 +74,20 @@
         await LoadAsync();
     }
 
-    // opens the Generate popup when you come from nav
     protected override void OnParametersSet()
     {
         if (GenerateQuery == 1)
         {
-            _generateOpen = true;
+            _openFromNav = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_openFromNav)
+        {
+            _openFromNav = false;
+            await OpenGenerateAsync();
         }
     }
 
@@ -94,9 +100,9 @@
             _selected = _payloads.FirstOrDefault();
             _loadError = null;
         }
-        catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
         {
-            _loadError = ServerDown.Is(e) ? ServerDown.Message : $"Could not load payloads: {e.Message}";
+            _loadError = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the payloads: {ex.Message}";
         }
         finally
         {
@@ -104,19 +110,22 @@
         }
     }
 
-    private void CloseGenerate()
+    private async Task OpenGenerateAsync()
     {
-        _generateOpen = false;
+        var dialog = await DialogService.ShowAsync<GeneratePayloadDialog>(string.Empty,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true });
+        var result = await dialog.Result;
+
         if (GenerateQuery == 1)
         {
             Nav.NavigateTo("payloads", replace: true);
         }
-    }
 
-    private async Task OnGeneratedAsync()
-    {
-        CloseGenerate();
-        await LoadAsync();
+        if (result is { Canceled: false })
+        {
+            await LoadAsync();
+            StateHasChanged();
+        }
     }
 
     private static string FormatSize(int bytes) => bytes >= 1_048_576 ? $"{bytes / 1_048_576.0:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024.0))} KB";

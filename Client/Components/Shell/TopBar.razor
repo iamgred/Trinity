@@ -1,53 +1,59 @@
-@using Client.Components.UI
 @using Client.Services
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage Session
 @inject TeamServerConnection Connection
 @inject NavigationManager Nav
 
-<header class="ts-topbar">
-    <div class="ts-topbar__brand">
-        <span class="ts-topbar__logo"><img src="img/shell/shell-logo.png" alt="" width="20" height="20" /></span>
-        <span class="ts-topbar__word">TRINITY</span>
-    </div>
+<MudAppBar Fixed="false" Dense="true" Elevation="0" Style="border-bottom:1px solid var(--mud-palette-divider);">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <img src="img/shell/shell-logo.png" alt="" width="20" height="20" />
+        <MudText Typo="Typo.subtitle1" Style="font-weight:800;letter-spacing:0.12em;">TRINITY</MudText>
+    </MudStack>
 
     @if (Admin)
     {
-        <span class="ts-topbar__badge">ADMIN CONSOLE</span>
+        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined" Class="ml-3">ADMIN CONSOLE</MudChip>
     }
 
-    @* TODO: point Help at the docs *@
-    <button type="button" class="ts-topbar__help">Help</button>
+    <MudButton Size="Size.Small" Color="Color.Inherit" Class="ml-3" Style="text-transform:none;">Help</MudButton>
 
-    <div class="ts-topbar__right">
-        @if (Admin)
+    <MudSpacer />
+
+    @if (Admin)
+    {
+        <MudButton Href="logs" Size="Size.Small" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.ArrowBack" Style="text-transform:none;">Back to workspace</MudButton>
+    }
+    else
+    {
+        <MudTooltip Text="@(Connected ? "Team server reachable" : "Team server not reachable")">
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Icon="@Icons.Material.Filled.Circle"
+                     IconColor="@(Connected ? Color.Success : Color.Error)" Style="font-family:'JetBrains Mono',monospace;">@ServerLabel</MudChip>
+        </MudTooltip>
+    }
+
+    @if (_user is not null)
+    {
+        @if (_user.IsAdmin && !Admin)
         {
-            <a class="ts-topbar__back" href="logs"><Icon Name="lucide-arrow-left.svg" Size="13" /> Back to workspace</a>
+            <MudTooltip Text="Open the admin console">
+                <MudButton Href="campaigns" Size="Size.Small" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Person" Style="text-transform:none;">
+                    <b>@_user.Name</b>&nbsp;<span class="mud-text-secondary">@_user.Role</span>
+                </MudButton>
+            </MudTooltip>
         }
         else
         {
-            <span class="ts-topbar__server" title="@(Connected ? "Team server reachable" : "Team server not reachable")">
-                <span class="ts-dot @(Connected ? null : "is-down")"></span>@ServerLabel
-            </span>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mx-2">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                <MudText Typo="Typo.body2"><b>@_user.Name</b> <span class="mud-text-secondary">@_user.Role</span></MudText>
+            </MudStack>
         }
+    }
 
-        @if (_user is not null)
-        {
-            @if (_user.IsAdmin && !Admin)
-            {
-                <a class="ts-topbar__user" href="campaigns" title="Open the admin console">
-                    <Icon Name="topbar-user.svg" Size="14" /><b>@_user.Name</b><span>@_user.Role</span>
-                </a>
-            }
-            else
-            {
-                <span class="ts-topbar__user"><Icon Name="topbar-user.svg" Size="14" /><b>@_user.Name</b><span>@_user.Role</span></span>
-            }
-        }
-
-        <button type="button" class="ts-topbar__logout" title="Sign out" @onclick="SignOutAsync"><Icon Name="topbar-logout.svg" Size="15" /></button>
-    </div>
-</header>
+    <MudTooltip Text="Sign out">
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Color="Color.Inherit" OnClick="SignOutAsync" />
+    </MudTooltip>
+</MudAppBar>
 
 @code {
     [Parameter] public bool Admin { get; set; }
@@ -72,7 +78,6 @@
         }
         catch (Exception)
         {
-            // cant read sign-in so treat it as signed out
             _user = null;
         }
 

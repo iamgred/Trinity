@@ -1,22 +1,21 @@
 @using System.Globalization
-@using Client.Components.UI
 @using Trinity.Shared.DTOs.Agent
 
-<div class="ts-menu-backdrop" @onclick="OnClose" @oncontextmenu="OnClose" @oncontextmenu:preventDefault="true"></div>
-<div class="ts-menu" role="menu" style="left:@Px(X)px;top:@Px(Y)px">
-    <div class="ts-menu__head">agent @Agent.agentID · @Agent.username</div>
-    <button type="button" role="menuitem" class="ts-menu__item is-primary" @onclick="OnInteract">
-        <Icon Name="lucide-terminal.svg" Size="14" /> Interact <kbd>Enter</kbd>
-    </button>
-    <div class="ts-menu__divider"></div>
-    @* TODO: Jobs (teammate's screen 08) *@
-    <button type="button" role="menuitem" class="ts-menu__item" disabled title="Jobs is not in the new shell yet">
-        <Icon Name="lucide-list.svg" Size="14" /> Jobs <kbd>queued tasks</kbd>
-    </button>
-    <button type="button" role="menuitem" class="ts-menu__item" @onclick="OnLoot">
-        <Icon Name="nav-loot.svg" Size="14" /> Loot <kbd>this agent</kbd>
-    </button>
-</div>
+<div style="position:fixed;inset:0;z-index:1300;" @onclick="OnClose" @oncontextmenu="OnClose" @oncontextmenu:preventDefault="true"></div>
+
+<MudPaper Elevation="8" role="menu" Style="@($"position:fixed;left:{Px(X)}px;top:{Px(Y)}px;z-index:1301;min-width:220px;")">
+    <MudText Typo="Typo.caption" Class="d-block px-4 pt-2 pb-1 mud-text-secondary" Style="font-family:'JetBrains Mono',monospace;">
+        agent @Agent.agentID · @Agent.username
+    </MudText>
+    <MudList T="string" Dense="true">
+        <MudListItem T="string" Icon="@Icons.Material.Filled.Terminal" IconColor="Color.Primary" OnClick="OnInteract"
+                     SecondaryText="Enter">Interact</MudListItem>
+        <MudDivider />
+        <MudListItem T="string" Icon="@Icons.Material.Filled.List" Disabled="true" SecondaryText="queued tasks"
+                     title="Jobs is not in the new shell yet">Jobs</MudListItem>
+        <MudListItem T="string" Icon="@Icons.Material.Filled.Inventory2" OnClick="OnLoot" SecondaryText="this agent">Loot</MudListItem>
+    </MudList>
+</MudPaper>
 
 @code {
     [Parameter, EditorRequired] public AgentResponse Agent { get; set; } = default!;

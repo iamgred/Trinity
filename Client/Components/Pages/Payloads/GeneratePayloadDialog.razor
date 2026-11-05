@@ -1,88 +1,94 @@
 @using System.Net.Http.Json
 @using System.Text.Json
-@using Client.Components.UI
 @using Client.Services
 @using Trinity.Shared.DTOs.Payload
+@using Trinity.Shared.Enums
 @using Campaign = Trinity.Shared.Models.Campaign
 @inject ListenerApiClient ListenerApi
 @inject CampaignService CampaignService
 @inject IHttpClientFactory HttpFactory
 
-<Modal Title="Generate Payload" Subtitle="Build an agent that calls back to a listener" IconName="nav-generate.svg"
-       FootNote="Built on the team server and added to Payloads." Error="@_error" OnClose="OnClose">
-    <ChildContent>
-        <div class="ts-modal__row">
-            <label for="gp-name">Name</label>
-            <div class="ts-field"><input id="gp-name" @bind="_name" @bind:event="oninput" /></div>
-        </div>
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Build" Color="Color.Primary" />
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h6">Generate Payload</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">Build an agent that calls back to a listener</MudText>
+            </MudStack>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Immediate="true" />
 
-        <div class="ts-modal__row">
-            <label for="gp-listener">Listener</label>
-            <div class="ts-field">
-                <select id="gp-listener" @bind="_listenerId">
-                    @if (_listeners.Count == 0)
-                    {
-                        <option value="0">No listeners running</option>
-                    }
-                    @foreach (var listener in _listeners)
-                    {
-                        <option value="@listener.id">@listener.name · @listener.protocol.ToUpperInvariant()</option>
-                    }
-                </select>
-                <Icon Name="select-chevron.svg" Size="14" />
-            </div>
-        </div>
+            <MudSelect T="int" @bind-Value="_listenerId" Label="Listener" Variant="Variant.Outlined">
+                @if (_listeners.Count == 0)
+                {
+                    <MudSelectItem T="int" Value="0">No listeners running</MudSelectItem>
+                }
+                @foreach (var listener in _listeners)
+                {
+                    <MudSelectItem T="int" Value="@listener.id">@listener.name · @listener.protocol.ToUpperInvariant()</MudSelectItem>
+                }
+            </MudSelect>
 
-        <div class="ts-modal__row">
-            <label>Architecture</label>
             <div>
-                <span class="gp-arch"><Icon Name="lucide-lock.svg" Size="12" /> x64</span>
-                <p class="ts-modal__hint">Trinity agents are built for x64 only.</p>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mb-1">Architecture</MudText>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="ma-0">x64</MudChip>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mt-1">Trinity agents are built for x64 only.</MudText>
             </div>
-        </div>
 
-        <div class="ts-modal__row">
-            <label>Payload Type</label>
-            <SegmentedToggle Options="PayloadTypes" @bind-Value="_type" />
-        </div>
-
-        <div class="ts-modal__row">
-            <label for="gp-campaign">Campaign</label>
-            <div class="ts-field">
-                <Icon Name="lucide-flag.svg" Size="13" Class="gp-flag" />
-                <select id="gp-campaign" @bind="_campaignId">
-                    @if (_campaigns.Count == 0)
+            <div>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mb-1">Payload Type</MudText>
+                <MudToggleGroup T="PayloadType" @bind-Value="_type" Color="Color.Primary" Size="Size.Small" Outlined="true" CheckMark="true">
+                    @foreach (var (type, label) in PayloadTypes)
                     {
-                        <option value="0">No campaigns</option>
+                        <MudToggleItem Value="@type" Text="@label" />
                     }
-                    @foreach (var campaign in _campaigns)
-                    {
-                        <option value="@campaign.ID">@campaign.Name</option>
-                    }
-                </select>
-                <Icon Name="select-chevron.svg" Size="14" />
+                </MudToggleGroup>
             </div>
-        </div>
-    </ChildContent>
-    <Footer>
-        <button type="button" class="ts-btn" @onclick="OnClose">Cancel</button>
-        <button type="button" class="ts-btn ts-btn--primary" disabled="@_busy" @onclick="GenerateAsync">@(_busy ? "Generating…" : "Generate")</button>
-    </Footer>
-</Modal>
+
+            <MudSelect T="int" @bind-Value="_campaignId" Label="Campaign" Variant="Variant.Outlined"
+                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Flag">
+                @if (_campaigns.Count == 0)
+                {
+                    <MudSelectItem T="int" Value="0">No campaigns</MudSelectItem>
+                }
+                @foreach (var campaign in _campaigns)
+                {
+                    <MudSelectItem T="int" Value="@campaign.ID">@campaign.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            @if (_error is not null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_error</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudText Typo="Typo.caption" Class="mud-text-secondary mr-auto ml-2">Built on the team server and added to Payloads.</MudText>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_busy" OnClick="GenerateAsync">@(_busy ? "Generating…" : "Generate")</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
-    [Parameter] public EventCallback OnClose { get; set; }
-    [Parameter] public EventCallback OnGenerated { get; set; }
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    
-    private static readonly IReadOnlyList<string> PayloadTypes = ["winexe", "dll"];
+    private static readonly IReadOnlyList<(PayloadType Type, string Label)> PayloadTypes =
+    [
+        (PayloadType.WINDOWS_EXE, "winexe"),
+        (PayloadType.WINDOWS_DLL, "dll"),
+    ];
 
     private IReadOnlyList<ListenerResponse> _listeners = [];
     private List<Campaign> _campaigns = [];
     private string _name = "agent_x64";
     private int _listenerId;
     private int _campaignId;
-    private string _type = "winexe";
+    private PayloadType _type = PayloadType.WINDOWS_EXE;
     private string? _error;
     private bool _busy;
 
@@ -102,6 +108,8 @@
         _campaignId = _campaigns.FirstOrDefault()?.ID ?? 0;
     }
 
+    private void Cancel() => MudDialog.Cancel();
+
     private async Task GenerateAsync()
     {
         _error = null;
@@ -116,15 +124,13 @@
             Name = _name.Trim(),
             ListenerID = _listenerId,
             CampaignID = _campaignId,
-            Architecture = "x64",
+            Architecture = Arch.x64,
             Type = _type,
-            OutputFormat = _type,
         };
 
         _busy = true;
         try
         {
-            // TODO(connect to backend): the shared PayloadService uses the wrong address, so the right one is called here
             var http = HttpFactory.CreateClient("TeamServer");
             var response = await http.PostAsJsonAsync("/api/v1/payloads/generate", request);
             if (!response.IsSuccessStatusCode)
@@ -133,7 +139,7 @@
                 return;
             }
 
-            await OnGenerated.InvokeAsync();
+            MudDialog.Close(DialogResult.Ok(true));
         }
         catch (HttpRequestException e)
         {

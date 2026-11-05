@@ -1,8 +1,13 @@
 @inherits LayoutComponentBase
+@using Client.Components.UI
 
-<div class="trinity auth-shell">
-    @Body
-</div>
+<TrinityProviders />
+
+<MudLayout>
+    <MudMainContent Class="pa-0" Style="min-height:100vh;">
+        @Body
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.

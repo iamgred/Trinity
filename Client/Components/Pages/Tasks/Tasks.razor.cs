@@ -4,7 +4,10 @@ using System.Text;
 using System.Text.Json;
 using Client.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using MudBlazor;
+using Client.Components.UI;
 using Trinity.Shared.DTOs.Task;
 
 namespace Client.Components.Pages.Tasks;
@@ -30,16 +33,17 @@ public partial class Tasks
     private record SliceVm(string Name, int Count, int Percent, string Color);
     private record ActionVm(string Label, string Icon, Action OnClick);
 
+    private readonly DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+
     private readonly List<TaskRow> _tasks = new();
     private readonly List<UpcomingRow> _upcoming = new();
     private TaskRow? _selected;
 
     private string _search = "";
     private string _statusFilter = "All Status";
-    private int _page = 1;
+    private int _page; // MudTable pages start at 0
     private const int PageSize = 6;
 
-    private string? _toast;
     private string? _loadError;
     private bool _isLoading;
 
@@ -59,6 +63,9 @@ public partial class Tasks
 
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
 
     private void GoToLogin() => Navigation.NavigateTo("/login");
 
@@ -82,23 +89,11 @@ public partial class Tasks
             _tasks.AddRange(tasks
                 .OrderByDescending(task => task.timeStamp)
                 .Select(ToTaskRow));
-            _page = 1;
+            _page = 0;
         }
-        catch (InvalidOperationException exception)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException or InvalidOperationException)
         {
-            _loadError = exception.Message;
-        }
-        catch (HttpRequestException exception)
-        {
-            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"Could not load task records from TeamServer: {exception.Message}";
-        }
-        catch (TaskCanceledException exception)
-        {
-            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"The TeamServer task request timed out: {exception.Message}";
-        }
-        catch (JsonException exception)
-        {
-            _loadError = ServerDown.Is(exception) ? ServerDown.Message : $"TeamServer returned an invalid task response: {exception.Message}";
+            _loadError = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the task records: {ex.Message}";
         }
         finally
         {
@@ -127,26 +122,28 @@ public partial class Tasks
         && (_statusFilter == "All Status" || t.Status.Equals(_statusFilter, StringComparison.OrdinalIgnoreCase)));
 
     private int FilteredCount => Filtered.Count();
-    private int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredCount / (double)PageSize));
-    private int CurrentPage => Math.Clamp(_page, 1, TotalPages);
-    private IEnumerable<TaskRow> PageItems => Filtered.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
 
-    private string ShowingText
+    // filters go back to the first page
+    private void OnSearch(string? value)
     {
-        get
-        {
-            if (_isLoading) return "Loading task records...";
-            if (_loadError is not null) return "Task records unavailable";
-            if (FilteredCount == 0) return "No tasks to show";
-            var start = (CurrentPage - 1) * PageSize + 1;
-            var end = Math.Min(CurrentPage * PageSize, FilteredCount);
-            return $"Showing {start}–{end} of {FilteredCount} Tasks";
-        }
+        _search = value ?? "";
+        _page = 0;
     }
 
-    private void ResetPage() => _page = 1;
-    private void GoToPage(int p) => _page = Math.Clamp(p, 1, TotalPages);
+    private void OnStatusFilter(string value)
+    {
+        _statusFilter = value;
+        _page = 0;
+    }
+
     private void SelectRow(TaskRow row) => _selected = row == _selected ? null : row;
+
+    private string RowStyle(TaskRow row, int index) => row == _selected ? "cursor:pointer;background:rgba(232,119,34,0.13);" : "cursor:pointer;";
+
+    private async Task OnDetailKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await LookupTaskDetailAsync();
+    }
 
     private async Task LookupTaskDetailAsync()
     {
@@ -174,7 +171,7 @@ public partial class Tasks
         }
         catch (HttpRequestException exception)
         {
-            _detailError = ServerDown.Is(exception) ? ServerDown.Message : $"Could not load task detail from TeamServer: {exception.Message}";
+            _detailError = ServerDown.Is(exception) ? ServerDown.Message : $"Couldn't load task detail from TeamServer: {exception.Message}";
         }
         catch (TaskCanceledException exception)
         {
@@ -230,16 +227,11 @@ public partial class Tasks
 
         return new List<StatVm>
         {
-            new("Total Tasks", total.ToString(), "From TeamServer", true,
-                "<rect x='8' y='2' width='8' height='4' rx='1'/><path d='M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3'/>"),
-            new("Successful Tasks", completed.ToString(), "Reported status", true,
-                "<path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/><polyline points='22 4 12 14.01 9 11.01'/>"),
-            new("Running", running.ToString(), "Reported status", true,
-                "<circle cx='12' cy='12' r='9'/><polyline points='12 7 12 12 15 14'/>"),
-            new("Queued", queued.ToString(), "Reported status", true,
-                "<rect x='6' y='5' width='4' height='14' rx='1'/><rect x='14' y='5' width='4' height='14' rx='1'/>"),
-            new("Failed Tasks", failed.ToString(), "Reported status", false,
-                "<circle cx='12' cy='12' r='9'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/>"),
+            new("Total Tasks", total.ToString(), "From TeamServer", true, Icons.Material.Outlined.Assignment),
+            new("Successful Tasks", completed.ToString(), "Reported status", true, Icons.Material.Outlined.CheckCircle),
+            new("Running", running.ToString(), "Reported status", true, Icons.Material.Outlined.Schedule),
+            new("Queued", queued.ToString(), "Reported status", true, Icons.Material.Outlined.PauseCircle),
+            new("Failed Tasks", failed.ToString(), "Reported status", false, Icons.Material.Outlined.Cancel),
         };
     }
 
@@ -262,54 +254,26 @@ public partial class Tasks
             item.Color)).ToList();
     }
 
-    private static readonly Dictionary<string, string> _colorVar = new()
-    {
-        ["green"] = "var(--status-green)", ["blue"] = "var(--status-blue)",
-        ["yellow"] = "var(--status-yellow)", ["red"] = "var(--status-red)", ["gray"] = "var(--text-muted)"
-    };
+    // one series, one slice per status
+    private static List<ChartSeries<double>> DonutSeries(List<SliceVm> slices) =>
+        [new ChartSeries<double> { Name = "Tasks", Data = slices.Select(x => (double)x.Count).ToArray() }];
 
-    private string Gradient(List<SliceVm> slices)
+    private static DonutChartOptions DonutOptions(List<SliceVm> slices) => new()
     {
-        int total = Math.Max(1, slices.Sum(s => s.Count));
-        var stops = new List<string>();
-        double acc = 0;
-        foreach (var s in slices)
-        {
-            if (s.Count == 0) continue;
-            double start = acc / total * 100;
-            acc += s.Count;
-            double end = acc / total * 100;
-            stops.Add($"{_colorVar[s.Color]} {start.ToString("0.##", CultureInfo.InvariantCulture)}% {end.ToString("0.##", CultureInfo.InvariantCulture)}%");
-        }
-        return stops.Count == 0 ? "var(--text-muted) 0% 100%" : string.Join(", ", stops);
-    }
+        ShowLegend = false,
+        ChartPalette = slices.Select(x => TrinityTheme.Hex(x.Color)).ToArray(),
+    };
 
     private ActionVm[] Actions => new[]
     {
-        new ActionVm("Create New Task",
-            "<line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/>",
-            OpenCreate),
-        new ActionVm("Schedule Task",
-            "<circle cx='12' cy='12' r='9'/><polyline points='12 7 12 12 15 14'/>",
-            OpenSchedule),
-        new ActionVm("Assign Task",
-            "<circle cx='12' cy='8' r='4'/><path d='M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1'/>",
-            OpenAssign),
-        new ActionVm("Import Tasks",
-            "<path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><polyline points='17 8 12 3 7 8'/><line x1='12' y1='3' x2='12' y2='15'/>",
-            () => ShowToast("Imported tasks from file (mock)")),
-        new ActionVm("Task Templates",
-            "<line x1='8' y1='6' x2='21' y2='6'/><line x1='8' y1='12' x2='21' y2='12'/><line x1='8' y1='18' x2='21' y2='18'/><line x1='3' y1='6' x2='3.01' y2='6'/><line x1='3' y1='12' x2='3.01' y2='12'/><line x1='3' y1='18' x2='3.01' y2='18'/>",
-            () => ShowToast("Opened task templates (mock)")),
-        new ActionVm("Bulk Update",
-            "<path d='M4 6h16M4 12h16M4 18h10'/><polyline points='16 15 19 18 22 15'/>",
-            () => ShowToast($"Bulk update queued for {FilteredCount} tasks (mock)")),
-        new ActionVm("Task Reports",
-            "<line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/>",
-            () => ShowToast("Generated task report (mock)")),
-        new ActionVm("View All Tasks",
-            "<line x1='3' y1='6' x2='21' y2='6'/><line x1='3' y1='12' x2='21' y2='12'/><line x1='3' y1='18' x2='21' y2='18'/>",
-            ClearFilters),
+        new ActionVm("Create New Task", Icons.Material.Filled.Add, OpenCreate),
+        new ActionVm("Schedule Task", Icons.Material.Filled.Schedule, OpenSchedule),
+        new ActionVm("Assign Task", Icons.Material.Filled.PersonAdd, OpenAssign),
+        new ActionVm("Import Tasks", Icons.Material.Filled.Upload, () => ShowToast("Imported tasks from file (mock)")),
+        new ActionVm("Task Templates", Icons.Material.Filled.ListAlt, () => ShowToast("Opened task templates (mock)")),
+        new ActionVm("Bulk Update", Icons.Material.Filled.DynamicFeed, () => ShowToast($"Bulk update queued for {FilteredCount} tasks (mock)")),
+        new ActionVm("Task Reports", Icons.Material.Filled.BarChart, () => ShowToast("Generated task report (mock)")),
+        new ActionVm("View All Tasks", Icons.Material.Filled.FormatListBulleted, ClearFilters),
     };
 
     private void OpenCreate()
@@ -328,7 +292,7 @@ public partial class Tasks
         _tasks.Insert(0, _form);
         ShowToast($"Task \"{_form.Name}\" created");
         _showCreate = false;
-        _page = 1;
+        _page = 0;
     }
 
     private void OpenAssign()
@@ -366,7 +330,7 @@ public partial class Tasks
     {
         _search = "";
         _statusFilter = "All Status";
-        _page = 1;
+        _page = 0;
         ShowToast("Showing all tasks");
     }
 
@@ -397,8 +361,7 @@ public partial class Tasks
         }
         catch (JSException exception)
         {
-            _toast = $"Task record CSV download failed: {exception.Message}";
-            StateHasChanged();
+            Snackbar.Add($"Task record CSV download failed: {exception.Message}", Severity.Error);
         }
     }
 
@@ -411,13 +374,7 @@ public partial class Tasks
         return $"\"{safeValue.Replace("\"", "\"\"")}\"";
     }
 
-    private async void ShowToast(string msg)
-    {
-        _toast = msg;
-        StateHasChanged();
-        await Task.Delay(2600);
-        if (_toast == msg) { _toast = null; StateHasChanged(); }
-    }
+    private void ShowToast(string msg) => Snackbar.Add(msg, Severity.Info);
 
     private void CloseModals()
     {

@@ -1,0 +1,214 @@
+@page "/armoury"
+@layout WorkspaceLayout
+@using System.Net.Http.Json
+@using System.Text.Json
+@using Client.Components.Shell
+@using Client.Services
+@using Trinity.Shared.Enums
+@using Tool = Trinity.Shared.Models.Tool
+@inject IHttpClientFactory HttpFactory
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JS
+
+<PageTitle>Trinity · Armoury</PageTitle>
+
+@if (_loadError is not null)
+{
+    <MudAlert Severity="Severity.Warning" Dense="true" Square="true" role="status">
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            <span>@_loadError</span>
+            <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="LoadAsync">Retry</MudButton>
+        </MudStack>
+    </MudAlert>
+}
+
+<div style="flex:1;min-height:0;overflow:auto;">
+    <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true" Style="font-family:'JetBrains Mono',monospace;">
+        <thead>
+            <tr><th>name</th><th>type</th><th>path</th><th>size</th><th>added at</th></tr>
+        </thead>
+        <tbody>
+            @if (_tools.Count == 0)
+            {
+                <tr><td colspan="5" class="mud-text-secondary" style="text-align:center;">@(_loading ? "Loading tools…" : "The armoury is empty. Use Add to upload a tool.")</td></tr>
+            }
+            @foreach (var tool in PageOfTools)
+            {
+                <tr style="cursor:pointer;@(tool.ID == _selected?.ID ? "background:rgba(232,119,34,0.13);" : null)" @onclick="() => _selected = tool">
+                    <td>
+                        <span class="d-inline-flex align-center gap-2">
+                            <MudIcon Icon="@TypeIcon(tool.Type)" Size="Size.Small" Color="Color.Primary" /> @tool.Name
+                        </span>
+                    </td>
+                    <td>@TypeLabel(tool.Type)</td>
+                    <td class="mud-text-secondary">
+                        <span class="d-inline-flex align-center gap-1">
+                            @tool.Path
+                            @if (tool.ID == _copiedId)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Check" Class="ma-0">Copied</MudChip>
+                            }
+                            else
+                            {
+                                <span @onclick:stopPropagation="true"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small" aria-label="Copy path" OnClick="() => CopyPathAsync(tool)" /></span>
+                            }
+                        </span>
+                    </td>
+                    <td>@FormatSize(tool.Size)</td>
+                    <td>@tool.AddedDateTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+</div>
+
+@if (_tools.Count > 0)
+{
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="px-3 py-1" Style="border-top:1px solid var(--mud-palette-lines-default);">
+        <MudText Typo="Typo.caption" Class="mud-text-secondary">Showing @(_page * RowsPerPage + 1)–@(Math.Min((_page + 1) * RowsPerPage, _tools.Count)) of @_tools.Count tools</MudText>
+        <MudSpacer />
+        <MudPagination Count="PageCount" Selected="_page + 1" SelectedChanged="p => _page = p - 1" Size="Size.Small" Color="Color.Primary" />
+    </MudStack>
+}
+
+<ActionBar>
+    <MudSpacer />
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenUploadAsync">Add</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Disabled="@(_selected is null || _removing)" OnClick="RemoveAsync">Remove</MudButton>
+    <MudSpacer />
+</ActionBar>
+
+@code {
+    private const int RowsPerPage = 8;
+
+    private const int FetchRows = 1000;
+
+    [CascadingParameter] private WorkspaceState State { get; set; } = default!;
+
+    private List<Tool> _tools = [];
+    private Tool? _selected;
+    private int _page;
+    private int? _copiedId;
+    private bool _loading;
+    private bool _removing;
+    private string? _loadError;
+
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(_tools.Count / (double)RowsPerPage));
+    private IEnumerable<Tool> PageOfTools => _tools.Skip(_page * RowsPerPage).Take(RowsPerPage);
+
+    protected override async Task OnInitializedAsync()
+    {
+        State.OpenTab("Armoury", "armoury");
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var http = HttpFactory.CreateClient("TeamServer");
+            var tools = await http.GetFromJsonAsync<List<Tool>>($"/api/v1/armoury/tools?pagination=0&rows={FetchRows}") ?? [];
+            _tools = tools.OrderByDescending(t => t.AddedDateTime).ToList();
+            _selected = _tools.FirstOrDefault(t => t.ID == _selected?.ID) ?? _tools.FirstOrDefault();
+            _page = Math.Min(_page, PageCount - 1);
+            _loadError = null;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
+        {
+            _loadError = ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't load the armoury: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OpenUploadAsync()
+    {
+        var dialog = await DialogService.ShowAsync<UploadToolDialog>(string.Empty,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true });
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: string name })
+        {
+            Snackbar.Add($"Uploaded {name} to the armoury.", Severity.Success);
+            _page = 0;
+            await LoadAsync();
+        }
+    }
+
+    private async Task RemoveAsync()
+    {
+        if (_selected is not { } tool)
+        {
+            return;
+        }
+
+        var confirmed = await DialogService.ShowMessageBoxAsync("Remove tool",
+            $"Remove {tool.Name} from the armoury? The file is deleted from the team server.",
+            yesText: "Remove", cancelText: "Cancel");
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        _removing = true;
+        try
+        {
+            var http = HttpFactory.CreateClient("TeamServer");
+            var response = await http.DeleteAsync($"/api/v1/armoury/remove/{tool.ID}");
+            if (!response.IsSuccessStatusCode)
+            {
+                Snackbar.Add($"The team server refused to remove {tool.Name} ({(int)response.StatusCode}).", Severity.Error);
+                return;
+            }
+
+            Snackbar.Add($"Removed {tool.Name} from the armoury.", Severity.Success);
+            _selected = null;
+            await LoadAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add(ServerDown.Is(ex) ? ServerDown.Message : $"Couldn't reach the team server: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _removing = false;
+        }
+    }
+
+    private async Task CopyPathAsync(Tool tool)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", tool.Path);
+            _copiedId = tool.ID;
+            StateHasChanged();
+            await Task.Delay(1500);
+            if (_copiedId == tool.ID)
+            {
+                _copiedId = null;
+            }
+        }
+        catch (JSException)
+        {
+            Snackbar.Add("Could not copy the path. The browser blocked clipboard access.", Severity.Warning);
+        }
+    }
+
+    private static string TypeLabel(ToolType type) => type switch
+    {
+        ToolType.NET_ASM => ".NET Assembly",
+        _ => type.ToString(),
+    };
+
+    private static string TypeIcon(ToolType type) => type switch
+    {
+        ToolType.NET_ASM => Icons.Material.Filled.ViewInAr,
+        _ => Icons.Material.Filled.Extension,
+    };
+
+    private static string FormatSize(double bytes) => bytes >= 1_048_576 ? $"{bytes / 1_048_576.0:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024.0))} KB";
+}

@@ -1,25 +1,28 @@
-@using Client.Components.UI
 @inject NavigationManager Nav
 @implements IDisposable
 
-<nav class="ts-nav">
-    @Item("Listeners", "nav-listeners.svg", null)
-    @Item("Pivot Graph", "nav-pivot.svg", null)
-    @Item("Agents", "nav-agents.svg", null)
-    <span class="ts-nav__divider"></span>
-    @Item("Event Log", "nav-eventlog.svg", "logs")
-    @Item("Loot", "nav-loot.svg", "loot")
-    @Item("Armoury", "nav-armoury.svg", null)
-    <span class="ts-nav__divider"></span>
-    <a class="ts-nav__item ts-nav__item--accent @(IsCurrent("payloads") ? "is-active" : null)" href="payloads?generate=1">
-        <Icon Name="nav-generate.svg" /> Generate Payload
-    </a>
+<MudPaper Square="true" Elevation="0" Style="border-bottom:1px solid var(--mud-palette-divider);background:var(--mud-palette-background-gray);">
+    <MudToolBar Dense="true" Gutters="true" Class="gap-1">
+        @Item("Listeners", Icons.Material.Filled.Sensors, null)
+        @Item("Pivot Graph", Icons.Material.Filled.AccountTree, null)
+        @Item("Agents", Icons.Material.Filled.Devices, null)
+        <MudDivider Vertical="true" FlexItem="true" Class="mx-1" />
+        @Item("Event Log", Icons.Material.Filled.EventNote, "logs")
+        @Item("Loot", Icons.Material.Filled.Inventory2, "loot")
+        @Item("Armoury", Icons.Material.Filled.Shield, "armoury")
+        <MudDivider Vertical="true" FlexItem="true" Class="mx-1" />
+        <MudButton Href="payloads?generate=1" Size="Size.Small" Color="Color.Primary"
+                   Variant="@(IsCurrent("payloads") ? Variant.Filled : Variant.Outlined)"
+                   StartIcon="@Icons.Material.Filled.Build" Style="text-transform:none;white-space:nowrap;">Generate Payload</MudButton>
 
-    <label class="ts-nav__search">
-        <Icon Name="icon-search.svg" Size="13" />
-        <input type="text" placeholder="Filter agents by host, user, id…" value="@State.Filter" @oninput="OnFilter" />
-    </label>
-</nav>
+        <MudSpacer />
+
+        <MudTextField T="string" Value="State.Filter" ValueChanged="OnFilter" Immediate="true"
+                      Placeholder="Filter agents by host, user, id…" Variant="Variant.Outlined" Margin="Margin.Dense"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small"
+                      Style="max-width:320px;" />
+    </MudToolBar>
+</MudPaper>
 
 @code {
     [CascadingParameter] public WorkspaceState State { get; set; } = default!;
@@ -34,17 +37,21 @@
     {
         if (href is null)
         {
-            <span class="ts-nav__item is-disabled" title="@label is not in the new shell yet"><Icon Name="@icon" /> @label</span>
+            <MudTooltip Text="@($"{label} is not in the new shell yet")">
+                <MudButton Size="Size.Small" Disabled="true" StartIcon="@icon" Style="text-transform:none;white-space:nowrap;">@label</MudButton>
+            </MudTooltip>
         }
         else
         {
-            <a class="ts-nav__item @(IsCurrent(href) ? "is-active" : null)" href="@href"><Icon Name="@icon" /> @label</a>
+            var active = IsCurrent(href);
+            <MudButton Href="@href" Size="Size.Small" StartIcon="@icon" Style="text-transform:none;white-space:nowrap;"
+                       Color="@(active ? Color.Primary : Color.Default)" Variant="@(active ? Variant.Filled : Variant.Text)">@label</MudButton>
         }
     };
 
-    private void OnFilter(ChangeEventArgs e)
+    private void OnFilter(string? value)
     {
-        State.Filter = e.Value?.ToString() ?? "";
+        State.Filter = value ?? "";
         State.Notify();
     }
 

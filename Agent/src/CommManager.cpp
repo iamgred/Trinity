@@ -230,12 +230,5 @@ e_func:
     return result;
 }
 
-bool CommManager::SendFile(const std::string& filePath)
-{
-    return FileTransfer::SendFile(
-        filePath,
-        callbackUUID,
-        "http://" + std::string(host.begin(), host.end()) + ":5069");
-}
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

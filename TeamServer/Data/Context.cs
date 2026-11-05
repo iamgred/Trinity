@@ -11,13 +11,11 @@ namespace TeamServer.Data
         public DbSet<Agent> Agents { get; set; }
         public DbSet<Trinity.Shared.Models.Host> Hosts { get; set; }
         public DbSet<Payload> Payloads { get; set; }
-        public DbSet<Protocol> Protocols { get; set; }
         public DbSet<Listener> Listeners { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Operator> Operators { get; set; }
         public DbSet<CampaignBridge> CampaignBridges { get; set; }
-        public DbSet<Trinity.Shared.Models.TaskStatus> TaskStatus { get; set; }
         public DbSet<Trinity.Shared.Models.Error> Errors { get; set; }
         public DbSet<Tool> Tools { get; set; }
         public Context()
@@ -37,52 +35,6 @@ namespace TeamServer.Data
         /// <param name="modelBuilder">ModelBuilder used to configure entity mappings and seed the Protocol entities.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Protocol>().HasData(
-                new Protocol
-                {
-                    ID = 1,
-                    Name = "HTTP"
-                },
-                new Protocol
-                {
-                    ID = 2,
-                    Name = "SMB"
-                },
-                new Protocol
-                {
-                    ID = 3,
-                    Name = "TCP"
-                }
-            );
-
-            modelBuilder.Entity<Trinity.Shared.Models.TaskStatus>().HasData(
-                new Trinity.Shared.Models.TaskStatus
-                {
-                    ID = 1,
-                    Name = "Queued",
-                },
-                new Trinity.Shared.Models.TaskStatus
-                {
-                    ID = 2,
-                    Name = "Pending",
-                },
-                new Trinity.Shared.Models.TaskStatus
-                {
-                    ID = 3,
-                    Name = "Running",
-                },
-                new Trinity.Shared.Models.TaskStatus
-                {
-                    ID = 4,
-                    Name = "Successful",
-                },
-                new Trinity.Shared.Models.TaskStatus
-                {
-                    ID = 5,
-                    Name = "Failure",
-                }
-            );
-
             modelBuilder.Entity<CampaignBridge>()
                 .HasIndex(cb => new { cb.CampaignID, cb.OperatorID })
                 .IsUnique();

@@ -1,8 +1,8 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Net;
-using TeamServer.Exceptions;
-using Trinity.Shared.Results;
+using TeamServer.Services;
 using Trinity.Shared.Errors;
+using Trinity.Shared.Results;
 
 namespace TeamServer.Modules
 {
@@ -12,6 +12,7 @@ namespace TeamServer.Modules
         private CancellationTokenSource _cts;
         private bool _isDisposed;
         private ILogger<HttpModule> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -19,12 +20,13 @@ namespace TeamServer.Modules
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpListener"></param>
-        public HttpModule(ILogger<HttpModule> logger, HttpListener httpListener)
+        public HttpModule(ILogger<HttpModule> logger, HttpListener httpListener, IServiceScopeFactory serviceScopeFactory)
         {
             HttpListener = httpListener;
             _cts = new CancellationTokenSource();
             _logger = logger;
             _isDisposed = false;
+            _scopeFactory = serviceScopeFactory;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -34,10 +36,10 @@ namespace TeamServer.Modules
         /// <returns></returns>
         public async Task StartPolling()
         {
-            while (!_cts.Token.IsCancellationRequested) 
+            while (!_cts.Token.IsCancellationRequested)
             {
                 HttpListenerContext context = await HttpListener.GetContextAsync();
-                _ = Task.Run(() => ProcessRequest(context), _cts.Token);
+                _ = Task.Run(async () => await ProcessRequest(context), _cts.Token);
             }
         }
 
@@ -49,21 +51,37 @@ namespace TeamServer.Modules
         /// <remarks>Writes a UTF-8 encoded HTML acknowledgment to the response stream, sets
         /// ContentLength64, logs informational and error events, and closes the response in a finally block.</remarks>
         /// <param name="context">The HttpListenerContext containing the HTTP request and response.</param>
-        private void ProcessRequest(HttpListenerContext context)
+        private async Task ProcessRequest(HttpListenerContext context)
         {
             try
             {
                 _logger.LogInformation($"Request recieved from agent");
+
+                string responseBlob;
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
-                
-                string responseString = "<HTML><BODY> Recieved </BODY></HTML>";
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var body = context.Request.InputStream;
+                    StreamReader reader = new StreamReader(body);
+                    string blob = reader.ReadToEnd();
+                    var agentService = scope.ServiceProvider.GetService<AgentService>();
+
+                    if (agentService == null) throw new NullReferenceException("Could not retrieve Agent Service from IServiceProvider!");
+
+                    var output = await agentService.Checkin(blob);
+                    if (!output.IsSuccess) throw new ArgumentException("Malformed checkin request!");
+                    responseBlob = output.Response!;
+                }
+
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseBlob);
                 response.ContentLength64 = buffer.Length;
                 response.OutputStream.Write(buffer, 0, buffer.Length);
             }
             catch (Exception ex)
             {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
                 _logger.LogError(ex, "Exception occured: {Message}", ex.Message);
             }
             finally
@@ -91,7 +109,7 @@ namespace TeamServer.Modules
                 HttpListener.Prefixes.Clear();
 
                 HttpListener.Prefixes.Add(CreateURI(bindport));
-                await Restart();
+                await RestartAsync();
 
                 return Result.Success();
             }
@@ -123,11 +141,19 @@ namespace TeamServer.Modules
         /// may cause unexpected behavior; callers should avoid invoking Restart concurrently and handle any exceptions
         /// thrown by the listener operations.</remarks>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public async Task Restart()
+        public async Task RestartAsync()
         {
             HttpListener.Stop();
             HttpListener.Start();
-            await StartPolling();
+            await _cts.CancelAsync();
+            _cts = new CancellationTokenSource();
+            _ = Task.Run(async () => StartPolling());
+        }
+
+        public async Task ShutdownAsync()
+        {
+            HttpListener.Stop();
+            await _cts.CancelAsync();
         }
     }
 }

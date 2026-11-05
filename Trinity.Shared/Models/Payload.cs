@@ -1,7 +1,4 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Trinity.Shared.Enums;
 
 namespace Trinity.Shared.Models
@@ -14,9 +11,11 @@ namespace Trinity.Shared.Models
         public required int CampaignID { get; set; }
         public required int CreatedByOperatorID { get; set; }
         public required string FileName { get; set; }
-        public required Architectures Architecture { get; set; }
-        public required string RetryStrategy { get; set; }
-        public required PayloadTypes PayloadType { get; set; }
+        public required Arch Arch { get; set; }
+        public required int Sleep { get; set; }
+        public required int Jitter { get; set; }
+        public required RotationStrategy RotationStrategy { get; set; }
+        public required PayloadType Type { get; set; }
         public required string AES256KEY { get; set; }
         public required DateTime CreatedAt { get; set; }
     }

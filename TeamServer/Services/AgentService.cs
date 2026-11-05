@@ -8,7 +8,6 @@ using TeamServer.Services.Factories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Agent;
 using Trinity.Shared.DTOs.Checkin;
-using Trinity.Shared.Enums;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
 using static Trinity.Shared.Constants.CheckinRequestOffsets;
@@ -89,7 +88,7 @@ namespace TeamServer.Services
             var data = JsonSerializer.Deserialize<IntialCheckInRequest>(requestBody.Span);
             var payload = await _payloadRepo.GetPayloadByUUIDAsync(uuid);
 
-            var agent = _agentFactory.Create(data!, payload!.AES256KEY, 5000, 10, Util.GetEnumValue<Architectures>(payload.Architecture), payload.ID);
+            var agent = _agentFactory.Create(data!, payload!);
             await _agentRepo.CreateAgentAsync(agent);
             await _agentRepo.CommitAsync();
 

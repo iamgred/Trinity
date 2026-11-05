@@ -1,24 +1,20 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Serialization;
+using Trinity.Shared.Enums;
 
 namespace Trinity.Shared.DTOs.Payload
 {
     public class PayloadCreationDTO
     {
         public string Name { get; set; } = String.Empty;
+        public int OperatorID { get; set; }
+        public int Sleep { get; set; }
+        public int Jitter { get; set; }
         public int ListenerID { get; set; }
         public int CampaignID { get; set; }
-        public string Architecture { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string OutputFormat { get; set; } = string.Empty;
-        public string RetryStrategy { get; set; } = string.Empty;
+        public Arch Architecture { get; set; }
+        public PayloadType Type { get; set; }
+        public RotationStrategy RotationStrategy { get; set; }
         public bool isStageless { get; set; } = default;
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Error { get; set; }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

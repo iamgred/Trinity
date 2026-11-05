@@ -10,7 +10,7 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class CommandService
+    public class CommandService : ICommandService
     {
         private readonly CommandFactory _commandFactory;
         private readonly CommandRepository _commandRepo;

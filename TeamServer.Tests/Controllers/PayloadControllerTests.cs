@@ -6,6 +6,7 @@ using TeamServer.Controllers;
 using TeamServer.Interface;
 using Trinity.Shared.DTOs.Payload;
 using Trinity.Shared.Errors;
+using Trinity.Shared.Enums;
 using Trinity.Shared.Results;
 using Xunit;
 
@@ -34,10 +35,9 @@ namespace TeamServer.Tests.Controllers
                 Name = "TestPayload",
                 ListenerID = 1,
                 CampaignID = 2,
-                Architecture = "x64",
-                Type = "WinExe",
-                OutputFormat = "exe",
-                RetryStrategy = "none",
+                Architecture = Arch.x64,
+                Type = PayloadType.WINDOWS_EXE,
+                RotationStrategy = RotationStrategy.ROUND_ROBIN,
                 isStageless = false
             };
 
@@ -62,10 +62,9 @@ namespace TeamServer.Tests.Controllers
                 Name = "TestPayload",
                 ListenerID = 1,
                 CampaignID = 2,
-                Architecture = "x64",
-                Type = "WinExe",
-                OutputFormat = "exe",
-                RetryStrategy = "none",
+                Architecture = Arch.x64,
+                Type = PayloadType.WINDOWS_EXE,
+                RotationStrategy = RotationStrategy.ROUND_ROBIN,
                 isStageless = false
             };
 

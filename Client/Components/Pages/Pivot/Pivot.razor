@@ -1,0 +1,125 @@
+@page "/pivot"
+@namespace Client.Components.Pages
+@rendermode InteractiveServer
+@using Client.Services
+@using Trinity.Shared.Models
+
+<div class="v2-header">
+    <div class="v2-header-left">
+        <span class="v2-header-title">Pivot Graph</span>
+        <span class="v2-header-count">@_agents.Count agent(s)</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+        <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+            <MudButton OnClick='() => _view = "graph"'
+                       Color="@(_view == "graph" ? Color.Primary : Color.Default)">Graph</MudButton>
+            <MudButton OnClick='() => _view = "table"'
+                       Color="@(_view == "table" ? Color.Primary : Color.Default)">Table</MudButton>
+        </MudButtonGroup>
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAgentsAsync" />
+    </div>
+</div>
+
+@if (_view == "graph")
+{
+    <div class="graph-card-v2">
+        <div class="graph-toolbar-v2">
+            <div class="graph-legend">
+                <span><span class="legend-dot legend-dot-server"></span>TeamServer</span>
+                <span><span class="legend-dot legend-dot-online"></span>Online</span>
+                <span><span class="legend-dot legend-dot-offline"></span>Offline</span>
+            </div>
+            <div style="display:flex;gap:4px;">
+                <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"            Size="Size.Small" OnClick="ZoomIn" />
+                <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"           Size="Size.Small" OnClick="ZoomOut" />
+                <MudIconButton Icon="@Icons.Material.Filled.CenterFocusStrong" Size="Size.Small" OnClick="ResetZoom" />
+            </div>
+        </div>
+
+        <div class="graph-viewport-v2" id="graph-viewport">
+            <svg class="graph-svg-v2" viewBox="@_svgViewBox" id="pivot-svg">
+                <g transform="translate(400,280)">
+                    <circle r="26" class="node-circle--server-v2" />
+                    @((MarkupString)"<text class=\"node-label-v2\" y=\"42\" text-anchor=\"middle\">TeamServer</text>")
+                </g>
+
+                @{ int idx = 0; }
+                @foreach (var agent in _agents)
+                {
+                    var (ax, ay) = AgentPosition(idx, _agents.Count);
+                    var online   = IsOnline(agent);
+                    var midX     = (ax + 400) / 2;
+                    var midY     = (ay + 280) / 2;
+                    idx++;
+                    <g @onclick="() => SelectAgent(agent)" style="cursor:pointer;">
+                        <line class="@(online ? "edge-online-v2" : "edge-offline-v2")"
+                              x1="@ax" y1="@ay" x2="400" y2="280" />
+                        @((MarkupString)$"<text class=\"edge-label-v2\" x=\"{midX}\" y=\"{midY - 4}\" text-anchor=\"middle\">HTTP</text>")
+                        <circle cx="@ax" cy="@ay" r="20"
+                                class="@(online ? "node-circle--online-v2" : "node-circle--offline-v2")"
+                                style="@(_selectedAgent?.ID == agent.ID ? "stroke-width:3;" : "")" />
+                        @((MarkupString)$"<text class=\"node-label-v2\" x=\"{ax}\" y=\"{ay + 32}\" text-anchor=\"middle\">{Shorten(agent.Username)}</text>")
+                    </g>
+                }
+
+                @if (_agents.Count == 0)
+                {
+                    @((MarkupString)"<text x=\"400\" y=\"295\" class=\"graph-empty-text\" text-anchor=\"middle\">No agents connected</text>")
+                }
+            </svg>
+        </div>
+
+        @if (_selectedAgent is not null)
+        {
+            <div class="graph-detail-v2">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:13px;font-weight:700;color:var(--text-primary);">@_selectedAgent.Username</span>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="() => _selectedAgent = null" />
+                </div>
+                <div class="gd-row"><span class="gd-key">ID</span>    <span class="gd-val gd-mono">@_selectedAgent.ID</span></div>
+                <div class="gd-row"><span class="gd-key">User</span>  <span class="gd-val">@_selectedAgent.Username</span></div>
+                <div class="gd-row"><span class="gd-key">Arch</span>  <span class="gd-val gd-mono">@_selectedAgent.Architecure</span></div>
+                <div class="gd-row"><span class="gd-key">IP</span>    <span class="gd-val gd-mono">@_selectedAgent.ExternalIP</span></div>
+                <div class="gd-row"><span class="gd-key">Seen</span>  <span class="gd-val">@FormatLastSeen(_selectedAgent.LastCheckIn)</span></div>
+                <div class="gd-row">
+                    <span class="gd-key">Status</span>
+                    <span class="gd-val @(IsOnline(_selectedAgent) ? "gd-online" : "gd-offline")">
+                        @(IsOnline(_selectedAgent) ? "Online" : "Offline")
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="v2-table-wrap">
+        <MudTable Items="@_agents" Dense="true" Hover="true" Elevation="0" Loading="@_loading">
+            <HeaderContent>
+                <MudTh>id</MudTh>
+                <MudTh>username</MudTh>
+                <MudTh>ip</MudTh>
+                <MudTh>arch</MudTh>
+                <MudTh>status</MudTh>
+                <MudTh>last seen</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Class="td-mono">@context.ID</MudTd>
+                <MudTd>@context.Username</MudTd>
+                <MudTd Class="td-mono">@context.ExternalIP</MudTd>
+                <MudTd Class="td-mono">@context.Architecure</MudTd>
+                <MudTd>
+                    <span class="v2-badge @(IsOnline(context) ? "v2-badge-online" : "v2-badge-offline")">
+                        <span class="v2-dot"></span>@(IsOnline(context) ? "online" : "offline")
+                    </span>
+                </MudTd>
+                <MudTd>@FormatLastSeen(context.LastCheckIn)</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <div class="v2-table-empty">
+                    <span class="v2-empty-title">No agents have checked in yet</span>
+                </div>
+            </NoRecordsContent>
+        </MudTable>
+    </div>
+}

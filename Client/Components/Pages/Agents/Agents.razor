@@ -1,0 +1,82 @@
+@page "/agents"
+@namespace Client.Components.Pages
+@rendermode InteractiveServer
+@using Client.Services
+@using Trinity.Shared.Models
+
+<div class="v2-header">
+    <div class="v2-header-left">
+        <span class="v2-header-title">Agents</span>
+        <span class="v2-header-count">@_agents.Count registered · @OnlineCount online</span>
+    </div>
+    <MudTooltip Text="Refresh">
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAgentsAsync" />
+    </MudTooltip>
+</div>
+
+<div class="v2-table-wrap">
+    <MudTable Items="@FilteredAgents"
+              Dense="true"
+              Hover="true"
+              Elevation="0"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Primary"
+              FixedHeader="true">
+        <HeaderContent>
+            <MudTh>id</MudTh>
+            <MudTh>external</MudTh>
+            <MudTh>internal</MudTh>
+            <MudTh>listener</MudTh>
+            <MudTh>user</MudTh>
+            <MudTh>process</MudTh>
+            <MudTh>pid</MudTh>
+            <MudTh>arch</MudTh>
+            <MudTh>integrity</MudTh>
+            <MudTh>last</MudTh>
+            <MudTh>sleep</MudTh>
+            <MudTh>status</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="id"        Class="td-mono">@context.ID</MudTd>
+            <MudTd DataLabel="external"  Class="td-mono">@context.ExternalIP</MudTd>
+            <MudTd DataLabel="internal"  Class="td-mono">—</MudTd>
+            <MudTd DataLabel="listener">—</MudTd>
+            <MudTd DataLabel="user">@context.Username</MudTd>
+            <MudTd DataLabel="process"   Class="td-mono">—</MudTd>
+            <MudTd DataLabel="pid"       Class="td-mono">—</MudTd>
+            <MudTd DataLabel="arch"      Class="td-mono">@context.Architecure</MudTd>
+            <MudTd DataLabel="integrity">—</MudTd>
+            <MudTd DataLabel="last"      Class="td-mono">@FormatLastSeen(context.LastCheckIn)</MudTd>
+            <MudTd DataLabel="sleep"     Class="td-mono">—</MudTd>
+            <MudTd DataLabel="status">
+                <span class="v2-badge @(IsOnline(context) ? "v2-badge-online" : "v2-badge-offline")">
+                    <span class="v2-dot"></span>
+                    @(IsOnline(context) ? "online" : "offline")
+                </span>
+            </MudTd>
+            <MudTd>
+                <div class="v2-row-actions">
+                    <MudTooltip Text="Interact">
+                        <MudIconButton Icon="@Icons.Material.Filled.Terminal"
+                                       Size="Size.Small"
+                                       Disabled="@(!IsOnline(context))"
+                                       OnClick="() => InteractWithAgent(context)" />
+                    </MudTooltip>
+                    <MudTooltip Text="Delete">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Size="Size.Small"
+                                       Color="Color.Error"
+                                       OnClick="@(async () => await DeleteAgentAsync(context))" />
+                    </MudTooltip>
+                </div>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <div class="v2-table-empty">
+                <span class="v2-empty-title">No agents have checked in</span>
+                <span class="v2-empty-hint">Deploy a payload to connect agents</span>
+            </div>
+        </NoRecordsContent>
+    </MudTable>
+</div>

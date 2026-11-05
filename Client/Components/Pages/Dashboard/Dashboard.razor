@@ -1,0 +1,137 @@
+@page "/dashboard"
+@namespace Client.Components.Pages
+@rendermode InteractiveServer
+@using Client.Services
+@using Trinity.Shared.Models
+
+<div class="dash-header">
+    <div class="page-title-group">
+        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Class="page-title-icon" />
+        <MudText Typo="Typo.h5" Class="page-title">Dashboard</MudText>
+    </div>
+    <div class="dash-header-actions">
+        <MudText Typo="Typo.caption" Class="dash-refresh-hint">Last updated: @_lastRefresh</MudText>
+        <MudTooltip Text="Refresh"><MudIconButton Icon="@Icons.Material.Filled.Refresh" Class="refresh-btn" OnClick="LoadAllAsync" /></MudTooltip>
+    </div>
+</div>
+
+<MudGrid Class="stat-row" Spacing="3">
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="stat-card">
+            <div class="stat-card-inner">
+                <div class="stat-card-text">
+                    <MudText Typo="Typo.caption" Class="stat-label">Active Agents</MudText>
+                    <MudText Typo="Typo.h4" Class="stat-value">@_onlineAgents</MudText>
+                </div>
+                <div class="stat-card-icon stat-icon-green">
+                    <MudIcon Icon="@Icons.Material.Filled.Computer" Class="stat-icon stat-icon--green" />
+                </div>
+            </div>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="stat-card">
+            <div class="stat-card-inner">
+                <div class="stat-card-text">
+                    <MudText Typo="Typo.caption" Class="stat-label">Active Listeners</MudText>
+                    <MudText Typo="Typo.h4" Class="stat-value stat-value--accent">@_activeListeners</MudText>
+                </div>
+                <div class="stat-card-icon stat-icon-accent">
+                    <MudIcon Icon="@Icons.Material.Filled.Router" Class="stat-icon" />
+                </div>
+            </div>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="stat-card">
+            <div class="stat-card-inner">
+                <div class="stat-card-text">
+                    <MudText Typo="Typo.caption" Class="stat-label">Tasks Queued</MudText>
+                    <MudText Typo="Typo.h4" Class="stat-value">@_queuedTasks</MudText>
+                </div>
+                <div class="stat-card-icon stat-icon-blue">
+                    <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="stat-icon stat-icon--blue" />
+                </div>
+            </div>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="stat-card">
+            <div class="stat-card-inner">
+                <div class="stat-card-text">
+                    <MudText Typo="Typo.caption" Class="stat-label">Tasks Completed</MudText>
+                    <MudText Typo="Typo.h4" Class="stat-value stat-value--green">@_completedTasks</MudText>
+                </div>
+                <div class="stat-card-icon stat-icon-muted">
+                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="stat-icon stat-icon--muted" />
+                </div>
+            </div>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<MudGrid Spacing="4">
+    <MudItem xs="12" md="6">
+        <MudPaper Class="panel-card">
+            <div class="panel-card-header">
+                <MudText Typo="Typo.subtitle1" Class="panel-card-title">Recent Agents</MudText>
+            </div>
+            @if (_recentAgents.Count == 0 && !_loading)
+            {
+                <div class="panel-empty">
+                    <MudText Typo="Typo.body2" Class="empty-text">No agents have checked in yet</MudText>
+                </div>
+            }
+            else
+            {
+                <MudList T="string" Dense="true" Class="agent-list">
+                    @foreach (var agent in _recentAgents)
+                    {
+                        <MudListItem T="string" Class="agent-list-item">
+                            <div class="agent-list-row">
+                                <div class="agent-list-left">
+                                    <div class="agent-status-dot @(IsOnline(agent) ? "dot-online" : "dot-offline")"></div>
+                                    <div class="agent-list-info">
+                                        <span class="agent-list-host">@agent.Username</span>
+                                        <span class="agent-list-meta">@agent.Username · @agent.ExternalIP</span>
+                                    </div>
+                                </div>
+                                <span class="agent-list-seen">@FormatLastSeen(agent.LastCheckIn)</span>
+                            </div>
+                        </MudListItem>
+                    }
+                </MudList>
+            }
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" md="6">
+        <MudPaper Class="panel-card">
+            <div class="panel-card-header">
+                <MudText Typo="Typo.subtitle1" Class="panel-card-title">Recent Tasks</MudText>
+            </div>
+            @if (_recentTasks.Count == 0 && !_loading)
+            {
+                <div class="panel-empty">
+                    <MudText Typo="Typo.body2" Class="empty-text">No tasks dispatched yet</MudText>
+                </div>
+            }
+            else
+            {
+                <MudList T="string" Dense="true" Class="task-list">
+                    @foreach (var task in _recentTasks)
+                    {
+                        <MudListItem T="string" Class="task-list-item">
+                            <div class="task-list-row">
+                                <div class="task-list-left">
+                                    <span class="task-status-badge @TaskStatusClass(task.Status.ToString())">@task.Status</span>
+                                    <span class="task-list-cmd">@Shorten(task.Command?.RootElement.GetRawText(), 42)</span>
+                                </div>
+                                <span class="task-list-time td-mono">@FormatDate(task.CreatedAt)</span>
+                            </div>
+                        </MudListItem>
+                    }
+                </MudList>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>

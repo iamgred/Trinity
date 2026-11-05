@@ -13,7 +13,7 @@ public class ListenerService
     /// <summary>
     /// GET /api/v1/listeners — returns all configured listeners.
     /// </summary>
-    public async Task<List<Listener>> GetAllAsync()
+    public async Task<List<Listener>> GetTasksAsync()
         => await _http.GetFromJsonAsync<List<Listener>>("/api/v1/listeners") ?? [];
 
     /// <summary>

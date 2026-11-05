@@ -2,21 +2,20 @@ using System.Text.Json;
 using Client.Components.Shell;
 using Client.Services;
 using Microsoft.AspNetCore.Components;
-using Trinity.Shared.DTOs.Task;
+using TrinityTask = Trinity.Shared.Models.Task;
 
 namespace Client.Components.Pages.Logs;
 
 public partial class Logs : IAsyncDisposable
 {
     private sealed record EventEntry(DateTime Time, string Category, string Tone, IReadOnlyList<EventPart> Parts);
-
     private sealed record EventPart(string Text, string Style = "");
 
     [Inject]
-    private TaskApiClient TaskApiClient { get; set; } = default!;
+    private TaskApiService TaskApiClient { get; set; } = default!;
 
     [CascadingParameter]
-    private WorkspaceState State { get; set; } = default!;
+    private WorkspaceState? State { get; set; }
 
     private readonly CancellationTokenSource _stop = new();
     private List<EventEntry> _events = [];
@@ -25,7 +24,7 @@ public partial class Logs : IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        State.OpenTab("Event Log", "logs");
+        State?.OpenTab("Event Log", "logs");
         await LoadAsync();
         _ = PollAsync();
     }
@@ -41,19 +40,23 @@ public partial class Logs : IAsyncDisposable
                 await InvokeAsync(StateHasChanged);
             }
         }
-        catch (OperationCanceledException)
-        {
-        }
+        catch (OperationCanceledException) { }
     }
 
-    // TODO(connect to backend): no event log yet, so show tasks instead
+    /* TODO: no event log yet, show tasks instead */
     private async Task LoadAsync()
     {
         _isLoading = true;
         try
         {
-            var tasks = await TaskApiClient.GetTasksAsync(_stop.Token);
-            _events = tasks.OrderBy(t => t.timeStamp).Select(ToEvent).ToList();
+            var tasks = await TaskApiClient.GetTasksAsync();
+            _events = tasks.OrderBy(t => t.CreatedAt).Select(ToEvent).ToList();
+            _loadError = null;
+        }
+        catch (HttpRequestException e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            /* /api/v1/tasks not yet implemented on the team server */
+            _events = [];
             _loadError = null;
         }
         catch (Exception e) when (e is HttpRequestException or InvalidOperationException or JsonException or TaskCanceledException)
@@ -66,24 +69,33 @@ public partial class Logs : IAsyncDisposable
         }
     }
 
-    private static EventEntry ToEvent(TaskResponse task)
+    private static EventEntry ToEvent(TrinityTask task)
     {
-        var failed = TaskStatuses.IsFailed(task.status);
-        var time = task.timeStamp.Kind == DateTimeKind.Utc ? task.timeStamp.ToLocalTime() : task.timeStamp;
+        var status = task.Status.ToString();
+        var failed = TaskStatuses.IsFailed(status);
+
+        var time = task.CreatedAt.Kind == DateTimeKind.Utc
+            ? task.CreatedAt.ToLocalTime()
+            : task.CreatedAt;
+
         EventPart[] parts = failed
             ?
             [
-                new(task.agentID.ToString(), "em"),
-                new($" {task.commandType} failed: "),
-                new(task.status, "err"),
+                new(task.AgentID.ToString(), "em"),
+                new($" {task.CommandType} failed: "),
+                new(status, "err"),
             ]
             :
             [
-                new(task.agentID.ToString(), "em"),
-                new($" {task.commandType} · {task.status}"),
+                new(task.AgentID.ToString(), "em"),
+                new($" {task.CommandType} · {status}"),
             ];
 
-        return new EventEntry(time, failed ? "error" : "agent", failed ? "red" : "green", parts);
+        return new EventEntry(
+            time,
+            failed ? "error" : "agent",
+            failed ? "red" : "green",
+            parts);
     }
 
     public ValueTask DisposeAsync()

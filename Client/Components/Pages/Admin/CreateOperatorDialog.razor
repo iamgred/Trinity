@@ -3,7 +3,6 @@
 @using Client.Services
 @using Campaign = Trinity.Shared.Models.Campaign
 @using Operator = Trinity.Shared.Models.Operator
-@using Admin = Trinity.Shared.Models.Admin
 @inject OperatorService OperatorService
 @inject AdminService AdminService
 @inject IHttpClientFactory HttpFactory
@@ -198,20 +197,19 @@
         var username = _username.Trim();
         if (_role == "admin")
         {
-            return await AdminService.CreateAsync(new Admin { Username = username, Password = _password }) ? null : "The team server refused the new admin.";
+            return await AdminService.CreateAsync(new Trinity.Shared.Models.Admin { Username = username, Password = _password }) ? null : "The team server refused the new admin.";
         }
 
-        if (!await OperatorService.CreateAsync(new Operator { Username = username, Password = _password }))
+        if (!await OperatorService.CreateAsync(username, _password, _role))
         {
             return "The team server refused the new operator.";
         }
 
-        // server dosent send the new account back so look it up
-        var created = (await OperatorService.GetAllAsync()).FirstOrDefault(o => o.Username == username);
+        // server doesn't send the new account back so look it up
+        var created = (await OperatorService.GetTasksAsync()).FirstOrDefault(o => o.Username == username);
         return created is null ? "The operator was created but could not be found to assign campaigns." : await SyncCampaignsAsync(created.ID, []);
     }
 
-    // TODO(connect to backend): editing an account also needs its password
     private async Task<string?> SaveEditAsync()
     {
         if (Existing is null)
@@ -222,7 +220,7 @@
         var http = HttpFactory.CreateClient("TeamServer");
         var username = _username.Trim();
         var response = Existing.IsAdmin
-            ? await http.PutAsJsonAsync($"/api/v1/admins/{Existing.Id}", new Admin { ID = Existing.Id, Username = username, Password = Existing.Password })
+            ? await http.PutAsJsonAsync($"/api/v1/admins/{Existing.Id}", new Trinity.Shared.Models.Admin { ID = Existing.Id, Username = username, Password = Existing.Password })
             : await http.PutAsJsonAsync($"/api/v1/operators/{Existing.Id}", new Operator { ID = Existing.Id, Username = username, Password = Existing.Password });
         if (!response.IsSuccessStatusCode)
         {
@@ -241,7 +239,7 @@
 
         var http = HttpFactory.CreateClient("TeamServer");
         var response = Existing.IsAdmin
-            ? await http.PutAsJsonAsync($"/api/v1/admins/{Existing.Id}", new Admin { ID = Existing.Id, Username = Existing.Username, Password = _password })
+            ? await http.PutAsJsonAsync($"/api/v1/admins/{Existing.Id}", new Trinity.Shared.Models.Admin { ID = Existing.Id, Username = Existing.Username, Password = _password })
             : await http.PutAsJsonAsync($"/api/v1/operators/{Existing.Id}", new Operator { ID = Existing.Id, Username = Existing.Username, Password = _password });
         return response.IsSuccessStatusCode ? null : $"The team server refused the new password ({(int)response.StatusCode}).";
     }

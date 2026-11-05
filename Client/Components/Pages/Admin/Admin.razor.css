@@ -1,0 +1,302 @@
+.admin-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.page-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-title-icon {
+    color: var(--accent);
+    font-size: 26px !important;
+}
+
+.page-title {
+    color: var(--txt) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.admin-tabs {
+    background-color: transparent !important;
+}
+
+::deep .admin-tabs .mud-tabs-header {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    margin-bottom: 16px;
+    min-height: 42px !important;
+}
+
+::deep .admin-tabs .mud-tab {
+    color: var(--txt-muted) !important;
+    font-size: 0.84rem !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    min-height: 42px !important;
+    padding: 0 16px !important;
+}
+
+    ::deep .admin-tabs .mud-tab.mud-tab-active {
+        color: var(--accent) !important;
+        font-weight: 600 !important;
+    }
+
+::deep .admin-tabs .mud-tab-slider {
+    background-color: var(--accent) !important;
+    height: 2px !important;
+}
+
+::deep .admin-tabs .mud-tabs-panels {
+    background-color: transparent !important;
+    padding: 0 !important;
+}
+
+.tab-content {
+    padding-top: 4px;
+}
+
+.tab-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.toolbar-search {
+    flex: 1;
+    max-width: 300px;
+}
+
+.toolbar-add-btn {
+    background-color: var(--accent) !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    flex-shrink: 0;
+}
+
+.toolbar-refresh-btn {
+    color: var(--txt-muted) !important;
+}
+
+.table-card {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
+    margin-bottom: 16px;
+}
+
+.campaigns-table {
+    background-color: transparent !important;
+}
+
+::deep .campaigns-table .mud-table-body td {
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    font-size: 0.83rem !important;
+    padding: 10px 16px !important;
+}
+
+::deep .campaigns-table .mud-table-row:hover td {
+    background-color: rgba(255,255,255,0.04) !important;
+}
+
+::deep .campaigns-table .mud-table-head th {
+    background-color: var(--card-deep) !important;
+    color: var(--txt-muted) !important;
+    font-size: 0.73rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 10px 16px !important;
+}
+
+.campaign-name {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.td-desc {
+    color: var(--txt-muted);
+    max-width: 360px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.td-mono {
+    font-family: 'Cascadia Code', 'Courier New', monospace;
+    color: var(--txt-muted);
+}
+
+.th-name {
+    min-width: 160px;
+}
+
+.th-desc {
+    min-width: 200px;
+}
+
+.th-created {
+    width: 130px;
+}
+
+.th-actions {
+    width: 80px;
+}
+
+.operators-table {
+    background-color: transparent !important;
+}
+
+::deep .operators-table .mud-table-body td {
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    font-size: 0.83rem !important;
+    padding: 10px 16px !important;
+}
+
+::deep .operators-table .mud-table-row:hover td {
+    background-color: rgba(255,255,255,0.04) !important;
+}
+
+::deep .operators-table .mud-table-head th {
+    background-color: var(--card-deep) !important;
+    color: var(--txt-muted) !important;
+    font-size: 0.73rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 10px 16px !important;
+}
+
+.th-username {
+    min-width: 160px;
+}
+
+.th-role {
+    width: 120px;
+}
+
+.operator-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.operator-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--accent-dim);
+    border: 1px solid var(--accent-glow);
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.operator-name {
+    font-weight: 500;
+    color: var(--txt);
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.role-admin {
+    background-color: rgba(232,119,34,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent-glow);
+}
+
+.role-operator {
+    background-color: rgba(255,255,255,0.07);
+    color: var(--txt-muted);
+    border: 1px solid var(--border);
+}
+
+.row-action-btn {
+    color: var(--txt-muted) !important;
+    padding: 4px !important;
+}
+
+    .row-action-btn:hover {
+        color: var(--txt) !important;
+    }
+
+.row-action-btn--danger:hover {
+    color: var(--red) !important;
+}
+
+.table-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 40px 16px;
+}
+
+.empty-icon {
+    font-size: 36px !important;
+    color: var(--txt-faint);
+}
+
+.empty-text {
+    color: var(--txt-muted) !important;
+}
+
+.dialog-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dialog-title-icon {
+    color: var(--accent);
+}
+
+.dialog-title-text {
+    color: var(--txt) !important;
+}
+
+.dialog-form {
+    padding: 4px 0;
+}
+
+.dialog-field {
+    width: 100%;
+}
+
+.dialog-error {
+    margin-top: 8px;
+}
+
+.dialog-cancel-btn {
+    text-transform: none !important;
+    color: var(--txt-muted) !important;
+}
+
+.dialog-submit-btn {
+    background-color: var(--accent) !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+    min-width: 80px;
+}

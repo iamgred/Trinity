@@ -39,7 +39,7 @@ namespace Client.Interpreter
             {
                 { psStrategy.Keyword, (agentID, command) => psStrategy.ProcessCommandAsync(agentID, command) },
                 { shellStrategy.Keyword, (agentID, command) => shellStrategy.ProcessCommandAsync(agentID, command) },
-                { runStrategy.Keyword, (agentID, command) => runAsStrategy.ProcessCommandAsync(agentID, command) },
+                { runAsStrategy.Keyword, (agentID, command) => runAsStrategy.ProcessCommandAsync(agentID, command) },
                 { runStrategy.Keyword, (agentID, command) => runStrategy.ProcessCommandAsync(agentID, command) },
                 { runUStrategy.Keyword, (agentID, command) => runUStrategy.ProcessCommandAsync(agentID, command) },
                 { killProcessStrategy.Keyword, (agentID, command) => killProcessStrategy.ProcessCommandAsync(agentID, command) },

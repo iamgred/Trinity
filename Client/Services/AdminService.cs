@@ -13,7 +13,7 @@ public class AdminService
     // <summary>
     // GET /api/v1/admins — returns all admin accounts.
     // </summary>
-    public async Task<List<Admin>> GetAllAsync()
+    public async Task<List<Admin>> GetTasksAsync()
         => await _http.GetFromJsonAsync<List<Admin>>("/api/v1/admins") ?? [];
 
     // <summary>

@@ -84,7 +84,7 @@ public partial class Login
     {
         try
         {
-            var admins = await AdminService.GetAllAsync();
+            var admins = await AdminService.GetTasksAsync();
             return admins.Any(a => a.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
         }
         catch (HttpRequestException)

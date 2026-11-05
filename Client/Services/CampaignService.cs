@@ -10,30 +10,20 @@ public class CampaignService
     public CampaignService(IHttpClientFactory factory)
         => _http = factory.CreateClient("TeamServer");
 
-    /// <summary>
-    /// GET /api/v1/campaigns — returns all campaigns.
-    /// </summary>
-    public async Task<List<Campaign>> GetAllAsync()
+    public async Task<List<Campaign>> GetTasksAsync()
         => await _http.GetFromJsonAsync<List<Campaign>>("/api/v1/campaigns") ?? [];
 
-    /// <summary>
-    /// GET /api/v1/campaigns/{id} — returns one campaign.
-    /// </summary>
     public async Task<Campaign?> GetByIdAsync(int id)
         => await _http.GetFromJsonAsync<Campaign>($"/api/v1/campaigns/{id}");
 
-    /// <summary>
-    /// POST /api/v1/campaigns — creates a new campaign.
-    /// </summary>
-    public async Task<bool> CreateAsync(Campaign campaign)
+    // Changed: now takes (string name, string description) instead of (Campaign campaign)
+    public async Task<bool> CreateAsync(string name, string description = "")
     {
-        var response = await _http.PostAsJsonAsync("/api/v1/campaigns", campaign);
+        var body = new { Name = name, Description = description };
+        var response = await _http.PostAsJsonAsync("/api/v1/campaigns", body);
         return response.IsSuccessStatusCode;
     }
 
-    /// <summary>
-    /// DELETE /api/v1/campaigns/{id} — deletes a campaign.
-    /// </summary>
     public async Task<bool> DeleteAsync(int id)
     {
         var response = await _http.DeleteAsync($"/api/v1/campaigns/{id}");

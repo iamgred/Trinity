@@ -1,9 +1,10 @@
+@namespace Client.Components.Pages.Dialogs
 @using System.Net.Http.Json
 @using System.Text.Json
 @using Client.Components.UI
 @using Client.Services
-@using Trinity.Shared.DTOs.Payload
 @using Campaign = Trinity.Shared.Models.Campaign
+@using Trinity.Shared.DTOs.Payload
 @inject ListenerApiClient ListenerApi
 @inject CampaignService CampaignService
 @inject IHttpClientFactory HttpFactory
@@ -74,7 +75,6 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnGenerated { get; set; }
 
-    
     private static readonly IReadOnlyList<string> PayloadTypes = ["winexe", "dll"];
 
     private IReadOnlyList<ListenerResponse> _listeners = [];
@@ -91,7 +91,7 @@
         try
         {
             _listeners = await ListenerApi.GetListenersAsync();
-            _campaigns = await CampaignService.GetAllAsync();
+            _campaigns = await CampaignService.GetTasksAsync();
         }
         catch (Exception e) when (e is HttpRequestException or InvalidOperationException or JsonException)
         {
@@ -124,7 +124,6 @@
         _busy = true;
         try
         {
-            // TODO(connect to backend): the shared PayloadService uses the wrong address, so the right one is called here
             var http = HttpFactory.CreateClient("TeamServer");
             var response = await http.PostAsJsonAsync("/api/v1/payloads/generate", request);
             if (!response.IsSuccessStatusCode)

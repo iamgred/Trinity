@@ -1,0 +1,170 @@
+@page "/admin"
+@namespace Client.Components.Pages.Admin
+@rendermode InteractiveServer
+@using Client.Services
+@using Trinity.Shared.Models
+
+<div class="admin-header">
+    <div class="page-title-group">
+        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="page-title-icon" />
+        <MudText Typo="Typo.h5" Class="page-title">Admin</MudText>
+    </div>
+</div>
+
+<MudTabs @bind-ActivePanelIndex="_activeTab" Class="admin-tabs" Elevation="0" ApplyEffectsToContainer="true">
+    <MudTabPanel Text="Campaigns" Icon="@Icons.Material.Filled.Campaign">
+        <div class="tab-content">
+            <div class="tab-toolbar">
+                <MudTextField @bind-Value="_campaignSearch" Placeholder="Search campaigns…"
+                    Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                    Variant="Variant.Outlined" Margin="Margin.Dense" Class="toolbar-search" Immediate="true" />
+                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled"
+                    Color="Color.Primary" Class="toolbar-add-btn" OnClick="() => _createCampaignOpen = true">
+                    New Campaign
+                </MudButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" Class="toolbar-refresh-btn" OnClick="LoadCampaignsAsync" />
+            </div>
+            <MudPaper Class="table-card">
+                <MudTable Items="@FilteredCampaigns" Dense="true" Hover="true" Class="campaigns-table"
+                    Elevation="0" Loading="@_loadingCampaigns" LoadingProgressColor="Color.Primary">
+                    <HeaderContent>
+                        <MudTh Class="th-name">Name</MudTh>
+                        <MudTh Class="th-desc">Description</MudTh>
+                        <MudTh Class="th-created">Created</MudTh>
+                        <MudTh Class="th-actions">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Name"><span class="campaign-name">@context.Name</span></MudTd>
+                        <MudTd DataLabel="Description" Class="td-desc">@("—")</MudTd>
+                        <MudTd DataLabel="Created" Class="td-mono">@("—")</MudTd>
+                        <MudTd DataLabel="Actions">
+                            <MudTooltip Text="Delete">
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                    Class="row-action-btn row-action-btn--danger"
+                                    OnClick="@(async () => await DeleteCampaignAsync(context))" />
+                            </MudTooltip>
+                        </MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <div class="table-empty">
+                            <MudIcon Icon="@Icons.Material.Filled.Campaign" Class="empty-icon" />
+                            <MudText Typo="Typo.body2" Class="empty-text">No campaigns found</MudText>
+                        </div>
+                    </NoRecordsContent>
+                </MudTable>
+            </MudPaper>
+        </div>
+    </MudTabPanel>
+
+    <MudTabPanel Text="Operators" Icon="@Icons.Material.Filled.People">
+        <div class="tab-content">
+            <div class="tab-toolbar">
+                <MudTextField @bind-Value="_operatorSearch" Placeholder="Search operators…"
+                    Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                    Variant="Variant.Outlined" Margin="Margin.Dense" Class="toolbar-search" Immediate="true" />
+                <MudButton StartIcon="@Icons.Material.Filled.PersonAdd" Variant="Variant.Filled"
+                    Color="Color.Primary" Class="toolbar-add-btn" OnClick="() => _createOperatorOpen = true">
+                    Add Operator
+                </MudButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" Class="toolbar-refresh-btn" OnClick="LoadOperatorsAsync" />
+            </div>
+            <MudPaper Class="table-card">
+                <MudTable Items="@FilteredOperators" Dense="true" Hover="true" Class="operators-table"
+                    Elevation="0" Loading="@_loadingOperators" LoadingProgressColor="Color.Primary">
+                    <HeaderContent>
+                        <MudTh Class="th-username">Username</MudTh>
+                        <MudTh Class="th-role">Role</MudTh>
+                        <MudTh Class="th-created">Registered</MudTh>
+                        <MudTh Class="th-actions">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Username">
+                            <div class="operator-cell">
+                                <div class="operator-avatar">@FirstChar(context.Username)</div>
+                                <span class="operator-name">@context.Username</span>
+                            </div>
+                        </MudTd>
+                        <MudTd DataLabel="Role"><span class="role-badge role-operator">Operator</span></MudTd>
+                        <MudTd DataLabel="Registered" Class="td-mono">@("—")</MudTd>
+                        <MudTd DataLabel="Actions">
+                            <MudTooltip Text="Remove operator">
+                                <MudIconButton Icon="@Icons.Material.Filled.PersonRemove" Size="Size.Small"
+                                    Class="row-action-btn row-action-btn--danger"
+                                    OnClick="@(async () => await DeleteOperatorAsync(context))" />
+                            </MudTooltip>
+                        </MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <div class="table-empty">
+                            <MudIcon Icon="@Icons.Material.Filled.People" Class="empty-icon" />
+                            <MudText Typo="Typo.body2" Class="empty-text">No operators found</MudText>
+                        </div>
+                    </NoRecordsContent>
+                </MudTable>
+            </MudPaper>
+        </div>
+    </MudTabPanel>
+</MudTabs>
+
+<MudDialog @bind-Visible="_createCampaignOpen" Options="_dialogOpts">
+    <TitleContent>
+        <div class="dialog-title">
+            <MudIcon Icon="@Icons.Material.Filled.Campaign" Class="dialog-title-icon" />
+            <MudText Typo="Typo.h6" Class="dialog-title-text">New Campaign</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3" Class="dialog-form">
+            <MudTextField @bind-Value="_newCampaignName" Label="Campaign Name"
+                Variant="Variant.Outlined" Class="dialog-field" Required="true" />
+            <MudTextField @bind-Value="_newCampaignDesc" Label="Description"
+                Variant="Variant.Outlined" Class="dialog-field" Lines="3" />
+            @if (_campaignError is not null)
+            {
+                <MudAlert Severity="Severity.Error" Class="dialog-error">@_campaignError</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _createCampaignOpen = false" Class="dialog-cancel-btn">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Class="dialog-submit-btn"
+            Disabled="@_savingCampaign" OnClick="CreateCampaignAsync">
+            @if (_savingCampaign) { <MudProgressCircular Size="Size.Small" Indeterminate="true" /> }
+            else { <span>Create</span> }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @bind-Visible="_createOperatorOpen" Options="_dialogOpts">
+    <TitleContent>
+        <div class="dialog-title">
+            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="dialog-title-icon" />
+            <MudText Typo="Typo.h6" Class="dialog-title-text">Add Operator</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3" Class="dialog-form">
+            <MudTextField @bind-Value="_newOperatorName" Label="Username"
+                Variant="Variant.Outlined" Class="dialog-field" Required="true" />
+            <MudTextField @bind-Value="_newOperatorPass" Label="Password"
+                InputType="InputType.Password" Variant="Variant.Outlined" Class="dialog-field" Required="true" />
+            <MudSelect @bind-Value="_newOperatorRole" Label="Role"
+                Variant="Variant.Outlined" Class="dialog-field">
+                <MudSelectItem Value="@("Operator")">Operator</MudSelectItem>
+                <MudSelectItem Value="@("Admin")">Admin</MudSelectItem>
+            </MudSelect>
+            @if (_operatorError is not null)
+            {
+                <MudAlert Severity="Severity.Error" Class="dialog-error">@_operatorError</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _createOperatorOpen = false" Class="dialog-cancel-btn">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Class="dialog-submit-btn"
+            Disabled="@_savingOperator" OnClick="CreateOperatorAsync">
+            @if (_savingOperator) { <MudProgressCircular Size="Size.Small" Indeterminate="true" /> }
+            else { <span>Add</span> }
+        </MudButton>
+    </DialogActions>
+</MudDialog>

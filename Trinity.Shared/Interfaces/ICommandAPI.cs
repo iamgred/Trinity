@@ -50,7 +50,8 @@ namespace Trinity.Shared.Interfaces
         [Post("/api/v1/commands/{agentID}/execute/getuid")]
         Task<CommandCreationResponse> QueueGetUIDCommandAsync(int agentID);
 
-        [Post("/api/v1/commands{agentID}/execute/escalate")]
+        [Post("/api/v1/commands/{agentID}/execute/escalate")]
+
         Task<CommandCreationResponse> QueueEscalateCommandAsync(int agentID, [Body] EscalateDTO dto);
     }
 }

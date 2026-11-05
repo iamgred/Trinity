@@ -1,0 +1,23 @@
+@page "/armoury"
+@namespace Client.Components.Pages
+@rendermode InteractiveServer
+
+<PageTitle>Armoury — Trinity C2</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-6">
+    <MudStack Spacing="4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Shield" Color="Color.Primary" />
+            <MudText Typo="Typo.h5">Armoury</MudText>
+        </MudStack>
+        <MudPaper Elevation="0"
+                  Class="d-flex flex-column justify-center align-center pa-10"
+                  Style="min-height:220px; border:1px solid rgba(255,255,255,0.08);">
+            <MudIcon Icon="@Icons.Material.Filled.Inventory2" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+            <MudText Typo="Typo.body1" Color="Color.Secondary">No arsenal items available</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="mt-1">
+                Build payloads using the Generate Payload section
+            </MudText>
+        </MudPaper>
+    </MudStack>
+</MudContainer>

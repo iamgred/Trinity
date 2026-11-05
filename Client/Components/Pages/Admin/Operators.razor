@@ -81,7 +81,7 @@
         try
         {
             var http = HttpFactory.CreateClient("TeamServer");
-            _campaigns = await CampaignService.GetAllAsync();
+            _campaigns = await CampaignService.GetTasksAsync();
 
             var campaignsByOperator = new Dictionary<int, List<int>>();
             foreach (var campaign in _campaigns)
@@ -93,8 +93,8 @@
                 }
             }
 
-            var admins = await AdminService.GetAllAsync();
-            var operators = await OperatorService.GetAllAsync();
+            var admins = await AdminService.GetTasksAsync();
+            var operators = await OperatorService.GetTasksAsync();
             _rows =
             [
                 .. admins.Select(a => new OperatorRow(a.ID, a.Username, a.Password, true, [], a.LastLogin)),

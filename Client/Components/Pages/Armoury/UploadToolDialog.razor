@@ -1,5 +1,6 @@
 @using Client.Components.Shell
 @using Client.Services
+@using Client.Components.UI
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject IHttpClientFactory HttpFactory
@@ -8,54 +9,52 @@
 
 <MudDialog>
     <TitleContent>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-            <MudIcon Icon="@Icons.Material.Filled.Upload" Color="Color.Primary" />
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.h6">Upload Tool</MudText>
-                <MudText Typo="Typo.caption" Class="mud-text-secondary">Add a .NET assembly to the armoury</MudText>
-            </MudStack>
-        </MudStack>
+        <DialogTitle Icon="@Icons.Material.Outlined.FileUpload" Title="Upload Tool" Subtitle="Add a .NET assembly to the armoury" />
     </TitleContent>
     <DialogContent>
-        <MudStack Spacing="3">
+        <FormRow Label="File" Top="true">
             <MudFileUpload T="IBrowserFile" Files="_file" FilesChanged="OnFileChanged" Accept=".exe,.dll" MaxFileSize="MaxBytes">
                 <CustomContent>
-                    <MudPaper Outlined="true" Class="pa-4 d-flex align-center gap-3" Style="cursor:pointer;" @onclick="context.OpenFilePickerAsync">
-                        <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Color="@(_file is null ? Color.Default : Color.Primary)" />
-                        <MudStack Spacing="0" Style="flex:1;min-width:0;">
+                    <div class="t-file-box" @onclick="context.OpenFilePickerAsync">
+                        <MudIcon Icon="@Icons.Material.Outlined.InsertDriveFile" Color="@(_file is null ? Color.Default : Color.Primary)" Style="font-size:18px;" />
+                        <div style="flex:1;min-width:0;">
                             @if (_file is null)
                             {
-                                <MudText Typo="Typo.body2">Choose a file…</MudText>
-                                <MudText Typo="Typo.caption" Class="mud-text-secondary">.exe or .dll, up to @(MaxBytes / 1_048_576) MB</MudText>
+                                <div style="font-size:13px;">Choose a file…</div>
+                                <div class="t-form-hint" style="margin-top:2px;">.exe or .dll, up to @(MaxBytes / 1_048_576) MB</div>
                             }
                             else
                             {
-                                <MudText Typo="Typo.body2" Style="font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;">@_file.Name</MudText>
-                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@FormatSize(_file.Size)</MudText>
+                                <div class="mono" style="font-size:13px;overflow:hidden;text-overflow:ellipsis;">@_file.Name</div>
+                                <div class="t-form-hint" style="margin-top:2px;">@FormatSize(_file.Size)</div>
                             }
-                        </MudStack>
+                        </div>
                         <MudButton Size="Size.Small" Variant="Variant.Outlined">@(_file is null ? "Browse" : "Change")</MudButton>
-                    </MudPaper>
+                    </div>
                 </CustomContent>
                 <SelectedTemplate />
             </MudFileUpload>
+        </FormRow>
 
-            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Immediate="true"
-                          HelperText="What operators will see in the armoury" />
+        <FormRow Label="Name" Hint="What operators will see in the armoury" Top="true">
+            <MudTextField @bind-Value="_name" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" />
+        </FormRow>
 
-            <MudStack Row="true" Spacing="2">
-                <MudChip T="string" Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="ma-0">x64</MudChip>
-                <MudChip T="string" Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="ma-0">.NET assembly</MudChip>
-            </MudStack>
+        <FormRow Label="Type">
+            <span class="d-inline-flex gap-2">
+                <span class="t-lock-chip"><MudIcon Icon="@Icons.Material.Outlined.Lock" />x64</span>
+                <span class="t-lock-chip"><MudIcon Icon="@Icons.Material.Outlined.Lock" />.NET assembly</span>
+            </span>
+        </FormRow>
 
-            @if (_error is not null)
-            {
-                <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_error</MudAlert>
-            }
-        </MudStack>
+        @if (_error is not null)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-2" role="alert">@_error</MudAlert>
+        }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel" Disabled="_busy">Cancel</MudButton>
+        <span class="t-dialog-note">Stored on the team server for every operator.</span>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="Cancel" Disabled="_busy">Cancel</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_busy" OnClick="UploadAsync">@(_busy ? "Uploading…" : "Upload")</MudButton>
     </DialogActions>
 </MudDialog>

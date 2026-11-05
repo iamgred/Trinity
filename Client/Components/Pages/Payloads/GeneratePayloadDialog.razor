@@ -1,6 +1,7 @@
 @using System.Net.Http.Json
 @using System.Text.Json
 @using Client.Services
+@using Client.Components.UI
 @using Trinity.Shared.DTOs.Payload
 @using Trinity.Shared.Enums
 @using Campaign = Trinity.Shared.Models.Campaign
@@ -10,19 +11,15 @@
 
 <MudDialog>
     <TitleContent>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-            <MudIcon Icon="@Icons.Material.Filled.Build" Color="Color.Primary" />
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.h6">Generate Payload</MudText>
-                <MudText Typo="Typo.caption" Class="mud-text-secondary">Build an agent that calls back to a listener</MudText>
-            </MudStack>
-        </MudStack>
+        <DialogTitle Icon="@Icons.Material.Outlined.Bolt" Title="Generate Payload" Subtitle="Build an agent that calls back to a listener" />
     </TitleContent>
     <DialogContent>
-        <MudStack Spacing="3">
-            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Immediate="true" />
+        <FormRow Label="Name">
+            <MudTextField @bind-Value="_name" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" />
+        </FormRow>
 
-            <MudSelect T="int" @bind-Value="_listenerId" Label="Listener" Variant="Variant.Outlined">
+        <FormRow Label="Listener">
+            <MudSelect T="int" @bind-Value="_listenerId" Variant="Variant.Outlined" Margin="Margin.Dense">
                 @if (_listeners.Count == 0)
                 {
                     <MudSelectItem T="int" Value="0">No listeners running</MudSelectItem>
@@ -32,25 +29,24 @@
                     <MudSelectItem T="int" Value="@listener.id">@listener.name · @listener.protocol.ToUpperInvariant()</MudSelectItem>
                 }
             </MudSelect>
+        </FormRow>
 
-            <div>
-                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mb-1">Architecture</MudText>
-                <MudChip T="string" Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="ma-0">x64</MudChip>
-                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mt-1">Trinity agents are built for x64 only.</MudText>
-            </div>
+        <FormRow Label="Architecture" Hint="Trinity agents are built for x64 only." Top="true">
+            <span class="t-lock-chip"><MudIcon Icon="@Icons.Material.Outlined.Lock" />x64</span>
+        </FormRow>
 
-            <div>
-                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block mb-1">Payload Type</MudText>
-                <MudToggleGroup T="PayloadType" @bind-Value="_type" Color="Color.Primary" Size="Size.Small" Outlined="true" CheckMark="true">
-                    @foreach (var (type, label) in PayloadTypes)
-                    {
-                        <MudToggleItem Value="@type" Text="@label" />
-                    }
-                </MudToggleGroup>
-            </div>
+        <FormRow Label="Payload Type">
+            <MudToggleGroup T="PayloadType" @bind-Value="_type" Class="t-segmented" Outlined="false" Delimiters="false" CheckMark="false">
+                @foreach (var (type, label) in PayloadTypes)
+                {
+                    <MudToggleItem Value="@type" Text="@label" />
+                }
+            </MudToggleGroup>
+        </FormRow>
 
-            <MudSelect T="int" @bind-Value="_campaignId" Label="Campaign" Variant="Variant.Outlined"
-                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Flag">
+        <FormRow Label="Campaign">
+            <MudSelect T="int" @bind-Value="_campaignId" Variant="Variant.Outlined" Margin="Margin.Dense"
+                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Flag" AdornmentColor="Color.Primary">
                 @if (_campaigns.Count == 0)
                 {
                     <MudSelectItem T="int" Value="0">No campaigns</MudSelectItem>
@@ -60,16 +56,16 @@
                     <MudSelectItem T="int" Value="@campaign.ID">@campaign.Name</MudSelectItem>
                 }
             </MudSelect>
+        </FormRow>
 
-            @if (_error is not null)
-            {
-                <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_error</MudAlert>
-            }
-        </MudStack>
+        @if (_error is not null)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-2" role="alert">@_error</MudAlert>
+        }
     </DialogContent>
     <DialogActions>
-        <MudText Typo="Typo.caption" Class="mud-text-secondary mr-auto ml-2">Built on the team server and added to Payloads.</MudText>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <span class="t-dialog-note">Built on the team server and added to Payloads.</span>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="_busy" OnClick="GenerateAsync">@(_busy ? "Generating…" : "Generate")</MudButton>
     </DialogActions>
 </MudDialog>

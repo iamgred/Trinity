@@ -1,6 +1,4 @@
-<MudPaper Square="true" Elevation="0" Style="border-top:1px solid var(--mud-palette-divider);">
-    <MudToolBar Dense="true" Gutters="true" Class="gap-2">@ChildContent</MudToolBar>
-</MudPaper>
+<div class="t-actionbar">@ChildContent</div>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }

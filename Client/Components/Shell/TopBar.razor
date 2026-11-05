@@ -4,30 +4,29 @@
 @inject TeamServerConnection Connection
 @inject NavigationManager Nav
 
-<MudAppBar Fixed="false" Dense="true" Elevation="0" Style="border-bottom:1px solid var(--mud-palette-divider);">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-        <img src="img/shell/shell-logo.png" alt="" width="20" height="20" />
-        <MudText Typo="Typo.subtitle1" Style="font-weight:800;letter-spacing:0.12em;">TRINITY</MudText>
-    </MudStack>
+<MudAppBar Fixed="false" Dense="true" Elevation="0">
+    <span class="d-inline-flex align-center gap-2">
+        <span class="t-logo"><img src="img/shell/shell-logo.png" alt="" width="18" height="18" /></span>
+        <span class="t-brand">TRINITY</span>
+    </span>
 
     @if (Admin)
     {
-        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined" Class="ml-3">ADMIN CONSOLE</MudChip>
+        <span class="t-admin-badge ml-6">ADMIN CONSOLE</span>
     }
 
-    <MudButton Size="Size.Small" Color="Color.Inherit" Class="ml-3" Style="text-transform:none;">Help</MudButton>
+    <span class="t-topbar-link @(Admin ? "ml-5" : "ml-6")">Help</span>
 
     <MudSpacer />
 
     @if (Admin)
     {
-        <MudButton Href="logs" Size="Size.Small" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.ArrowBack" Style="text-transform:none;">Back to workspace</MudButton>
+        <MudButton Href="logs" Size="Size.Small" Class="t-topbar-btn mr-4" StartIcon="@Icons.Material.Outlined.ArrowBack">Back to workspace</MudButton>
     }
     else
     {
         <MudTooltip Text="@(Connected ? "Team server reachable" : "Team server not reachable")">
-            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Icon="@Icons.Material.Filled.Circle"
-                     IconColor="@(Connected ? Color.Success : Color.Error)" Style="font-family:'JetBrains Mono',monospace;">@ServerLabel</MudChip>
+            <span class="t-server-pill mr-4 @(Connected ? null : "t-down")"><span class="t-dot"></span>@ServerLabel</span>
         </MudTooltip>
     }
 
@@ -36,22 +35,23 @@
         @if (_user.IsAdmin && !Admin)
         {
             <MudTooltip Text="Open the admin console">
-                <MudButton Href="campaigns" Size="Size.Small" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Person" Style="text-transform:none;">
-                    <b>@_user.Name</b>&nbsp;<span class="mud-text-secondary">@_user.Role</span>
-                </MudButton>
+                <a href="campaigns" class="t-user mr-3">
+                    <MudIcon Icon="@Icons.Material.Outlined.PersonOutline" Style="font-size:16px;" />
+                    <b>@_user.Name</b><span class="t-role">@_user.Role</span>
+                </a>
             </MudTooltip>
         }
         else
         {
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mx-2">
-                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
-                <MudText Typo="Typo.body2"><b>@_user.Name</b> <span class="mud-text-secondary">@_user.Role</span></MudText>
-            </MudStack>
+            <span class="t-user mr-3">
+                <MudIcon Icon="@Icons.Material.Outlined.PersonOutline" Style="font-size:16px;" />
+                <b>@_user.Name</b><span class="t-role">@_user.Role</span>
+            </span>
         }
     }
 
     <MudTooltip Text="Sign out">
-        <MudIconButton Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Color="Color.Inherit" OnClick="SignOutAsync" />
+        <MudIconButton Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" Color="Color.Inherit" Style="padding:4px;" OnClick="SignOutAsync" />
     </MudTooltip>
 </MudAppBar>
 

@@ -36,7 +36,7 @@
 </MudToolBar>
 
 <div style="flex:1;min-height:0;overflow:auto;">
-    <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true" Style="font-family:'JetBrains Mono',monospace;">
+    <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true">
         <thead>
             <tr><th>agent</th><th>type</th><th>name</th><th>path / value</th><th>size</th><th>received</th><th>status</th><th>collected</th></tr>
         </thead>
@@ -47,7 +47,7 @@
             }
             @foreach (var item in Filtered)
             {
-                <tr style="cursor:pointer;@(item == _selected ? "background:rgba(232,119,34,0.13);" : null)" @onclick="() => _selected = item">
+                <tr class="@(item == _selected ? "t-row-selected" : null)" style="cursor:pointer;" @onclick="() => _selected = item">
                     <td>@(item.AgentId?.ToString() ?? "–")</td>
                     <td>
                         <span class="d-inline-flex align-center gap-2">
@@ -81,43 +81,41 @@
 
 <ActionBar>
     <MudSpacer />
-    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" Disabled="!CanSave" OnClick="SaveToDiskAsync">Save to Disk</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Save" Disabled="!CanSave" OnClick="SaveToDiskAsync">Save to Disk</MudButton>
     <MudButton Size="Size.Small" Variant="Variant.Outlined" Disabled="!CanCancel" OnClick="CancelDownload">Cancel Download</MudButton>
-    <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.ContentCopy" Disabled="_selected is null" OnClick="CopyValueAsync">@(_copyStatus ?? "Copy Value")</MudButton>
-    <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenNote">Add Note</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.ContentCopy" Disabled="_selected is null" OnClick="CopyValueAsync">@(_copyStatus ?? "Copy Value")</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Add" OnClick="OpenNote">Add Note</MudButton>
     <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" Disabled="_selected is null" OnClick="Remove">Remove</MudButton>
     <MudSpacer />
 </ActionBar>
 
 <MudDialog @bind-Visible="_noteOpen" Options="_dialogOptions">
     <TitleContent>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-            <MudIcon Icon="@Icons.Material.Filled.StickyNote2" Color="Color.Primary" />
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.h6">Add Note</MudText>
-                <MudText Typo="Typo.caption" Class="mud-text-secondary">Saved to loot for an agent</MudText>
-            </MudStack>
-        </MudStack>
+        <DialogTitle Icon="@Icons.Material.Outlined.StickyNote2" Title="Add Note" Subtitle="Saved to loot for an agent" />
     </TitleContent>
     <DialogContent>
-        <MudStack Spacing="3">
-            <MudSelect T="string" @bind-Value="_noteAgent" Label="Agent" Variant="Variant.Outlined">
+        <FormRow Label="Agent">
+            <MudSelect T="string" @bind-Value="_noteAgent" Variant="Variant.Outlined" Margin="Margin.Dense">
                 @foreach (var id in AgentIds)
                 {
                     <MudSelectItem T="string" Value="@id">Agent @id</MudSelectItem>
                 }
             </MudSelect>
-            <MudTextField @bind-Value="_noteName" Label="Title" Variant="Variant.Outlined" Immediate="true" />
-            <MudTextField @bind-Value="_noteText" Label="Note" Variant="Variant.Outlined" Immediate="true" Lines="3" />
-            @if (_noteError is not null)
-            {
-                <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_noteError</MudAlert>
-            }
-        </MudStack>
+        </FormRow>
+        <FormRow Label="Title">
+            <MudTextField @bind-Value="_noteName" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" />
+        </FormRow>
+        <FormRow Label="Note" Top="true">
+            <MudTextField @bind-Value="_noteText" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Lines="3" />
+        </FormRow>
+        @if (_noteError is not null)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-2" role="alert">@_noteError</MudAlert>
+        }
     </DialogContent>
     <DialogActions>
-        <MudText Typo="Typo.caption" Class="mud-text-secondary mr-auto ml-2">Notes stay with the agent's loot.</MudText>
-        <MudButton OnClick="() => _noteOpen = false">Cancel</MudButton>
+        <span class="t-dialog-note">Notes stay with the agent's loot.</span>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="() => _noteOpen = false">Cancel</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveNote">Add Note</MudButton>
     </DialogActions>
 </MudDialog>

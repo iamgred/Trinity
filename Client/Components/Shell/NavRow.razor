@@ -1,28 +1,25 @@
 @inject NavigationManager Nav
 @implements IDisposable
 
-<MudPaper Square="true" Elevation="0" Style="border-bottom:1px solid var(--mud-palette-divider);background:var(--mud-palette-background-gray);">
-    <MudToolBar Dense="true" Gutters="true" Class="gap-1">
-        @Item("Listeners", Icons.Material.Filled.Sensors, null)
-        @Item("Pivot Graph", Icons.Material.Filled.AccountTree, null)
-        @Item("Agents", Icons.Material.Filled.Devices, null)
-        <MudDivider Vertical="true" FlexItem="true" Class="mx-1" />
-        @Item("Event Log", Icons.Material.Filled.EventNote, "logs")
-        @Item("Loot", Icons.Material.Filled.Inventory2, "loot")
-        @Item("Armoury", Icons.Material.Filled.Shield, "armoury")
-        <MudDivider Vertical="true" FlexItem="true" Class="mx-1" />
-        <MudButton Href="payloads?generate=1" Size="Size.Small" Color="Color.Primary"
-                   Variant="@(IsCurrent("payloads") ? Variant.Filled : Variant.Outlined)"
-                   StartIcon="@Icons.Material.Filled.Build" Style="text-transform:none;white-space:nowrap;">Generate Payload</MudButton>
+<nav class="t-nav">
+    @Item("Listeners", Icons.Material.Outlined.Headset, null)
+    @Item("Pivot Graph", Icons.Material.Outlined.Share, null)
+    @Item("Agents", Icons.Material.Outlined.TableChart, null)
+    <span class="t-sep"></span>
+    @Item("Event Log", Icons.Material.Outlined.MonitorHeart, "logs")
+    @Item("Loot", Icons.Material.Outlined.Inventory2, "loot")
+    @Item("Armoury", Icons.Material.Outlined.ViewInAr, "armoury")
+    <span class="t-sep"></span>
+    <MudButton Href="payloads?generate=1" Size="Size.Small" Variant="Variant.Text" DropShadow="false"
+               Class="@($"t-nav-item t-generate {(IsCurrent("payloads") ? "t-active" : null)}")"
+               StartIcon="@Icons.Material.Outlined.Bolt">Generate Payload</MudButton>
 
-        <MudSpacer />
+    <MudSpacer />
 
-        <MudTextField T="string" Value="State.Filter" ValueChanged="OnFilter" Immediate="true"
-                      Placeholder="Filter agents by host, user, id…" Variant="Variant.Outlined" Margin="Margin.Dense"
-                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small"
-                      Style="max-width:320px;" />
-    </MudToolBar>
-</MudPaper>
+    <MudTextField T="string" Value="State.Filter" ValueChanged="OnFilter" Immediate="true" Class="t-filter"
+                  Placeholder="Filter agents by host, user, id…" Variant="Variant.Outlined" Margin="Margin.Dense"
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" IconSize="Size.Small" />
+</nav>
 
 @code {
     [CascadingParameter] public WorkspaceState State { get; set; } = default!;
@@ -38,14 +35,13 @@
         if (href is null)
         {
             <MudTooltip Text="@($"{label} is not in the new shell yet")">
-                <MudButton Size="Size.Small" Disabled="true" StartIcon="@icon" Style="text-transform:none;white-space:nowrap;">@label</MudButton>
+                <MudButton Size="Size.Small" Disabled="true" Class="t-nav-item" StartIcon="@icon">@label</MudButton>
             </MudTooltip>
         }
         else
         {
-            var active = IsCurrent(href);
-            <MudButton Href="@href" Size="Size.Small" StartIcon="@icon" Style="text-transform:none;white-space:nowrap;"
-                       Color="@(active ? Color.Primary : Color.Default)" Variant="@(active ? Variant.Filled : Variant.Text)">@label</MudButton>
+            <MudButton Href="@href" Size="Size.Small" Variant="Variant.Text" StartIcon="@icon"
+                       Class="@($"t-nav-item {(IsCurrent(href) ? "t-active" : null)}")">@label</MudButton>
         }
     };
 

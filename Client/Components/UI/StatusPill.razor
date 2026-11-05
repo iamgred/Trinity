@@ -1,4 +1,4 @@
-<MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="TrinityTheme.ToColor(Tone)" Class="ma-0">@Text</MudChip>
+<span class="t-pill" style="--pill:@TrinityTheme.Hex(Tone);">@Text</span>
 
 @code {
     [Parameter, EditorRequired] public string Text { get; set; } = "";

@@ -1,23 +1,23 @@
 @using Trinity.Shared.DTOs.Agent
 @inject NavigationManager Nav
 
-<MudToolBar Dense="true" Gutters="true" Class="gap-3" Style="flex:0 0 auto;min-height:36px;">
-    <MudText Typo="Typo.overline" Style="font-weight:700;">AGENTS · @State.Agents.Count</MudText>
-    <MudText Typo="Typo.caption" Class="mud-text-secondary">Right-click an agent for actions · double-click to interact</MudText>
+<div class="t-strip">
+    <span class="t-strip-title">AGENTS · @State.Agents.Count</span>
+    <span class="t-strip-hint">Right-click an agent for actions · double-click to interact</span>
     <MudSpacer />
-    <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
-        <MudButton StartIcon="@Icons.Material.Filled.TableRows" Color="Color.Primary" Variant="Variant.Filled">Table</MudButton>
-        <MudButton StartIcon="@Icons.Material.Filled.Hub" Disabled="true" title="Pivot Graph is not in the new shell yet">Graph</MudButton>
-    </MudButtonGroup>
-</MudToolBar>
+    <span class="t-toggle">
+        <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.TableChart">Table</MudButton>
+        <MudButton Size="Size.Small" Variant="Variant.Text" Disabled="true" StartIcon="@Icons.Material.Outlined.Share" title="Pivot Graph is not in the new shell yet">Graph</MudButton>
+    </span>
+</div>
 
 <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true"
-                Style="flex:1;min-height:0;overflow:auto;font-family:'JetBrains Mono',monospace;">
+                Style="flex:1;min-height:0;overflow:auto;">
     <thead>
         <tr>
             <th>id</th><th>external</th><th>internal</th><th>listener</th><th>user</th><th>process</th>
             <th>pid</th><th>arch</th><th>integrity</th>
-            <th>last <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" Style="vertical-align:middle;" /></th>
+            <th style="color:var(--t-orange) !important;">last <MudIcon Icon="@Icons.Material.Outlined.ExpandMore" Style="font-size:13px;vertical-align:middle;" /></th>
             <th>sleep</th>
         </tr>
     </thead>
@@ -36,14 +36,14 @@
             {
                 var selected = agent.agentID == State.SelectedAgentId;
                 var smb = WorkspaceState.IsSmb(agent);
-                <tr style="@RowStyle(agent, selected)"
+                <tr class="@(selected ? "t-row-selected" : null)" style="@RowStyle(agent)"
                     @onclick="() => Select(agent)"
                     @ondblclick="() => Interact(agent)"
                     @oncontextmenu="e => OpenMenu(agent, e)" @oncontextmenu:preventDefault="true">
                     <td>
                         <span class="d-inline-flex align-center gap-2" style="@(smb ? "padding-left:14px" : null)">
-                            <MudIcon Icon="@(smb ? Icons.Material.Filled.Lan : Icons.Material.Filled.Computer)" Size="Size.Small"
-                                     Color="@(smb ? Color.Info : selected ? Color.Primary : Color.Default)" />
+                            <MudIcon Icon="@(smb ? Icons.Material.Outlined.Link : Icons.Material.Outlined.DesktopWindows)" Style="font-size:14px;"
+                                     Color="@(smb ? Color.Success : selected ? Color.Primary : Color.Default)" />
                             @agent.agentID
                         </span>
                     </td>
@@ -54,7 +54,7 @@
                     <td>@agent.processName</td>
                     <td>@agent.PID</td>
                     <td>@agent.arch</td>
-                    <td class="@(IsHigh(agent) ? "mud-error-text" : null)">@agent.integrity</td>
+                    <td style="@(IsHigh(agent) ? "color:var(--t-orange)" : null)">@agent.integrity</td>
                     <td>@WorkspaceState.FormatAgo(WorkspaceState.SinceLastCheckIn(agent))</td>
                     <td>@(agent.sleep)s</td>
                 </tr>
@@ -81,8 +81,8 @@
     private static bool IsHigh(AgentResponse agent) =>
         agent.integrity.Equals("High", StringComparison.OrdinalIgnoreCase) || agent.integrity.Equals("System", StringComparison.OrdinalIgnoreCase);
 
-    private static string RowStyle(AgentResponse agent, bool selected) =>
-        "cursor:pointer;" + (selected ? "background:rgba(232,119,34,0.13);" : "") + (WorkspaceState.IsStale(agent) ? "opacity:0.5;" : "");
+    private static string RowStyle(AgentResponse agent) =>
+        "cursor:pointer;" + (WorkspaceState.IsStale(agent) ? "opacity:0.5;" : "");
 
     private void Select(AgentResponse agent)
     {

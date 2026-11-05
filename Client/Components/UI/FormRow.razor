@@ -1,0 +1,17 @@
+<div class="t-form-row @(Top ? "t-top" : null)">
+    <span class="t-form-label">@Label</span>
+    <div>
+        @ChildContent
+        @if (!string.IsNullOrEmpty(Hint))
+        {
+            <div class="t-form-hint">@Hint</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public string? Hint { get; set; }
+    [Parameter] public bool Top { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

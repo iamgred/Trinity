@@ -21,7 +21,7 @@
         <MudText Typo="Typo.body2" Class="mud-text-secondary">Admins create every account. There is no self-registration.</MudText>
     </MudStack>
     <MudSpacer />
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="() => OpenAsync(OperatorDialogMode.Create)">Create Operator</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="() => OpenAsync(OperatorDialogMode.Create)">Create Operator</MudButton>
 </MudStack>
 
 @if (_error is not null)
@@ -30,7 +30,7 @@
 }
 
 <MudPaper Outlined="true">
-    <MudSimpleTable Dense="true" Hover="true" Elevation="0" Style="font-family:'JetBrains Mono',monospace;">
+    <MudSimpleTable Dense="true" Hover="true" Elevation="0">
         <thead><tr><th>id</th><th>username</th><th>role</th><th>campaigns</th><th>last login</th></tr></thead>
         <tbody>
             @if (_rows.Count == 0)
@@ -39,7 +39,7 @@
             }
             @foreach (var row in _rows)
             {
-                <tr style="cursor:pointer;@(row == _selected ? "background:rgba(232,119,34,0.13);" : null)" @onclick="() => Select(row)">
+                <tr class="@(row == _selected ? "t-row-selected" : null)" style="cursor:pointer;" @onclick="() => Select(row)">
                     <td>@row.Id</td>
                     <td>@row.Username</td>
                     <td><StatusPill Text="@(row.IsAdmin ? "admin" : "operator")" Tone="@(row.IsAdmin ? "orange" : "blue")" /></td>
@@ -52,9 +52,9 @@
 </MudPaper>
 
 <MudStack Row="true" Spacing="2" Class="mt-3">
-    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" Disabled="_selected is null" OnClick="() => OpenAsync(OperatorDialogMode.Edit)">Edit</MudButton>
-    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Key" Disabled="_selected is null" OnClick="() => OpenAsync(OperatorDialogMode.ResetPassword)">Reset Password</MudButton>
-    <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Disabled="_selected is null" OnClick="RemoveAsync">@(_confirmRemove ? $"Remove {_selected?.Username}?" : "Remove")</MudButton>
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Edit" Disabled="_selected is null" OnClick="() => OpenAsync(OperatorDialogMode.Edit)">Edit</MudButton>
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Key" Disabled="_selected is null" OnClick="() => OpenAsync(OperatorDialogMode.ResetPassword)">Reset Password</MudButton>
+    <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Outlined.Delete" Disabled="_selected is null" OnClick="RemoveAsync">@(_confirmRemove ? $"Remove {_selected?.Username}?" : "Remove")</MudButton>
 </MudStack>
 
 @code {

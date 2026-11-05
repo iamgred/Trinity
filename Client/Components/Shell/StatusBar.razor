@@ -1,16 +1,14 @@
-<MudPaper Square="true" Elevation="0" Class="d-flex align-center gap-4 px-3"
-          Style="height:26px;flex:0 0 26px;border-top:1px solid var(--mud-palette-divider);background:var(--mud-palette-background-gray);">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-        <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@(Connected ? Color.Success : Color.Error)" Style="font-size:9px;" />
-        <MudText Typo="Typo.caption">@(Connected ? "Connected" : "Disconnected")</MudText>
-    </MudStack>
+<div class="t-statusbar">
+    <span class="d-inline-flex align-center gap-2">
+        <span class="t-dot" style="background:@(Connected ? "#35C759" : "#E5484D")"></span>
+        @(Connected ? "Connected" : "Disconnected")
+    </span>
     @foreach (var item in Items)
     {
-        <MudText Typo="Typo.caption" Class="mud-text-secondary">@item</MudText>
+        <span>@item</span>
     }
-    <MudSpacer />
-    <MudText Typo="Typo.caption" Class="mud-text-secondary">Trinity C2 · v2.0</MudText>
-</MudPaper>
+    <span class="ml-auto">Trinity C2 · v2.0</span>
+</div>
 
 @code {
     [Parameter] public bool Connected { get; set; }

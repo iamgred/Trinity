@@ -4,16 +4,16 @@
 <div style="position:fixed;inset:0;z-index:1300;" @onclick="OnClose" @oncontextmenu="OnClose" @oncontextmenu:preventDefault="true"></div>
 
 <MudPaper Elevation="8" role="menu" Style="@($"position:fixed;left:{Px(X)}px;top:{Px(Y)}px;z-index:1301;min-width:220px;")">
-    <MudText Typo="Typo.caption" Class="d-block px-4 pt-2 pb-1 mud-text-secondary" Style="font-family:'JetBrains Mono',monospace;">
+    <MudText Typo="Typo.caption" Class="d-block px-4 pt-2 pb-1 mud-text-secondary">
         agent @Agent.agentID · @Agent.username
     </MudText>
     <MudList T="string" Dense="true">
-        <MudListItem T="string" Icon="@Icons.Material.Filled.Terminal" IconColor="Color.Primary" OnClick="OnInteract"
+        <MudListItem T="string" Icon="@Icons.Material.Outlined.Terminal" IconColor="Color.Primary" OnClick="OnInteract"
                      SecondaryText="Enter">Interact</MudListItem>
         <MudDivider />
-        <MudListItem T="string" Icon="@Icons.Material.Filled.List" Disabled="true" SecondaryText="queued tasks"
+        <MudListItem T="string" Icon="@Icons.Material.Outlined.List" Disabled="true" SecondaryText="queued tasks"
                      title="Jobs is not in the new shell yet">Jobs</MudListItem>
-        <MudListItem T="string" Icon="@Icons.Material.Filled.Inventory2" OnClick="OnLoot" SecondaryText="this agent">Loot</MudListItem>
+        <MudListItem T="string" Icon="@Icons.Material.Outlined.Inventory2" OnClick="OnLoot" SecondaryText="this agent">Loot</MudListItem>
     </MudList>
 </MudPaper>
 

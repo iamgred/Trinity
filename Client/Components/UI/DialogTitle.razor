@@ -1,0 +1,16 @@
+<div class="t-dialog-title">
+    <span class="t-dialog-badge"><MudIcon Icon="@Icon" /></span>
+    <div>
+        <div class="t-dialog-heading">@Title</div>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <div class="t-dialog-sub">@Subtitle</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Icon { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+}

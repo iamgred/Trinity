@@ -11,14 +11,14 @@
     <MudAlert Severity="Severity.Warning" Dense="true" Square="true" role="status">@State.EventsError</MudAlert>
 }
 
-<div role="log" aria-live="polite" style="flex:1;min-height:0;overflow:auto;">
+<div role="log" aria-live="polite" class="t-log" style="flex:1;min-height:0;overflow:auto;">
     @if (State.Events.Count == 0 && State.EventsError is null)
     {
         <MudText Typo="Typo.body2" Class="mud-text-secondary pa-4">@EmptyText</MudText>
     }
     else
     {
-        <MudSimpleTable Dense="true" Hover="true" Elevation="0" Square="true" Style="font-family:'JetBrains Mono',monospace;">
+        <MudSimpleTable Dense="true" Hover="true" Elevation="0" Square="true">
             <tbody>
                 @foreach (var entry in State.Events)
                 {

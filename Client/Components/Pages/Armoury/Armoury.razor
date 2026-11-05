@@ -24,7 +24,7 @@
 }
 
 <div style="flex:1;min-height:0;overflow:auto;">
-    <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true" Style="font-family:'JetBrains Mono',monospace;">
+    <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true">
         <thead>
             <tr><th>name</th><th>type</th><th>path</th><th>size</th><th>added at</th></tr>
         </thead>
@@ -35,10 +35,10 @@
             }
             @foreach (var tool in PageOfTools)
             {
-                <tr style="cursor:pointer;@(tool.ID == _selected?.ID ? "background:rgba(232,119,34,0.13);" : null)" @onclick="() => _selected = tool">
+                <tr class="@(tool.ID == _selected?.ID ? "t-row-selected" : null)" style="cursor:pointer;" @onclick="() => _selected = tool">
                     <td>
                         <span class="d-inline-flex align-center gap-2">
-                            <MudIcon Icon="@TypeIcon(tool.Type)" Size="Size.Small" Color="Color.Primary" /> @tool.Name
+                            <MudIcon Icon="@TypeIcon(tool.Type)" Color="Color.Primary" Style="font-size:14px;" /> @tool.Name
                         </span>
                     </td>
                     <td>@TypeLabel(tool.Type)</td>
@@ -47,11 +47,11 @@
                             @tool.Path
                             @if (tool.ID == _copiedId)
                             {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Check" Class="ma-0">Copied</MudChip>
+                                <span class="t-copied"><MudIcon Icon="@Icons.Material.Outlined.Check" Style="font-size:12px;" />Copied</span>
                             }
                             else
                             {
-                                <span @onclick:stopPropagation="true"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small" aria-label="Copy path" OnClick="() => CopyPathAsync(tool)" /></span>
+                                <span @onclick:stopPropagation="true"><MudIconButton Icon="@Icons.Material.Outlined.ContentCopy" Class="t-copy" aria-label="Copy path" OnClick="() => CopyPathAsync(tool)" /></span>
                             }
                         </span>
                     </td>
@@ -65,22 +65,27 @@
 
 @if (_tools.Count > 0)
 {
-    <MudStack Row="true" AlignItems="AlignItems.Center" Class="px-3 py-1" Style="border-top:1px solid var(--mud-palette-lines-default);">
-        <MudText Typo="Typo.caption" Class="mud-text-secondary">Showing @(_page * RowsPerPage + 1)–@(Math.Min((_page + 1) * RowsPerPage, _tools.Count)) of @_tools.Count tools</MudText>
+    <div class="t-pager">
+        <span>Showing @(_page * _rowsPerPage + 1)–@(Math.Min((_page + 1) * _rowsPerPage, _tools.Count)) of @_tools.Count tools</span>
         <MudSpacer />
-        <MudPagination Count="PageCount" Selected="_page + 1" SelectedChanged="p => _page = p - 1" Size="Size.Small" Color="Color.Primary" />
-    </MudStack>
+        <span>Rows per page</span>
+        <MudSelect T="int" Value="_rowsPerPage" ValueChanged="SetRowsPerPage" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="t-rows">
+            @foreach (var size in RowOptions)
+            {
+                <MudSelectItem T="int" Value="@size">@size</MudSelectItem>
+            }
+        </MudSelect>
+        <MudPagination Count="PageCount" Selected="_page + 1" SelectedChanged="p => _page = p - 1" Size="Size.Small" Variant="Variant.Outlined" Rectangular="true" />
+    </div>
 }
 
 <ActionBar>
-    <MudSpacer />
-    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenUploadAsync">Add</MudButton>
-    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Disabled="@(_selected is null || _removing)" OnClick="RemoveAsync">Remove</MudButton>
-    <MudSpacer />
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="OpenUploadAsync">Add</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Outlined.Delete" Disabled="@(_selected is null || _removing)" OnClick="RemoveAsync">Remove</MudButton>
 </ActionBar>
 
 @code {
-    private const int RowsPerPage = 8;
+    private static readonly int[] RowOptions = [8, 16, 32];
 
     private const int FetchRows = 1000;
 
@@ -89,13 +94,14 @@
     private List<Tool> _tools = [];
     private Tool? _selected;
     private int _page;
+    private int _rowsPerPage = 8;
     private int? _copiedId;
     private bool _loading;
     private bool _removing;
     private string? _loadError;
 
-    private int PageCount => Math.Max(1, (int)Math.Ceiling(_tools.Count / (double)RowsPerPage));
-    private IEnumerable<Tool> PageOfTools => _tools.Skip(_page * RowsPerPage).Take(RowsPerPage);
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(_tools.Count / (double)_rowsPerPage));
+    private IEnumerable<Tool> PageOfTools => _tools.Skip(_page * _rowsPerPage).Take(_rowsPerPage);
 
     protected override async Task OnInitializedAsync()
     {
@@ -123,6 +129,12 @@
         {
             _loading = false;
         }
+    }
+
+    private void SetRowsPerPage(int size)
+    {
+        _rowsPerPage = size;
+        _page = 0;
     }
 
     private async Task OpenUploadAsync()
@@ -206,8 +218,8 @@
 
     private static string TypeIcon(ToolType type) => type switch
     {
-        ToolType.NET_ASM => Icons.Material.Filled.ViewInAr,
-        _ => Icons.Material.Filled.Extension,
+        ToolType.NET_ASM => Icons.Material.Outlined.ViewInAr,
+        _ => Icons.Material.Outlined.Extension,
     };
 
     private static string FormatSize(double bytes) => bytes >= 1_048_576 ? $"{bytes / 1_048_576.0:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024.0))} KB";

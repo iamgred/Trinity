@@ -21,7 +21,7 @@
 }
 
 <div style="flex:1;min-height:0;overflow:auto;">
-    <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true" Style="font-family:'JetBrains Mono',monospace;">
+    <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true">
         <thead>
             <tr><th>name</th><th>type</th><th>listener</th><th>size</th><th>created</th></tr>
         </thead>
@@ -32,10 +32,10 @@
             }
             @foreach (var payload in _payloads)
             {
-                <tr style="cursor:pointer;@(payload == _selected ? "background:rgba(232,119,34,0.13);" : null)" @onclick="() => _selected = payload">
+                <tr class="@(payload == _selected ? "t-row-selected" : null)" style="cursor:pointer;" @onclick="() => _selected = payload">
                     <td>
                         <span class="d-inline-flex align-center gap-2">
-                            <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Size="Size.Small" /> @payload.Name
+                            <MudIcon Icon="@Icons.Material.Outlined.InsertDriveFile" Size="Size.Small" /> @payload.Name
                         </span>
                     </td>
                     <td>@payload.Type</td>
@@ -50,8 +50,8 @@
 
 <ActionBar>
     <MudSpacer />
-    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Build" OnClick="OpenGenerateAsync">Generate</MudButton>
-    <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Save" Disabled="true" title="Needs a payload ID from the API">Save to Disk</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Bolt" OnClick="OpenGenerateAsync">Generate</MudButton>
+    <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Save" Disabled="true" title="Needs a payload ID from the API">Save to Disk</MudButton>
     <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" Disabled="true" title="The team server has no delete route for payloads yet">Remove</MudButton>
     <MudSpacer />
 </ActionBar>

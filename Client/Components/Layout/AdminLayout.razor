@@ -14,19 +14,16 @@
     <TopBar Admin="true" Connected="_connected" OnUserLoaded="u => SetSignedInAs(u.Name)" />
 
     <div class="admin-body">
-        <MudPaper Square="true" Elevation="0" Class="pa-3 d-flex flex-column gap-1"
-                  Style="width:220px;flex:0 0 220px;border-right:1px solid var(--mud-palette-divider);background:var(--mud-palette-background-gray);">
-            <MudText Typo="Typo.overline" Class="mud-text-secondary px-2">ADMIN</MudText>
-            <MudNavMenu Color="Color.Primary" Dense="true">
-                <MudNavLink Href="campaigns" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Flag">
-                    <span class="d-flex align-center">Campaigns<MudSpacer /><MudChip T="string" Size="Size.Small" Class="my-0">@(CampaignCount?.ToString() ?? "–")</MudChip></span>
-                </MudNavLink>
-                <MudNavLink Href="admin/operators" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group">
-                    <span class="d-flex align-center">Operators<MudSpacer /><MudChip T="string" Size="Size.Small" Class="my-0">@(OperatorCount?.ToString() ?? "–")</MudChip></span>
-                </MudNavLink>
-            </MudNavMenu>
-            <MudText Typo="Typo.caption" Class="mud-text-secondary px-2 mt-2">Only admins can see this page. Operators reach the workspace only.</MudText>
-        </MudPaper>
+        <aside class="t-sidebar">
+            <span class="t-side-title">ADMIN</span>
+            <NavLink href="campaigns" Match="NavLinkMatch.All" class="t-side-link">
+                <MudIcon Icon="@Icons.Material.Outlined.Flag" />Campaigns<span class="t-count">@(CampaignCount?.ToString() ?? "–")</span>
+            </NavLink>
+            <NavLink href="admin/operators" Match="NavLinkMatch.All" class="t-side-link">
+                <MudIcon Icon="@Icons.Material.Outlined.Group" />Operators<span class="t-count">@(OperatorCount?.ToString() ?? "–")</span>
+            </NavLink>
+            <span class="t-side-note">Only admins can see this page.<br />Operators reach the workspace only.</span>
+        </aside>
 
         <main class="admin-main">
             <CascadingValue Value="this">@Body</CascadingValue>

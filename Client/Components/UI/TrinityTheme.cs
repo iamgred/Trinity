@@ -21,17 +21,44 @@ public static class TrinityTheme
             Surface = "#1C1C1F",
             DrawerBackground = "#111111",
             DrawerText = "rgba(255,255,255,0.87)",
-            AppbarBackground = "#161618",
-            AppbarText = "rgba(255,255,255,0.87)",
-            TextPrimary = "rgba(255,255,255,0.87)",
-            TextSecondary = "rgba(255,255,255,0.60)",
-            Divider = "rgba(255,255,255,0.12)",
-            TableLines = "rgba(255,255,255,0.08)",
-            TableHover = "rgba(255,255,255,0.04)",
+            AppbarBackground = "#F57A1E",
+            AppbarText = "#141416",
+            TextPrimary = "rgba(255,255,255,0.90)",
+            TextSecondary = "rgba(255,255,255,0.55)",
+            Divider = "rgba(255,255,255,0.07)",
+            LinesDefault = "rgba(255,255,255,0.07)",
+            LinesInputs = "rgba(255,255,255,0.10)",
+            TableLines = "rgba(255,255,255,0.06)",
+            TableHover = "rgba(255,255,255,0.03)",
+            OverlayDark = "rgba(5,5,6,0.66)",
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["Inter", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+                FontSize = ".8125rem",
+                LineHeight = "1.45",
+            },
+            Button = new ButtonTypography
+            {
+                FontFamily = ["Inter", "system-ui", "sans-serif"],
+                FontSize = ".8125rem",
+                FontWeight = "500",
+                TextTransform = "none",
+                LetterSpacing = "0",
+            },
+            H5 = new H5Typography { FontFamily = ["Inter", "system-ui", "sans-serif"], FontSize = "1.25rem", FontWeight = "600", LineHeight = "1.3" },
+            H6 = new H6Typography { FontFamily = ["Inter", "system-ui", "sans-serif"], FontSize = ".9375rem", FontWeight = "600", LineHeight = "1.3" },
+            Body1 = new Body1Typography { FontFamily = ["Inter", "system-ui", "sans-serif"], FontSize = ".875rem" },
+            Body2 = new Body2Typography { FontFamily = ["Inter", "system-ui", "sans-serif"], FontSize = ".8125rem" },
+            Caption = new CaptionTypography { FontFamily = ["Inter", "system-ui", "sans-serif"], FontSize = ".75rem" },
+            Overline = new OverlineTypography { FontFamily = ["JetBrains Mono", "monospace"], FontSize = ".6875rem", FontWeight = "500", LetterSpacing = ".16em" },
         },
         LayoutProperties = new LayoutProperties
         {
-            DefaultBorderRadius = "8px",
+            DefaultBorderRadius = "6px",
+            AppbarHeight = "40px",
         },
     };
 

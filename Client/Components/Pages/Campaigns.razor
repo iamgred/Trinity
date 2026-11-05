@@ -22,7 +22,7 @@
         <MudText Typo="Typo.body2" Class="mud-text-secondary">Agents, payloads and operator access are scoped to a campaign.</MudText>
     </MudStack>
     <MudSpacer />
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="NewCampaignAsync">New Campaign</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="NewCampaignAsync">New Campaign</MudButton>
 </MudStack>
 
 @if (_error is not null)
@@ -43,15 +43,15 @@
                 <MudPaper Outlined="true" Class="pa-3" @onclick="() => SelectAsync(campaign)"
                           Style="@($"cursor:pointer;{(selected ? "border-color:var(--mud-palette-primary);background:rgba(232,119,34,0.08);" : "")}")">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                        <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" Color="@(selected ? Color.Primary : Color.Default)" />
+                        <MudIcon Icon="@Icons.Material.Outlined.Flag" Size="Size.Small" Color="@(selected ? Color.Primary : Color.Default)" />
                         <MudText Typo="Typo.subtitle2" Style="font-weight:600;">@campaign.Name</MudText>
                         <MudSpacer />
                         <StatusPill Text="active" Tone="green" />
                     </MudStack>
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1 mud-text-secondary">
-                        <MudIcon Icon="@Icons.Material.Filled.Monitor" Style="font-size:14px;" />
+                        <MudIcon Icon="@Icons.Material.Outlined.Monitor" Style="font-size:14px;" />
                         <MudText Typo="Typo.caption">– agents ·</MudText>
-                        <MudIcon Icon="@Icons.Material.Filled.Group" Style="font-size:14px;" />
+                        <MudIcon Icon="@Icons.Material.Outlined.Group" Style="font-size:14px;" />
                         <MudText Typo="Typo.caption">@OperatorCount(campaign) operators</MudText>
                     </MudStack>
                 </MudPaper>
@@ -72,7 +72,7 @@
                         <MudText Typo="Typo.caption" Class="mud-text-secondary">Campaign #@_selected.ID</MudText>
                     </MudStack>
                     <MudSpacer />
-                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit" OnClick="OpenRename">Rename</MudButton>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Edit" OnClick="OpenRename">Rename</MudButton>
                     <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Error" Disabled="true" title="Needs a campaign status in the API">Close Campaign</MudButton>
                 </MudStack>
 
@@ -91,14 +91,14 @@
                                         </MudStack>
                                         <MudSpacer />
                                         <MudTooltip Text="@($"Remove {op.Username} from this campaign")">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="() => UnassignAsync(op)" />
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small" OnClick="() => UnassignAsync(op)" />
                                         </MudTooltip>
                                     </MudStack>
                                 </MudListItem>
                             }
                         </MudList>
 
-                        <MudMenu Label="Assign operator…" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Class="mt-1">
+                        <MudMenu Label="Assign operator…" StartIcon="@Icons.Material.Outlined.Add" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Class="mt-1">
                             @foreach (var op in UnassignedOperators)
                             {
                                 <MudMenuItem OnClick="() => AssignAsync(op)">@op.Username</MudMenuItem>
@@ -125,25 +125,19 @@
 
 <MudDialog @bind-Visible="_renameOpen" Options="_dialogOptions">
     <TitleContent>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-            <MudIcon Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" />
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.h6">Rename Campaign</MudText>
-                <MudText Typo="Typo.caption" Class="mud-text-secondary">Campaign #@_selected?.ID</MudText>
-            </MudStack>
-        </MudStack>
+        <DialogTitle Icon="@Icons.Material.Outlined.Edit" Title="Rename Campaign" Subtitle="@($"Campaign #{_selected?.ID}")" />
     </TitleContent>
     <DialogContent>
-        <MudStack Spacing="3">
-            <MudTextField @bind-Value="_renameValue" Label="Name" Variant="Variant.Outlined" Immediate="true" AutoFocus="true" />
-            @if (_renameError is not null)
-            {
-                <MudAlert Severity="Severity.Error" Dense="true" role="alert">@_renameError</MudAlert>
-            }
-        </MudStack>
+        <FormRow Label="Name">
+            <MudTextField @bind-Value="_renameValue" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" AutoFocus="true" />
+        </FormRow>
+        @if (_renameError is not null)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-2" role="alert">@_renameError</MudAlert>
+        }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => _renameOpen = false">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="() => _renameOpen = false">Cancel</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="RenameAsync">Rename</MudButton>
     </DialogActions>
 </MudDialog>

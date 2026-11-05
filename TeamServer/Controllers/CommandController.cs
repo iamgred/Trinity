@@ -1,5 +1,6 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
+using TeamServer.Interface;
 using TeamServer.Services;
 
 using Trinity.Shared.DTOs.Command;
@@ -11,13 +12,13 @@ namespace TeamServer.Controllers
     [ApiController]
     public class CommandController : ControllerBase
     {
-        private CommandService _commandService;
+        private ICommandService _commandService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public CommandController(CommandService commandService)
+        public CommandController(ICommandService commandService)
         {
             this._commandService = commandService;
         }

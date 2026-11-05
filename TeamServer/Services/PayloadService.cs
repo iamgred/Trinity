@@ -1,6 +1,4 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using Microsoft.AspNetCore.Mvc;
-using System.Text;
 using TeamServer.Interface;
 using TeamServer.Repositories;
 using TeamServer.Utils;
@@ -74,12 +72,13 @@ namespace TeamServer.Services
                 PayloadUUID = payloadUUID,
                 ListenerID = payloadCreationDTO.ListenerID,
                 CampaignID = payloadCreationDTO.CampaignID,
-                // TODO: Replace with autheticated operator ID
-                CreatedByOperatorID = 1,
+                CreatedByOperatorID = payloadCreationDTO.OperatorID,
                 FileName = payloadCreationDTO.Name,
-                Architecture = Util.GetEnumString<Architectures>(payloadCreationDTO.Architecture),
-                RetryStrategy = payloadCreationDTO.RetryStrategy,
-                PayloadType = Util.GetEnumString<PayloadTypes>(payloadCreationDTO.Type),
+                Arch = payloadCreationDTO.Architecture,
+                RotationStrategy = payloadCreationDTO.RotationStrategy,
+                Sleep = payloadCreationDTO.Sleep,
+                Jitter = payloadCreationDTO.Jitter,
+                Type = payloadCreationDTO.Type,
                 AES256KEY = Util.GenerateAES256Key(),
                 CreatedAt = DateTime.UtcNow
             };
@@ -114,9 +113,9 @@ namespace TeamServer.Services
 
                     return new PayloadDTO
                     {
-                        Name = AppendFileExtension(p.FileName, p.PayloadType),
+                        Name = AppendFileExtension(p.FileName, p.Type),
                         Size = size,
-                        Type = Util.GetEnumValue<PayloadTypes>(p.PayloadType),
+                        Type = Enum.GetName(p.Type)!,
                         CreateTime = p.CreatedAt
                     };
                 }).ToList();
@@ -153,7 +152,7 @@ namespace TeamServer.Services
         /// <returns>The full file path of the payload.</returns>
         private string GetPayloadFilePath(Payload payload)
         {
-            string fileName = AppendFileExtension(payload.FileName, payload.PayloadType);
+            string fileName = AppendFileExtension(payload.FileName, payload.Type);
             return Path.Combine(_webHostEnvironment.ContentRootPath, "Payloads", fileName);
         }
         /// <summary>
@@ -162,22 +161,17 @@ namespace TeamServer.Services
         /// <param name="fileName"></param>
         /// <param name="type"></param>
         /// <returns>The file name with the appropriate extension.</returns>
-        private string AppendFileExtension(string fileName, PayloadTypes type)
+        private string AppendFileExtension(string fileName, PayloadType type)
         {
-            string name;
-            switch (type)
+            string name = type switch
             {
-                case PayloadTypes.WinExe:
-                    name = fileName + ".exe";
-                    break;
-                case PayloadTypes.Powershell:
-                    name = fileName + ".ps1";
-                    break;
-                default:
-                    name = fileName + ".dll";
-                    break;
-            }
-
+                PayloadType.WINDOWS_EXE => fileName + ".exe",
+                PayloadType.WINDOWS_DLL => fileName + ".dll",
+                PayloadType.WINDOWS_SERVICE => fileName + ".svc",
+                PayloadType.POWERSHELL => name = fileName + ".ps1",
+                PayloadType.RAW => name = fileName + ".o",
+                _ => throw new ArgumentException("Payload type is not defined!")
+            };
             return name;
         }
 

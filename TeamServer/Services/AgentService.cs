@@ -91,7 +91,7 @@ namespace TeamServer.Services
             var data = JsonSerializer.Deserialize<IntialCheckInRequest>(requestBody.Span) ?? new IntialCheckInRequest();
             var payload = await _payloadRepo.GetPayloadByUUIDAsync(uuid);
 
-            var agent = _agentFactory.Create(data!, payload!.AES256KEY, 5000, 10, Util.GetEnumValue<Architectures>(payload.Architecture), payload.ID);
+            var agent = _agentFactory.Create(data!, payload!);
             await _agentRepo.CreateAgentAsync(agent);
             await _agentRepo.CommitAsync();
 

@@ -1,20 +1,13 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Text;
-
 namespace Trinity.Shared.Enums
 {
-    [DataContract]
-    public enum PayloadTypes
+    public enum PayloadType
     {
-        [EnumMember(Value = "winexe")]
-        WinExe,
-        [EnumMember(Value = "powershell")]
-        Powershell,
-        [EnumMember(Value = "dll")]
-        DLL
+        POWERSHELL,
+        RAW,
+        WINDOWS_EXE,
+        WINDOWS_SERVICE,
+        WINDOWS_DLL
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

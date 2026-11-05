@@ -1,12 +1,12 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Net;
-using Trinity.Shared.Interfaces;
-using Trinity.Shared.Modules;
+using TeamServer.Modules;
 namespace TeamServer.Services.Factories
 {
-    public class HttpModuleFactory : IHttpModuleFactory
+    public class HttpModuleFactory
     {
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -14,9 +14,10 @@ namespace TeamServer.Services.Factories
         /// </summary>
         /// <param name="loggerFactory">The logger factory used to create loggers for components produced by the factory.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="loggerFactory"/> is <c>null</c>.</exception>
-        public HttpModuleFactory(ILoggerFactory loggerFactory)
+        public HttpModuleFactory(ILoggerFactory loggerFactory, IServiceScopeFactory serviceScopeFactory)
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            _scopeFactory = serviceScopeFactory;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -36,7 +37,7 @@ namespace TeamServer.Services.Factories
             httpListener.Prefixes.Add(uriBuilder.ToString());
             httpListener.Start();
 
-            return new HttpModule(_loggerFactory.CreateLogger<HttpModule>(), httpListener);
+            return new HttpModule(_loggerFactory.CreateLogger<HttpModule>(), httpListener, _scopeFactory);
         }
 
     }

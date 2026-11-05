@@ -87,7 +87,9 @@ namespace TeamServer
                       .MapEnum<TaskCode>("taskCode")
                       .MapEnum<ToolType>("toolType")
                       .MapEnum<Arch>("arch")
-                      .MapEnum<ListenerType>("listenerType")));
+                      .MapEnum<ListenerType>("listenerType")
+                      .MapEnum<RotationStrategy>("rotationStrategy")
+                      .MapEnum<PayloadType>("payloadType")));
 
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();
@@ -141,18 +143,6 @@ namespace TeamServer
             builder.Services.AddSingleton(serverNetworkSettings);
 
             var app = builder.Build();
-
-            using (var scope = app.Services.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<Context>();
-
-                if (builder.Configuration.GetValue<bool>("ApplyMigrations"))
-                {
-                    context.Database.Migrate();
-                }
-
-                StatusCacheService.Intialise(context);
-            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

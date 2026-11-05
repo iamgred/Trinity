@@ -58,7 +58,7 @@ namespace TeamServer.Services
 
                 Directory.CreateDirectory(outputPath);
 
-                string compiler = GetCompiler(payloadCreationDTO.Architecture);
+                string compiler = GetCompiler(Enum.GetName(payloadCreationDTO.Architecture)!);
 
                 if (string.IsNullOrWhiteSpace(compiler))
                 {

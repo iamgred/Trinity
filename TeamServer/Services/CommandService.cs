@@ -30,7 +30,7 @@ namespace TeamServer.Services
         /// <param name="taskStatusRepository"></param>
         /// <param name="agentRepository"></param>
         /// <param name="toolRepository"></param>
-        public CommandService(DatabaseService database,
+        public CommandService(
             CommandFactory commandFactory, CommandRepository commandRepository,
             TaskStatusRepository taskStatusRepository, AgentRepository agentRepository,
             ToolRepository toolRepository, IWebHostEnvironment env, IDownloadService downloadService)

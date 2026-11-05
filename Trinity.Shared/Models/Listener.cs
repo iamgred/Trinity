@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Trinity.Shared.Enums;
-using Trinity.Shared.Interfaces;
 
 namespace Trinity.Shared.Models
 {
@@ -11,8 +7,7 @@ namespace Trinity.Shared.Models
     {
         public int ID { get; set; }
         public required string Name { get; set; }
-        public required int ProtocolID { get; set; }
-        public Protocol Protocol { get; set; }
+        public required ListenerType Type { get; set; }
         public required JsonDocument Config { get; set; }
     }
 }

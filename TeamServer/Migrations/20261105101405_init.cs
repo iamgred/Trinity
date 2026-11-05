@@ -19,6 +19,7 @@ namespace TeamServer.Migrations
         {
             migrationBuilder.AlterDatabase()
                 .Annotation("Npgsql:Enum:arch", "x32,x64,x86")
+                .Annotation("Npgsql:Enum:listenerType", "http,https,smb,tcp,tor")
                 .Annotation("Npgsql:Enum:status", "dispatched,error,more_to_follow,no_flag,no_more_to_follow,queued,running,success")
                 .Annotation("Npgsql:Enum:taskCode", "cancel_download,download,kill_process,no_code,run,run_as,run_u,sleep,spawn_to,update_hosts")
                 .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,kill,net_asm,nop,object_file,powershell,process,set,shell,upload,win_task")
@@ -183,8 +184,9 @@ namespace TeamServer.Migrations
                     ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    ProtocolID = table.Column<int>(type: "integer", nullable: false),
-                    Config = table.Column<JsonDocument>(type: "jsonb", nullable: false)
+                    Type = table.Column<ListenerType>(type: "\"listenerType\"", nullable: false),
+                    Config = table.Column<JsonDocument>(type: "jsonb", nullable: false),
+                    ProtocolID = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -193,8 +195,7 @@ namespace TeamServer.Migrations
                         name: "FK_Listeners_Protocols_ProtocolID",
                         column: x => x.ProtocolID,
                         principalTable: "Protocols",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(

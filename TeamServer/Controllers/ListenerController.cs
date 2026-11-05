@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TeamServer.Interface;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Listener.Http;
+using Trinity.Shared.DTOs.Listener.Https;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
 
@@ -39,6 +40,7 @@ namespace TeamServer.Controllers
             return Ok(result.Response);
         }
 
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         [HttpPost("http/restart/{ID}")]
         public async Task<IActionResult> RestartListenerAsync([FromRoute] int ID)
         {
@@ -58,6 +60,14 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> StartHttpListener([FromBody] CreateHttpListenerRequest request)
         {
             var result = await _listenerService.CreateHttpListenerAsync(request);
+            return result.IsSuccess ? Created() : BadRequest(result.Error);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPost("https")]
+        public async Task<IActionResult> CreateHttpsListener([FromBody] CreateHttpsListenerRequest request)
+        {
+            var result = await _listenerService.CreateHttpsListenerAsync(request);
             return result.IsSuccess ? Created() : BadRequest(result.Error);
         }
 
@@ -118,6 +128,14 @@ namespace TeamServer.Controllers
         public async Task<IActionResult> UpdateHttpListenerAsync([FromRoute] int ID, [FromBody] UpdateHttpListenerRequest request)
         {
             var result = await _listenerService.UpdateHttpListenerAsync(ID, request.config);
+            return result.IsSuccess ? Ok() : BadRequest(result.Error);
+        }
+
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+        [HttpPut("https/{ID}")]
+        public async Task<IActionResult> UpdateHttpsListenerAsync([FromRoute] int ID, [FromBody] UpdateHttpsListenerRequest request)
+        {
+            var result = await _listenerService.UpdateHttpsListenerAsync(ID, request.Config);
             return result.IsSuccess ? Ok() : BadRequest(result.Error);
         }
 

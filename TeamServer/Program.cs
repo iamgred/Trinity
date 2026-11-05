@@ -39,9 +39,6 @@ namespace TeamServer
             builder.Services.AddScoped<OperatorService>();
             builder.Services.AddScoped<CampaignService>();
             builder.Services.AddScoped<AdminService>();
-            builder.Services.AddScoped<DatabaseService>();
-            builder.Services.AddScoped<IReceivedFileService, ReceivedFileService>();
-            builder.Services.AddScoped<IKeyloggerService, KeyloggerService>();
             builder.Services.AddScoped<ToolService>();
             builder.Services.AddScoped<IDownloadService, DownloadService>();
             builder.Services.AddScoped<IUploadService, UploadService>();
@@ -89,7 +86,8 @@ namespace TeamServer
                       .MapEnum<TaskType>("taskType")
                       .MapEnum<TaskCode>("taskCode")
                       .MapEnum<ToolType>("toolType")
-                      .MapEnum<Arch>("arch")));
+                      .MapEnum<Arch>("arch")
+                      .MapEnum<ListenerType>("listenerType")));
 
             // Repositories
             builder.Services.AddScoped<ListenerRespository>();

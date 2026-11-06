@@ -1,12 +1,13 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Microsoft.AspNetCore.SignalR;
 using TeamServer.Interface;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Payload;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Errors;
-using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 
@@ -18,7 +19,7 @@ namespace TeamServer.Services
         private readonly ListenerRespository _listenerRepository;
         private readonly IPayloadBuilder _payloadBuilder;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly INotificationHub _hub;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public PayloadService(
@@ -26,13 +27,13 @@ namespace TeamServer.Services
             ListenerRespository listenerRepository,
             IPayloadBuilder payloadBuilder,
             IWebHostEnvironment webHostEnvironment,
-            INotificationHub notificationHub)
+            IHubContext<NotificationHub> notificationHub)
         {
             _payloadRepository = payloadRepository;
             _listenerRepository = listenerRepository;
             _payloadBuilder = payloadBuilder;
             _webHostEnvironment = webHostEnvironment;
-            _hub = notificationHub;
+            _hubContext = notificationHub;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -86,12 +87,12 @@ namespace TeamServer.Services
             await _payloadRepository.InsertPayloadAsync(payload);
             await _payloadRepository.CommitAsync();
 
-            await _hub.SendEventLogAsync(
-                payloadCreationDTO.CampaignID.ToString(),
-                new EventLog(
-                    DateTime.UtcNow,
-                    EventLogType.PAYLOAD,
-                    $"Payload, {payloadCreationDTO.Name}, generated successfully for campaign: {payloadCreationDTO.CampaignID}."));
+            await _hubContext.Clients.Group(payloadCreationDTO.CampaignID.ToString()).SendAsync(
+    "EventLogNotification",
+    new EventLog(DateTime.UtcNow, EventLogType.PAYLOAD, "Payload generated!")
+);
+
+
 
             return Result.Success();
         }

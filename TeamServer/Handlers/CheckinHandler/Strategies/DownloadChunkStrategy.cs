@@ -1,13 +1,15 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Microsoft.AspNetCore.SignalR;
 using System.Text.Json;
 using TeamServer.Interface;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
+using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
-using Trinity.Shared.DTOs.Notification;
 
 namespace TeamServer.Handlers.CheckinHandler.Strategies
 {
@@ -16,18 +18,18 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         private readonly IDownloadService _downloadService;
         private readonly CommandService _commandService;
         private readonly TaskRepository _taskRepo;
-        private readonly INotificationHub _hub;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public DownloadChunkStrategy(
             IDownloadService downloadService,
             CommandService commandService,
             TaskRepository taskRepo,
-            INotificationHub notificationHub)
+            IHubContext<NotificationHub> notificationHub)
         {
             _downloadService = downloadService;
             _commandService = commandService;
             _taskRepo = taskRepo;
-            _hub = notificationHub;
+            _hubContext = notificationHub;
         }
 
         public async System.Threading.Tasks.Task ProcessResponseAsync(JsonElement element)
@@ -42,11 +44,11 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
 
             var task = await _taskRepo.GetByIdAsync(taskID) ?? throw new ArgumentNullException("Task does not exist!");
 
-            var response = JsonSerializer.Deserialize<TaskResp<TaskSuccessResponse>>( element.GetRawText());
+            var response = JsonSerializer.Deserialize<TaskResp<TaskSuccessResponse>>(element.GetRawText());
 
             if (response == null)
             {
-                throw new InvalidOperationException( "Download response could not be deserialized.");
+                throw new InvalidOperationException("Download response could not be deserialized.");
             }
 
             task.Status = (Status)response.Status;
@@ -57,19 +59,21 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
 
             if (originalDownload == null)
             {
-                throw new InvalidOperationException( "Original download command could not be deserialized.");
+                throw new InvalidOperationException("Original download command could not be deserialized.");
             }
 
 
             if (response.Status == (int)Status.DOWNLOAD_FINAL_STATUS)
             {
-                await _hub.SendTaskResponseAsync(
-                    task.AgentID.ToString(),
+                await _hubContext.Clients.Group(task.AgentID.ToString()).SendAsync(
+                    "TaskNotification",
                     new TaskNotification(
                         DateTime.UtcNow,
                         taskID,
                         $"Download completed successfully: {originalDownload.Path}",
-                        Status.SUCCESS));
+                        Status.SUCCESS)
+                );
+
                 return;
             }
 
@@ -93,7 +97,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
 
             if (!nextChunkResult.IsSuccess)
             {
-                throw new InvalidOperationException( "The next download chunk could not be created.");
+                throw new InvalidOperationException("The next download chunk could not be created.");
             }
 
             var nextDownload = nextChunkResult.Response ??

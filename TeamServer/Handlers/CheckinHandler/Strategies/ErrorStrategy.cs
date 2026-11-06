@@ -1,4 +1,5 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Microsoft.AspNetCore.SignalR;
 using System.Text.Json;
 using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
@@ -13,17 +14,17 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     {
         private readonly TaskRepository _taskRepo;
 
-        private readonly INotificationHub _hub;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="taskRepository"></param>
-        public ErrorStrategy(TaskRepository taskRepository, INotificationHub notificationHub)
+        public ErrorStrategy(TaskRepository taskRepository, IHubContext<NotificationHub> notificationHub)
         {
             _taskRepo = taskRepository;
-            _hub = notificationHub;
+            _hubContext = notificationHub;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -39,7 +40,12 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
                 task.Status = Status.ERROR;
                 task.Error = new Trinity.Shared.Models.Error { TaskID = response.TaskID, ErrorCode = response.Data.ErrorCode, Message = response.Data.Message };
                 await _taskRepo.CommitAsync();
-                await _hub.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(DateTime.UtcNow, taskID, response.Data.Message, Status.SUCCESS));
+
+                await _hubContext.Clients.Group(task.AgentID.ToString()).SendAsync(
+                    "TaskNotification",
+                    new TaskNotification(DateTime.UtcNow, taskID, response.Data.Message, Status.SUCCESS)
+                );
+
             }
         }
     }

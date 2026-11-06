@@ -1,12 +1,13 @@
+using Microsoft.AspNetCore.SignalR;
 using System.Text.Json;
 using TeamServer.Interface;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Task;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
-using Trinity.Shared.Enums;
 
 namespace TeamServer.Handlers.CheckinHandler.Strategies
 {
@@ -15,14 +16,14 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         private readonly TaskRepository _taskRepo;
         private readonly IKeyloggerService _keyloggerService;
         private readonly AgentRepository _agentRepo;
-        private readonly INotificationHub _hub;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public KeyloggerStrategy(TaskRepository taskRepository, IKeyloggerService keyloggerService, AgentRepository agentRepository, INotificationHub notificationHub)
+        public KeyloggerStrategy(TaskRepository taskRepository, IKeyloggerService keyloggerService, AgentRepository agentRepository, IHubContext<NotificationHub> notificationHub)
         {
             _taskRepo = taskRepository;
             _keyloggerService = keyloggerService;
             _agentRepo = agentRepository;
-            _hub = notificationHub;
+            _hubContext = notificationHub;
         }
         public async System.Threading.Tasks.Task ProcessResponseAsync(JsonElement element)
         {
@@ -59,8 +60,11 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
             await _taskRepo.CommitAsync();
 
             await _keyloggerService.SaveDataAsync(campaignID, task.Result.Result);
-            
-            await _hub.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(DateTime.UtcNow, taskID, "Keylogger task completed successfully.", Status.SUCCESS));
+
+            await _hubContext.Clients.Group(task.AgentID.ToString()).SendAsync(
+                "TaskNotification",
+                new TaskNotification(DateTime.UtcNow, taskID, "Keylogger task completed successfully.", Status.SUCCESS)
+            );
         }
     }
 }

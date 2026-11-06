@@ -1,12 +1,11 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.SignalR;
 using Trinity.Shared.DTOs.Notification;
-using Trinity.Shared.Interfaces;
 
 
 namespace TeamServer.NotificationDispatchers
 {
-    public class NotificationHub : Hub, INotificationHub
+    public class NotificationHub : Hub
     {
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>

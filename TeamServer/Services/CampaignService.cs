@@ -1,9 +1,10 @@
 //========================================================= {START OF FILE} =========================================================//
+using Microsoft.AspNetCore.SignalR;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Errors;
-using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 
@@ -18,16 +19,16 @@ namespace TeamServer.Services
     {
         private readonly CampaignBridgeRepository _campaignBridgeRepository;
         private readonly CampaignRepository _campaignRepository;
-        private readonly INotificationHub _hub;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public CampaignService(
-            CampaignBridgeRepository campaignBridgeRepository, 
+            CampaignBridgeRepository campaignBridgeRepository,
             CampaignRepository campaignRepository,
-            INotificationHub notificationHub)
+            IHubContext<NotificationHub> notificationHub)
         {
             _campaignBridgeRepository = campaignBridgeRepository;
             _campaignRepository = campaignRepository;
-            _hub = notificationHub;
+            _hubContext = notificationHub;
         }
 
         public async Task<Result<List<Campaign>>> GetCampaignsAsync()
@@ -91,12 +92,14 @@ namespace TeamServer.Services
                 return CampaignError.NotFound(campaignID);
             }
             await _campaignBridgeRepository.CommitAsync();
-            await _hub.SendEventLogAsync(
-                campaignID.ToString(),
-                new EventLog(
-                    DateTime.UtcNow,
-                    EventLogType.OPERATOR,
-                    $"Operator, {operatorID} assigned to campaign {campaignID}"));
+            await _hubContext.Clients.Group(campaignID.ToString()).SendAsync(
+    "EventLogNotification",
+    new EventLog(
+        DateTime.UtcNow,
+        EventLogType.OPERATOR,
+        $"Operator, {operatorID} assigned to campaign {campaignID}")
+);
+
             return Result.Success();
         }
         public async Task<Result> RemoveOperatorFromCampaignAsync(int operatorID, int campaignID)
@@ -107,12 +110,14 @@ namespace TeamServer.Services
                 return CampaignError.NotFound(campaignID);
             }
             await _campaignBridgeRepository.CommitAsync();
-            await _hub.SendEventLogAsync(
-                campaignID.ToString(),
-                new EventLog(
-                    DateTime.UtcNow,
-                    EventLogType.OPERATOR,
-                    $"Operator, {operatorID} removed from campaign {campaignID}"));
+            await _hubContext.Clients.Group(campaignID.ToString()).SendAsync(
+    "EventLogNotification",
+    new EventLog(
+        DateTime.UtcNow,
+        EventLogType.OPERATOR,
+        $"Operator, {operatorID} removed from campaign {campaignID}")
+);
+
             return Result.Success();
         }
     }

@@ -1,6 +1,8 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Microsoft.AspNetCore.SignalR;
 using System.Text.Json;
 using TeamServer.Interface;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
@@ -18,20 +20,20 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         private readonly CommandService _commandService;
         private readonly TaskRepository _taskRepo;
         private readonly AgentRepository _agentRepo;
-        private readonly INotificationHub _hub;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public UploadChunkStrategy(
             IUploadService uploadService,
             CommandService commandService,
             TaskRepository taskRepo,
             AgentRepository agentRepo,
-            INotificationHub notificationHub)
+            IHubContext<NotificationHub> notificationHub)
         {
             _uploadService = uploadService;
             _commandService = commandService;
             _taskRepo = taskRepo;
             _agentRepo = agentRepo;
-            _hub = notificationHub;
+            _hubContext = notificationHub;
         }
 
         public async System.Threading.Tasks.Task ProcessResponseAsync(JsonElement element)
@@ -84,11 +86,15 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
 
             if (status == Status.NO_MORE_TO_FOLLOW)
             {
-                await _hub.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(
-                    DateTime.UtcNow, 
-                    taskID, 
-                    $"Grabbed Loot successfully: {chunk.FileName}",
-                    Status.SUCCESS));
+                await _hubContext.Clients.Group(task.AgentID.ToString()).SendAsync(
+                        "TaskNotification",
+                        new TaskNotification(
+                            DateTime.UtcNow,
+                            taskID,
+                            $"Grabbed Loot successfully: {chunk.FileName}",
+                            Status.SUCCESS)
+                    );
+
                 return;
             }
 

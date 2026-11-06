@@ -1,5 +1,7 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Microsoft.AspNetCore.SignalR;
 using System.Text.Json;
+using TeamServer.NotificationDispatchers;
 using TeamServer.Repositories;
 using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Task;
@@ -13,7 +15,7 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     {
         private readonly TaskRepository _taskRepo;
 
-        private readonly INotificationHub _hub;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -21,10 +23,10 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         /// </summary>
         /// <param name="taskRepository"></param>
 
-        public SuccessStrategy(TaskRepository taskRepository, INotificationHub notificationHub)
+        public SuccessStrategy(TaskRepository taskRepository, IHubContext<NotificationHub> notificationHub)
         {
             _taskRepo = taskRepository;
-            _hub = notificationHub;
+            _hubContext = notificationHub;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
@@ -45,7 +47,10 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
                 task.Status = Status.SUCCESS;
                 task.Result = new TaskResult { TaskID = task.ID, Result = response.Data.Output };
                 await _taskRepo.CommitAsync();
-                await _hub.SendTaskResponseAsync(task.AgentID.ToString(), new TaskNotification(DateTime.UtcNow, taskID, response.Data.Output, Status.SUCCESS));
+                await _hubContext.Clients.Group(task.AgentID.ToString()).SendAsync(
+                    "TaskNotification",
+                    new TaskNotification(DateTime.UtcNow, taskID, response.Data.Output, Status.SUCCESS)
+                );
             }
         }
     }

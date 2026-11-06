@@ -22,9 +22,9 @@ namespace TeamServer.Services
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public PayloadService(
-            PayloadRepository payloadRepository, 
-            ListenerRespository listenerRepository, 
-            IPayloadBuilder payloadBuilder, 
+            PayloadRepository payloadRepository,
+            ListenerRespository listenerRepository,
+            IPayloadBuilder payloadBuilder,
             IWebHostEnvironment webHostEnvironment,
             INotificationHub notificationHub)
         {
@@ -52,20 +52,20 @@ namespace TeamServer.Services
 
             var payloadUUID = Guid.NewGuid().ToString();
 
-            // Call the payload builder to build the payload
-            var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
+            //// Call the payload builder to build the payload
+            //var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
 
-            // If the build failed, return an error
-            if (!buildResult.IsSuccess)
-            {
-                await _hub.SendEventLogAsync(
-                payloadCreationDTO.CampaignID.ToString(),
-                new EventLog(
-                    DateTime.UtcNow,
-                    EventLogType.PAYLOAD,
-                    $"Payload, {payloadCreationDTO.Name}, generated failed for campaign: {payloadCreationDTO.CampaignID}."));
-                return PayloadError.GenerationFailed();
-            }
+            //// If the build failed, return an error
+            //if (!buildResult.IsSuccess)
+            //{
+            //    await _hub.SendEventLogAsync(
+            //    payloadCreationDTO.CampaignID.ToString(),
+            //    new EventLog(
+            //        DateTime.UtcNow,
+            //        EventLogType.PAYLOAD,
+            //        $"Payload, {payloadCreationDTO.Name}, generated failed for campaign: {payloadCreationDTO.CampaignID}."));
+            //    return PayloadError.GenerationFailed();
+            //}
 
             var payload = new Payload
             {

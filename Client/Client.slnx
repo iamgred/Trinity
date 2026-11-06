@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="../TeamServer/TeamServer.csproj" />
-  <Project Path="Client.csproj" />
-</Solution>

@@ -27,9 +27,9 @@ namespace TeamServer.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "listenerType", new[] { "http", "https", "smb", "tcp", "tor" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payloadType", new[] { "powershell", "raw", "windows_dll", "windows_exe", "windows_service" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "rotationStrategy", new[] { "random", "round_robin" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status", new[] { "dispatched", "error", "more_to_follow", "no_flag", "no_more_to_follow", "queued", "running", "success" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskCode", new[] { "cancel_download", "download", "kill_process", "no_code", "run", "run_as", "run_u", "sleep", "spawn_to", "update_hosts" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskType", new[] { "download", "escalate", "get_uid", "intial_checkin", "kill", "net_asm", "nop", "object_file", "powershell", "process", "set", "shell", "upload", "win_task" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status", new[] { "completed", "dispatched", "download_chunk_status", "download_final_status", "error", "more_to_follow", "no_flag", "no_more_to_follow", "queued", "running", "success" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskCode", new[] { "download_chunk", "download_final", "kill_process", "no_code", "run", "run_as", "run_u", "sleep", "spawn_to", "start_keylogger", "stop_keylogger", "update_hosts" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "taskType", new[] { "download", "escalate", "get_uid", "intial_checkin", "keylogger", "kill", "net_asm", "nop", "object_file", "powershell", "process", "set", "shell", "upload", "win_task" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "toolType", new[] { "net_asm" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 

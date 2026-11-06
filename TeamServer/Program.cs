@@ -142,12 +142,6 @@ namespace TeamServer
                 .ResolveIpV6Address();
             builder.Services.AddSingleton(serverNetworkSettings);
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<Context>();
-                db.Database.Migrate();
-            }
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

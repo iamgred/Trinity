@@ -31,7 +31,7 @@ namespace TeamServer
 
             // Services 
             builder.Services.AddScoped<ListenerService>();
-            builder.Services.AddScoped<ICommandService, CommandService>();
+            builder.Services.AddScoped<CommandService>();
             builder.Services.AddScoped<PayloadService>();
             builder.Services.AddScoped<IPayloadBuilder, CMakePayloadBuilder>();
             builder.Services.AddScoped<AgentService>();

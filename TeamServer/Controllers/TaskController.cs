@@ -1,6 +1,5 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Interface;
 using TeamServer.Services;
 
 
@@ -10,10 +9,10 @@ namespace TeamServer.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        private readonly ITaskService _taskService;
+        private readonly TaskService _taskService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public TaskController(ITaskService taskService)
+        public TaskController(TaskService taskService)
         {
             _taskService = taskService;
         }

@@ -1,13 +1,10 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Buffers;
 using System.Text.Json;
-using TeamServer.Interface;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Checkin;
 using Trinity.Shared.DTOs.Task;
-using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers
 {
@@ -15,14 +12,14 @@ namespace TeamServer.Controllers
     [ApiController]
     public class AgentController : ControllerBase
     {
-        private IAgentService _agentService;
+        private AgentService _agentService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Initializes a new instance of the AgentController class with the specified AgentService.
         /// </summary>
         /// <param name="agentService">The service that provides agent-related operations.</param>
-        public AgentController(IAgentService agentService)
+        public AgentController(AgentService agentService)
         {
             this._agentService = agentService;
         }

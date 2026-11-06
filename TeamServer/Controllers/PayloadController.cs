@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Text;
-using TeamServer.Interface;
+﻿using Microsoft.AspNetCore.Mvc;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Payload;
 
@@ -15,10 +12,10 @@ namespace TeamServer.Controllers
     [ApiController]
     public class PayloadController : ControllerBase
     {
-        private IPayloadService _payloadService;
+        private PayloadService _payloadService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-        public PayloadController(IPayloadService payloadService)
+        public PayloadController(PayloadService payloadService)
         {
             this._payloadService = payloadService;
         }

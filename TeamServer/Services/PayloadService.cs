@@ -21,9 +21,9 @@ namespace TeamServer.Services
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public PayloadService(
-            PayloadRepository payloadRepository, 
-            ListenerRespository listenerRepository, 
-            IPayloadBuilder payloadBuilder, 
+            PayloadRepository payloadRepository,
+            ListenerRespository listenerRepository,
+            IPayloadBuilder payloadBuilder,
             IWebHostEnvironment webHostEnvironment,
             INotificationDispatcher notificationHub)
         {
@@ -52,10 +52,10 @@ namespace TeamServer.Services
             var payloadUUID = Guid.NewGuid().ToString();
 
             // Call the payload builder to build the payload
-            var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
+            //var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
 
             // If the build failed, return an error
-            if (!buildResult.IsSuccess)
+            if (false)
             {
                 await _hub.SendEventLogAsync(
                 payloadCreationDTO.CampaignID.ToString(),

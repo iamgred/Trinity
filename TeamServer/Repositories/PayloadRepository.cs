@@ -1,7 +1,7 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using Trinity.Shared.Models;
-using TeamServer.Data;
 using Microsoft.EntityFrameworkCore;
+using TeamServer.Data;
+using Trinity.Shared.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace TeamServer.Repositories

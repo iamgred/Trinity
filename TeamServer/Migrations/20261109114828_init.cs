@@ -20,9 +20,9 @@ namespace TeamServer.Migrations
                 .Annotation("Npgsql:Enum:listenerType", "http,https,smb,tcp,tor")
                 .Annotation("Npgsql:Enum:payloadType", "powershell,raw,windows_dll,windows_exe,windows_service")
                 .Annotation("Npgsql:Enum:rotationStrategy", "random,round_robin")
-                .Annotation("Npgsql:Enum:status", "dispatched,error,more_to_follow,no_flag,no_more_to_follow,queued,running,success")
-                .Annotation("Npgsql:Enum:taskCode", "cancel_download,download,kill_process,no_code,run,run_as,run_u,sleep,spawn_to,update_hosts")
-                .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,kill,net_asm,nop,object_file,powershell,process,set,shell,upload,win_task")
+                .Annotation("Npgsql:Enum:status", "completed,dispatched,download_chunk_status,download_final_status,error,more_to_follow,no_flag,no_more_to_follow,queued,running,success")
+                .Annotation("Npgsql:Enum:taskCode", "download_chunk,download_final,kill_process,no_code,run,run_as,run_u,sleep,spawn_to,start_keylogger,stop_keylogger,update_hosts")
+                .Annotation("Npgsql:Enum:taskType", "download,escalate,get_uid,intial_checkin,keylogger,kill,net_asm,nop,object_file,powershell,process,set,shell,upload,win_task")
                 .Annotation("Npgsql:Enum:toolType", "net_asm");
 
             migrationBuilder.CreateTable(

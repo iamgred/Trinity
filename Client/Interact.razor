@@ -110,6 +110,10 @@
     public async ValueTask DisposeAsync()
     {
         if (_hubConnection is not null)
+        {
+            if (_hubConnection.State == HubConnectionState.Connected)
+                await _hubConnection.InvokeAsync("UnsubscribeFromAgent", AgentId.ToString());
             await _hubConnection.DisposeAsync();
+        }
     }
 }

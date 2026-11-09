@@ -3,7 +3,7 @@
 @rendermode InteractiveServer
 @using Client.Services
 @using Client.Components.UI
-@using Agent = Trinity.Shared.Models.Agent
+@using Trinity.Shared.DTOs.Agent
 
 @inject AgentService AgentService
 
@@ -47,11 +47,11 @@
                         <MudTh></MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="id"       Class="td-mono">@context.ID</MudTd>
-                        <MudTd DataLabel="external" Class="td-mono">@context.ExternalIP</MudTd>
-                        <MudTd DataLabel="user">@context.Username</MudTd>
-                        <MudTd DataLabel="arch"     Class="td-mono">@context.Architecure</MudTd>
-                        <MudTd DataLabel="last"     Class="td-mono">@FormatLastSeen(context.LastCheckIn)</MudTd>
+                        <MudTd DataLabel="id"       Class="td-mono">@context.agentID</MudTd>
+                        <MudTd DataLabel="external" Class="td-mono">@context.externalIP</MudTd>
+                        <MudTd DataLabel="user">@context.username</MudTd>
+                        <MudTd DataLabel="arch"     Class="td-mono">@context.arch</MudTd>
+                        <MudTd DataLabel="last"     Class="td-mono">@FormatLastSeen(context.lastCheckIn)</MudTd>
                         <MudTd DataLabel="status">
                             <span class="v2-badge @(IsOnline(context) ? "v2-badge-online" : "v2-badge-offline")">
                                 <span class="v2-dot"></span>@(IsOnline(context) ? "online" : "offline")
@@ -112,8 +112,8 @@
                                 @((MarkupString)$"<text class=\"edge-label-v2\" x=\"{midX}\" y=\"{midY - 4}\" text-anchor=\"middle\">HTTP</text>")
                                 <circle cx="@ax" cy="@ay" r="20"
                                         class="@(online ? "node-circle--online-v2" : "node-circle--offline-v2")"
-                                        style="@(_terminalAgent?.ID == agent.ID ? "stroke-width:3;" : "")" />
-                                @((MarkupString)$"<text class=\"node-label-v2\" x=\"{ax}\" y=\"{ay + 32}\" text-anchor=\"middle\">{agent.Username ?? "?"}</text>")
+                                        style="@(_terminalAgent?.agentID == agent.agentID ? "stroke-width:3;" : "")" />
+                                @((MarkupString)$"<text class=\"node-label-v2\" x=\"{ax}\" y=\"{ay + 32}\" text-anchor=\"middle\">{agent.username ?? "?"}</text>")
                             </g>
                         }
 
@@ -131,7 +131,7 @@
     @if (_terminalAgent is not null)
     {
         <div class="home-terminal">
-            <AgentTerminal AgentId="@_terminalAgent.ID"
+            <AgentTerminal AgentId="@_terminalAgent.agentID"
                            OnClose="CloseTerminal" />
         </div>
     }
@@ -139,8 +139,8 @@
 </div>
 
 @code {
-    private List<Agent> _agents = [];
-    private Agent? _terminalAgent;
+    private List<AgentResponse> _agents = [];
+    private AgentResponse? _terminalAgent;
     private bool _loading;
     private string _view = "table";
     private string _svgViewBox = "0 0 800 560";
@@ -158,7 +158,7 @@
         finally { _loading = false; }
     }
 
-    private void OpenTerminal(Agent agent)
+    private void OpenTerminal(AgentResponse agent)
     {
         if (!IsOnline(agent)) return;
         _terminalAgent = agent;
@@ -166,8 +166,8 @@
 
     private void CloseTerminal() => _terminalAgent = null;
 
-    private static bool IsOnline(Agent a)
-        => a.LastCheckIn != default && (DateTime.UtcNow - a.LastCheckIn).TotalSeconds < 120;
+    private static bool IsOnline(AgentResponse a)
+        => a.lastCheckIn != default && (DateTime.UtcNow - a.lastCheckIn).TotalSeconds < 120;
 
     private static string FormatLastSeen(DateTime dt)
     {

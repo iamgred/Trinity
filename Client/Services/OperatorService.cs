@@ -1,32 +1,32 @@
-using System.Net.Http.Json;
+using Refit;
 using Trinity.Shared.Models;
+using Trinity.Shared.Interfaces;
 
 namespace Client.Services;
 
-public class OperatorService
+public class OperatorService(IOperatorAPI api)
 {
-    private readonly HttpClient _http;
-
-    public OperatorService(IHttpClientFactory factory)
-        => _http = factory.CreateClient("TeamServer");
-
     public async Task<List<Operator>> GetTasksAsync()
-        => await _http.GetFromJsonAsync<List<Operator>>("/api/v1/operators") ?? [];
+    {
+        try { return await api.GetOperatorsAsync() ?? []; }
+        catch (ApiException) { return []; }
+    }
 
     public async Task<Operator?> GetByIdAsync(int id)
-        => await _http.GetFromJsonAsync<Operator>($"/api/v1/operators/{id}");
+    {
+        try { return await api.GetByIdAsync(id); }
+        catch (ApiException) { return null; }
+    }
 
-    // Changed: now takes (string username, string password, string role) instead of (Operator op)
     public async Task<bool> CreateAsync(string username, string password, string role = "operator")
     {
-        var body = new { Username = username, Password = password, Role = role };
-        var response = await _http.PostAsJsonAsync("/api/v1/operators", body);
-        return response.IsSuccessStatusCode;
+        try { await api.CreateAsync(new { Username = username, Password = password, Role = role }); return true; }
+        catch (ApiException) { return false; }
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var response = await _http.DeleteAsync($"/api/v1/operators/{id}");
-        return response.IsSuccessStatusCode;
+        try { await api.DeleteAsync(id); return true; }
+        catch (ApiException) { return false; }
     }
 }

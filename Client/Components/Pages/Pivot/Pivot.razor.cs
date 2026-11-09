@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Client.Services;
-using Agent = Trinity.Shared.Models.Agent;
+using Trinity.Shared.DTOs.Agent;
 
 namespace Client.Components.Pages;
 
@@ -10,8 +10,8 @@ public partial class Pivot
     [Inject] AgentService AgentService { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
 
-    private List<Agent> _agents = [];
-    private Agent? _selectedAgent;
+    private List<AgentResponse> _agents = [];
+    private AgentResponse? _selectedAgent;
     private bool _loading;
     private string _view = "graph";
     private string _svgViewBox = "0 0 800 560";
@@ -28,18 +28,17 @@ public partial class Pivot
         finally { _loading = false; }
     }
 
-    private static bool IsOnline(Agent a)
+    private static bool IsOnline(AgentResponse a)
     {
-        if (a.LastCheckIn == default) return false;
-        return (DateTime.UtcNow - a.LastCheckIn).TotalSeconds < 120;
+        if (a.lastCheckIn == default) return false;
+        return (DateTime.UtcNow - a.lastCheckIn).TotalSeconds < 120;
     }
 
-    private void SelectAgent(Agent agent)
+    private void SelectAgent(AgentResponse agent)
     {
-        _selectedAgent = _selectedAgent?.ID == agent.ID ? null : agent;
+        _selectedAgent = _selectedAgent?.agentID == agent.agentID ? null : agent;
     }
 
-    // Returns integer coordinates so the markup can do arithmetic: x2="@(400 - ax)"
     private static (int ax, int ay) AgentPosition(int index, int total)
     {
         if (total == 0) return (400, 295);

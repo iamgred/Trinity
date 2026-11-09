@@ -1,34 +1,26 @@
-using System.Net.Http.Json;
+using Refit;
 using Trinity.Shared.DTOs.Agent;
+using Trinity.Shared.Interfaces;
 
 namespace Client.Services;
 
-public class AgentService
+public class AgentService(IAgentAPI api)
 {
-    private readonly HttpClient _http;
-
-    public AgentService(IHttpClientFactory factory)
-        => _http = factory.CreateClient("TeamServer");
-
-    /// <summary>
-    /// GET /api/v1/agents — returns every agent currently checked in.
-    /// Returns an empty list (not null) if the server returns nothing.
-    /// </summary>
     public async Task<List<AgentResponse>> GetTasksAsync()
-        => await _http.GetFromJsonAsync<List<AgentResponse>>("/api/v1/agents") ?? [];
+    {
+        try { return await api.GetAgentsAsync() ?? []; }
+        catch (ApiException) { return []; }
+    }
 
-    /// <summary>
-    /// GET /api/v1/agents/{id} — returns one specific agent, or null if not found.
-    /// </summary>
-    public async Task<Agent?> GetByIdAsync(int id)
-        => await _http.GetFromJsonAsync<Agent>($"/api/v1/agents/{id}");
+    public async Task<AgentResponse?> GetByIdAsync(int id)
+    {
+        try { return await api.GetByIdAsync(id); }
+        catch (ApiException) { return null; }
+    }
 
-    /// <summary>
-    /// DELETE /api/v1/agents/{id} — removes an agent. Returns true if successful.
-    /// </summary>
     public async Task<bool> DeleteAsync(int id)
     {
-        var response = await _http.DeleteAsync($"/api/v1/agents/{id}");
-        return response.IsSuccessStatusCode;
+        try { await api.DeleteAsync(id); return true; }
+        catch (ApiException) { return false; }
     }
 }

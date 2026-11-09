@@ -1,96 +1,65 @@
-using System.Net.Http.Json;
+using Refit;
+using Trinity.Shared.DTOs.Listener.Http;
+using Trinity.Shared.DTOs.Listener.Tcp;
+using Trinity.Shared.DTOs.Listener.Smb;
+using Trinity.Shared.Interfaces;
 
 namespace Client.Services;
 
 public sealed record ListenerResponse(int id, string name, string protocol);
 
-public sealed class ListenerApiClient(HttpClient httpClient, TeamServerConnection connection)
+public sealed class ListenerApiClient(IListenerAPI api)
 {
     public async Task<IReadOnlyList<ListenerResponse>> GetListenersAsync(CancellationToken cancellationToken = default)
     {
-        if (connection.BaseAddress is null)
+        try
         {
-            throw new InvalidOperationException("Connect to a TeamServer from the Login page before viewing listeners.");
+            var items = await api.GetListenersAsync() ?? [];
+            return items.Select(l => new ListenerResponse(l.ID, l.name, l.protocol)).ToList();
         }
-
-        var requestUri = new Uri(connection.BaseAddress, "api/v1/listeners");
-        var listeners = await httpClient.GetFromJsonAsync<List<ListenerResponse>>(requestUri, cancellationToken);
-        return listeners ?? new List<ListenerResponse>();
+        catch (ApiException) { return []; }
     }
 
     public async Task<bool> CreateHttpListenerAsync(string name, string host, int port, CancellationToken cancellationToken = default)
     {
-        if (connection.BaseAddress is null)
+        try
         {
-            throw new InvalidOperationException("Connect to a TeamServer from the Login page before creating a profile.");
+            var request = new CreateHttpListenerRequest(name, new HttpConfig(port, port, null, null, [host], "round-robin", "3"));
+            await api.CreateHttpListenerAsync(request);
+            return true;
         }
-
-        var requestUri = new Uri(connection.BaseAddress, "api/v1/listeners/http");
-        var body = new
-        {
-            Name = name,
-            Config = new
-            {
-                BindPort = port,
-                C2Port = port,
-                UserAgent = "",
-                Header = "Content-type: */*",
-                Hosts = new[] { host },
-                RotationStrategy = "round-robin",
-                MaxRetryStrategy = "3",
-            },
-        };
-        var response = await httpClient.PostAsJsonAsync(requestUri, body, cancellationToken);
-        return response.IsSuccessStatusCode;
+        catch (ApiException) { return false; }
     }
 
     public async Task<bool> CreateTcpListenerAsync(string name, int port, CancellationToken cancellationToken = default)
     {
-        if (connection.BaseAddress is null)
+        try
         {
-            throw new InvalidOperationException("Connect to a TeamServer from the Login page before creating a profile.");
+            await api.CreateTcpListenerAsync(new CreateTcpListenerRequest(name, new TcpConfig(port)));
+            return true;
         }
-
-        var requestUri = new Uri(connection.BaseAddress, "api/v1/listeners/tcp");
-        var body = new { Name = name, Config = new { Port = port } };
-        var response = await httpClient.PostAsJsonAsync(requestUri, body, cancellationToken);
-        return response.IsSuccessStatusCode;
+        catch (ApiException) { return false; }
     }
 
     public async Task<bool> CreateSmbListenerAsync(string name, string pipe, CancellationToken cancellationToken = default)
     {
-        if (connection.BaseAddress is null)
+        try
         {
-            throw new InvalidOperationException("Connect to a TeamServer from the Login page before creating a profile.");
+            await api.CreateSmbListenerAsync(new CreateSmbRequest(name, new SmbConfig(pipe)));
+            return true;
         }
-
-        var requestUri = new Uri(connection.BaseAddress, "api/v1/listeners/smb");
-        var body = new { Name = name, Config = new { pipe } };
-        var response = await httpClient.PostAsJsonAsync(requestUri, body, cancellationToken);
-        return response.IsSuccessStatusCode;
+        catch (ApiException) { return false; }
     }
 
     public async Task<bool> DeleteListenerAsync(int id, CancellationToken cancellationToken = default)
     {
-        if (connection.BaseAddress is null)
-        {
-            throw new InvalidOperationException("Connect to a TeamServer from the Login page before deleting a profile.");
-        }
-
-        var requestUri = new Uri(connection.BaseAddress, $"api/v1/listeners/{id}");
-        var response = await httpClient.DeleteAsync(requestUri, cancellationToken);
-        return response.IsSuccessStatusCode;
+        try { await api.DeleteAsync(id); return true; }
+        catch (ApiException) { return false; }
     }
 
     public async Task<bool> RestartListenerAsync(int id, CancellationToken cancellationToken = default)
     {
-        if (connection.BaseAddress is null)
-        {
-            throw new InvalidOperationException("Connect to a TeamServer from the Login page before restarting a profile.");
-        }
-
-        var requestUri = new Uri(connection.BaseAddress, $"api/v1/listeners/http/restart/{id}");
-        var response = await httpClient.PostAsync(requestUri, content: null, cancellationToken);
-        return response.IsSuccessStatusCode;
+        try { await api.RestartAsync(id); return true; }
+        catch (ApiException) { return false; }
     }
 }

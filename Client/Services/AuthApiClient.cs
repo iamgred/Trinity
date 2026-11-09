@@ -1,11 +1,11 @@
 using System.Net;
-using System.Net.Http.Json;
+using Refit;
 using Trinity.Shared.DTOs.Authentication;
+using Trinity.Shared.Interfaces;
 
 namespace Client.Services;
 
-// Calls the TeamServer auth endpoint; reports success/failure only (no token/session).
-public sealed class AuthApiClient(HttpClient httpClient, TeamServerConnection connection)
+public sealed class AuthApiClient(IAuthAPI api)
 {
     public enum LoginResult
     {
@@ -15,22 +15,14 @@ public sealed class AuthApiClient(HttpClient httpClient, TeamServerConnection co
 
     public async Task<LoginResult> LoginAsync(string username, string password, CancellationToken cancellationToken = default)
     {
-        if (connection.BaseAddress is null)
+        try
         {
-            throw new InvalidOperationException("Connect to a TeamServer from the Login page before signing in.");
+            await api.LoginAsync(new LoginDTO { Username = username, Password = password });
+            return LoginResult.Success;
         }
-
-        var requestUri = new Uri(connection.BaseAddress, "api/v1/auth/login");
-        var credentials = new LoginDTO { Username = username, Password = password };
-
-        var response = await httpClient.PostAsJsonAsync(requestUri, credentials, cancellationToken);
-
-        if (response.StatusCode == HttpStatusCode.BadRequest)
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.BadRequest)
         {
             return LoginResult.InvalidCredentials;
         }
-
-        response.EnsureSuccessStatusCode();
-        return LoginResult.Success;
     }
 }

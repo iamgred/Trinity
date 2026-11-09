@@ -6,10 +6,10 @@
 @using Trinity.Shared.DTOs.Payload
 @using Trinity.Shared.Enums
 @using Campaign = Trinity.Shared.Models.Campaign
-@using Trinity.Shared.DTOs.Payload
+@using Trinity.Shared.Interfaces
 @inject ListenerApiClient ListenerApi
 @inject CampaignService CampaignService
-@inject IHttpClientFactory HttpFactory
+@inject IPayloadAPI PayloadApi
 
 <Modal Title="Generate Payload" Subtitle="Build an agent that calls back to a listener" IconName="nav-generate.svg"
        FootNote="Built on the team server and added to Payloads." Error="@_error" OnClose="OnClose">
@@ -125,15 +125,12 @@
         _busy = true;
         try
         {
-            var http = HttpFactory.CreateClient("TeamServer");
-            var response = await http.PostAsJsonAsync("/api/v1/payloads/generate", request);
-            if (!response.IsSuccessStatusCode)
-            {
-                _error = $"The team server refused the build ({(int)response.StatusCode}).";
-                return;
-            }
-
+            await PayloadApi.GenerateAsync(request);
             await OnGenerated.InvokeAsync();
+        }
+        catch (Refit.ApiException e)
+        {
+            _error = $"The team server refused the build ({(int)e.StatusCode}).";
         }
         catch (HttpRequestException e)
         {

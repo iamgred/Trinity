@@ -92,11 +92,11 @@
                                 <div class="agent-list-left">
                                     <div class="agent-status-dot @(IsOnline(agent) ? "dot-online" : "dot-offline")"></div>
                                     <div class="agent-list-info">
-                                        <span class="agent-list-host">@agent.Username</span>
-                                        <span class="agent-list-meta">@agent.Username · @agent.ExternalIP</span>
+                                        <span class="agent-list-host">@agent.username</span>
+                                        <span class="agent-list-meta">@agent.username · @agent.externalIP</span>
                                     </div>
                                 </div>
-                                <span class="agent-list-seen">@FormatLastSeen(agent.LastCheckIn)</span>
+                                <span class="agent-list-seen">@FormatLastSeen(agent.lastCheckIn)</span>
                             </div>
                         </MudListItem>
                     }

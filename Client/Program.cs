@@ -21,19 +21,39 @@ namespace Client
             // Registers MudBlazor Components
             builder.Services.AddMudServices();
 
-            // Runtime-configured TeamServer connection + typed API clients (DTO-based).
+            // Runtime-configured TeamServer connection (used by old API client wrappers).
             builder.Services.AddScoped<TeamServerConnection>();
-            builder.Services.AddHttpClient<AgentApiClient>();
-            builder.Services.AddHttpClient<AuthApiClient>();
-            builder.Services.AddHttpClient<ListenerApiClient>();
-            builder.Services.AddHttpClient<CommandApiClient>();
-            builder.Services.AddHttpClient<ServerApiClient>();
 
-            // Named TeamServer HttpClient (fixed BaseUrl from appsettings).
-            builder.Services.AddHttpClient("TeamServer", client =>
-            {
-                client.BaseAddress = new Uri(builder.Configuration["TeamServer:BaseUrl"]!);
-            });
+            var teamServerUrl = builder.Configuration["TeamServer:BaseUrl"]!;
+
+            // Refit typed HTTP clients — all targeting TeamServer
+            builder.Services.AddRefitClient<ICommandAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<IAgentAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<IListenerAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<ICampaignAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<IOperatorAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<IAdminAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<IPayloadAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<IAuthAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<IServerAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<ITaskAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+
+            // Thin wrappers that pages inject directly (internally use Refit interfaces)
+            builder.Services.AddScoped<AgentApiClient>();
+            builder.Services.AddScoped<AuthApiClient>();
+            builder.Services.AddScoped<ListenerApiClient>();
+            builder.Services.AddScoped<CommandApiClient>();
+            builder.Services.AddScoped<ServerApiClient>();
 
             // App Services
             builder.Services.AddScoped<AuthService>();
@@ -61,15 +81,8 @@ namespace Client
             builder.Services.AddScoped<UploadStrategy>();
             builder.Services.AddScoped<SpawnToStrategy>();
             builder.Services.AddScoped<UpdateHostsStrategy>();
-            builder.Services.AddScoped<UpdateHostsStrategy>();
             builder.Services.AddScoped<KillStrategy>();
             builder.Services.AddScoped<GetUIDStrategy>();
-            builder.Services.AddRefitClient<ICommandAPI>()
-                .ConfigureHttpClient(client =>
-                {
-                    client.BaseAddress = new Uri("https://localhost:7251");
-                });
-
 
             var app = builder.Build(); // <- Build happens here, after all services are registered
 

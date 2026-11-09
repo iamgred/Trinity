@@ -2,7 +2,7 @@
 @namespace Client.Components.Pages
 @rendermode InteractiveServer
 @using Client.Services
-@using Trinity.Shared.Models
+@using Trinity.Shared.DTOs.Agent
 
 <div class="v2-header">
     <div class="v2-header-left">
@@ -57,8 +57,8 @@
                         @((MarkupString)$"<text class=\"edge-label-v2\" x=\"{midX}\" y=\"{midY - 4}\" text-anchor=\"middle\">HTTP</text>")
                         <circle cx="@ax" cy="@ay" r="20"
                                 class="@(online ? "node-circle--online-v2" : "node-circle--offline-v2")"
-                                style="@(_selectedAgent?.ID == agent.ID ? "stroke-width:3;" : "")" />
-                        @((MarkupString)$"<text class=\"node-label-v2\" x=\"{ax}\" y=\"{ay + 32}\" text-anchor=\"middle\">{Shorten(agent.Username)}</text>")
+                                style="@(_selectedAgent?.agentID == agent.agentID ? "stroke-width:3;" : "")" />
+                        @((MarkupString)$"<text class=\"node-label-v2\" x=\"{ax}\" y=\"{ay + 32}\" text-anchor=\"middle\">{Shorten(agent.username)}</text>")
                     </g>
                 }
 
@@ -73,14 +73,14 @@
         {
             <div class="graph-detail-v2">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <span style="font-size:13px;font-weight:700;color:var(--text-primary);">@_selectedAgent.Username</span>
+                    <span style="font-size:13px;font-weight:700;color:var(--text-primary);">@_selectedAgent.username</span>
                     <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="() => _selectedAgent = null" />
                 </div>
-                <div class="gd-row"><span class="gd-key">ID</span>    <span class="gd-val gd-mono">@_selectedAgent.ID</span></div>
-                <div class="gd-row"><span class="gd-key">User</span>  <span class="gd-val">@_selectedAgent.Username</span></div>
-                <div class="gd-row"><span class="gd-key">Arch</span>  <span class="gd-val gd-mono">@_selectedAgent.Architecure</span></div>
-                <div class="gd-row"><span class="gd-key">IP</span>    <span class="gd-val gd-mono">@_selectedAgent.ExternalIP</span></div>
-                <div class="gd-row"><span class="gd-key">Seen</span>  <span class="gd-val">@FormatLastSeen(_selectedAgent.LastCheckIn)</span></div>
+                <div class="gd-row"><span class="gd-key">ID</span>    <span class="gd-val gd-mono">@_selectedAgent.agentID</span></div>
+                <div class="gd-row"><span class="gd-key">User</span>  <span class="gd-val">@_selectedAgent.username</span></div>
+                <div class="gd-row"><span class="gd-key">Arch</span>  <span class="gd-val gd-mono">@_selectedAgent.arch</span></div>
+                <div class="gd-row"><span class="gd-key">IP</span>    <span class="gd-val gd-mono">@_selectedAgent.externalIP</span></div>
+                <div class="gd-row"><span class="gd-key">Seen</span>  <span class="gd-val">@FormatLastSeen(_selectedAgent.lastCheckIn)</span></div>
                 <div class="gd-row">
                     <span class="gd-key">Status</span>
                     <span class="gd-val @(IsOnline(_selectedAgent) ? "gd-online" : "gd-offline")">
@@ -104,16 +104,16 @@ else
                 <MudTh>last seen</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd Class="td-mono">@context.ID</MudTd>
-                <MudTd>@context.Username</MudTd>
-                <MudTd Class="td-mono">@context.ExternalIP</MudTd>
-                <MudTd Class="td-mono">@context.Architecure</MudTd>
+                <MudTd Class="td-mono">@context.agentID</MudTd>
+                <MudTd>@context.username</MudTd>
+                <MudTd Class="td-mono">@context.externalIP</MudTd>
+                <MudTd Class="td-mono">@context.arch</MudTd>
                 <MudTd>
                     <span class="v2-badge @(IsOnline(context) ? "v2-badge-online" : "v2-badge-offline")">
                         <span class="v2-dot"></span>@(IsOnline(context) ? "online" : "offline")
                     </span>
                 </MudTd>
-                <MudTd>@FormatLastSeen(context.LastCheckIn)</MudTd>
+                <MudTd>@FormatLastSeen(context.lastCheckIn)</MudTd>
             </RowTemplate>
             <NoRecordsContent>
                 <div class="v2-table-empty">

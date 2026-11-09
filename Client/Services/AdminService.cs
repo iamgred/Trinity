@@ -1,43 +1,32 @@
-using System.Net.Http.Json;
+using Refit;
 using Trinity.Shared.Models;
+using Trinity.Shared.Interfaces;
 
 namespace Client.Services;
 
-public class AdminService
+public class AdminService(IAdminAPI api)
 {
-    private readonly HttpClient _http;
-
-    public AdminService(IHttpClientFactory factory)
-        => _http = factory.CreateClient("TeamServer");
-
-    // <summary>
-    // GET /api/v1/admins — returns all admin accounts.
-    // </summary>
     public async Task<List<Admin>> GetTasksAsync()
-        => await _http.GetFromJsonAsync<List<Admin>>("/api/v1/admins") ?? [];
+    {
+        try { return await api.GetAdminsAsync() ?? []; }
+        catch (ApiException) { return []; }
+    }
 
-    // <summary>
-    // GET /api/v1/admins/{id} — returns a single admin.
-    // </summary>
     public async Task<Admin?> GetByIdAsync(int id)
-        => await _http.GetFromJsonAsync<Admin>($"/api/v1/admins/{id}");
+    {
+        try { return await api.GetByIdAsync(id); }
+        catch (ApiException) { return null; }
+    }
 
-    // <summary>
-    // POST /api/v1/admins — creates a new admin account.
-    // </summary>
     public async Task<bool> CreateAsync(Admin admin)
     {
-        var response = await _http.PostAsJsonAsync("/api/v1/admins", admin);
-        return response.IsSuccessStatusCode;
+        try { await api.CreateAsync(admin); return true; }
+        catch (ApiException) { return false; }
     }
 
-    // <summary>
-    // DELETE /api/v1/admins/{id} — removes an admin.
-    // </summary>
     public async Task<bool> DeleteAsync(int id)
     {
-        var response = await _http.DeleteAsync($"/api/v1/admins/{id}");
-        return response.IsSuccessStatusCode;
+        try { await api.DeleteAsync(id); return true; }
+        catch (ApiException) { return false; }
     }
 }
-

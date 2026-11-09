@@ -1,32 +1,32 @@
-using System.Net.Http.Json;
+using Refit;
 using Trinity.Shared.Models;
+using Trinity.Shared.Interfaces;
 
 namespace Client.Services;
 
-public class CampaignService
+public class CampaignService(ICampaignAPI api)
 {
-    private readonly HttpClient _http;
-
-    public CampaignService(IHttpClientFactory factory)
-        => _http = factory.CreateClient("TeamServer");
-
     public async Task<List<Campaign>> GetTasksAsync()
-        => await _http.GetFromJsonAsync<List<Campaign>>("/api/v1/campaigns") ?? [];
+    {
+        try { return await api.GetCampaignsAsync() ?? []; }
+        catch (ApiException) { return []; }
+    }
 
     public async Task<Campaign?> GetByIdAsync(int id)
-        => await _http.GetFromJsonAsync<Campaign>($"/api/v1/campaigns/{id}");
+    {
+        try { return await api.GetByIdAsync(id); }
+        catch (ApiException) { return null; }
+    }
 
-    // Changed: now takes (string name, string description) instead of (Campaign campaign)
     public async Task<bool> CreateAsync(string name, string description = "")
     {
-        var body = new { Name = name, Description = description };
-        var response = await _http.PostAsJsonAsync("/api/v1/campaigns", body);
-        return response.IsSuccessStatusCode;
+        try { await api.CreateAsync(new { Name = name, Description = description }); return true; }
+        catch (ApiException) { return false; }
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var response = await _http.DeleteAsync($"/api/v1/campaigns/{id}");
-        return response.IsSuccessStatusCode;
+        try { await api.DeleteAsync(id); return true; }
+        catch (ApiException) { return false; }
     }
 }

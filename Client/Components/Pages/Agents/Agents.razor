@@ -2,7 +2,7 @@
 @namespace Client.Components.Pages
 @rendermode InteractiveServer
 @using Client.Services
-@using Trinity.Shared.Models
+@using Trinity.Shared.DTOs.Agent
 
 <div class="v2-header">
     <div class="v2-header-left">
@@ -38,16 +38,16 @@
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="id"        Class="td-mono">@context.ID</MudTd>
-            <MudTd DataLabel="external"  Class="td-mono">@context.ExternalIP</MudTd>
-            <MudTd DataLabel="internal"  Class="td-mono">—</MudTd>
-            <MudTd DataLabel="listener">—</MudTd>
-            <MudTd DataLabel="user">@context.Username</MudTd>
-            <MudTd DataLabel="process"   Class="td-mono">—</MudTd>
-            <MudTd DataLabel="pid"       Class="td-mono">—</MudTd>
-            <MudTd DataLabel="arch"      Class="td-mono">@context.Architecure</MudTd>
-            <MudTd DataLabel="integrity">—</MudTd>
-            <MudTd DataLabel="last"      Class="td-mono">@FormatLastSeen(context.LastCheckIn)</MudTd>
+            <MudTd DataLabel="id"        Class="td-mono">@context.agentID</MudTd>
+            <MudTd DataLabel="external"  Class="td-mono">@context.externalIP</MudTd>
+            <MudTd DataLabel="internal"  Class="td-mono">@context.internalIP</MudTd>
+            <MudTd DataLabel="listener">@context.listener</MudTd>
+            <MudTd DataLabel="user">@context.username</MudTd>
+            <MudTd DataLabel="process"   Class="td-mono">@context.processName</MudTd>
+            <MudTd DataLabel="pid"       Class="td-mono">@context.PID</MudTd>
+            <MudTd DataLabel="arch"      Class="td-mono">@context.arch</MudTd>
+            <MudTd DataLabel="integrity">@context.integrity</MudTd>
+            <MudTd DataLabel="last"      Class="td-mono">@FormatLastSeen(context.lastCheckIn)</MudTd>
             <MudTd DataLabel="sleep"     Class="td-mono">—</MudTd>
             <MudTd DataLabel="status">
                 <span class="v2-badge @(IsOnline(context) ? "v2-badge-online" : "v2-badge-offline")">

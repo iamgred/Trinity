@@ -67,8 +67,7 @@ namespace TeamServer
             builder.Services.AddSingleton<ITaskRequestFactory, TaskRequestFactory>();
             builder.Services.AddSingleton<IToolFactory, ToolFactory>();
 
-            // Transient
-            builder.Services.AddTransient<INotificationHub, NotificationHub>();
+            builder.Services.AddSingleton<INotificationHub, NotificationDispatcher>();
 
             builder.Services.AddControllers(options =>
             {

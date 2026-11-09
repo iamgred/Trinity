@@ -405,3 +405,7 @@ Agent/out/build/
 # Local payload build/test output
 Agent/build-payload-test/
 TeamServer/PayloadBuilds/
+
+# runtime data: bind-mounted by docker-compose, so a rebuild does not discard it
+/storage/
+/Payloads/

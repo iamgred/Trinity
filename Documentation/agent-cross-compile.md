@@ -32,6 +32,30 @@ compiler, linker and flags. Each build logs one line so a payload traces to the 
 payload build: toolchain=mingw-w64-clang.cmake arch=x64 build=/app/PayloadBuilds/<guid>
 ```
 
+## The compose stack
+
+`docker-compose.yml` brings the image up with `Agent/` mounted at `/Agent`, which is where
+`CMakePayloadBuilder` looks for sources, and with `Payloads/` and `storage/` bind-mounted so a
+rebuild does not discard them. Name the file: plain `docker compose` prefers `compose.yaml`, the
+onion-stack sample, which references a project that is not in this tree.
+
+```bash
+docker compose -f docker-compose.yml up -d --build teamserver
+curl -fsS http://localhost:5000/health
+```
+
+The schema is not created on start (see Limits): bring the database up with the server, then apply
+the migrations from the host before generating a payload through the API.
+
+```bash
+docker compose -f docker-compose.yml up -d postgres
+ConnectionStrings__Postgres='Host=localhost;Database=postgres;Username=postgres;Password=JAMZ' \
+  dotnet ef database update --project TeamServer/TeamServer.csproj
+```
+
+`docker compose -f docker-compose.yml run --rm --entrypoint /bin/bash teamserver` gives the same
+container as the `docker run` below, with the mounts already in place.
+
 ## Building by hand
 
 Inside a container from this image, with the repository mounted:

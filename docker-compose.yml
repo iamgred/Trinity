@@ -1,0 +1,65 @@
+# The stack the TeamServer image supports: the runtime stage carries the agent cross-compiler
+# (TeamServer/Dockerfile), so a payload is built in the container instead of on the host.
+#
+# Name this file. `docker compose` prefers compose.yaml, which is the onion-stack sample and
+# references a project that is not in this tree: `docker compose -f docker-compose.yml up`.
+#
+# Not in this file: a client and an EF migration bundle. This branch has no Client/Dockerfile and
+# no migrator stage, and the server does not create the schema on start — see
+# Documentation/agent-cross-compile.md for the one migration command that is still needed.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: trinity-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-JAMZ}
+      POSTGRES_DB: postgres
+    ports:
+      # Published so `dotnet ef database update` can run from the host against the same database.
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  teamserver:
+    build:
+      context: .
+      dockerfile: TeamServer/Dockerfile
+      target: runtime
+    container_name: trinity-teamserver
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+      # An HTTP listener is bound at runtime to whatever port it was created with; publish the
+      # usual pair so an agent can reach it instead of talking to a container-local address.
+      - "5069:5069"
+      - "5070:5070"
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Database=postgres;Username=postgres;Password=${POSTGRES_PASSWORD:-JAMZ}"
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+    volumes:
+      # CMakePayloadBuilder resolves sources as <content root>/../Agent, i.e. /Agent.
+      - ./Agent:/Agent:ro
+      - ./Payloads:/app/Payloads
+      # Agent-received files lived in the container's writable layer, so every rebuild silently
+      # discarded them. This is data, not build output.
+      - ./storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/health > /dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+
+volumes:
+  pgdata:

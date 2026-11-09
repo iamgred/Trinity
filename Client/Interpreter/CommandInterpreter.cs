@@ -33,25 +33,27 @@ namespace Client.Interpreter
             RunStrategy runStrategy, RunUStrategy runUStrategy, KillProcessStrategy killProcessStrategy, EscalateStrategy escalateStrategy,
             DotNetAsmStrategy dotNetAsmStrategy, DownloadStrategy downloadStrategy, CancelDownloadStrategy cancelDownloadStrategy,
             UploadStrategy uploadStrategy, SpawnToStrategy spawnToStrategy, UpdateHostsStrategy updateHostsStrategy,
-            KillStrategy killStrategy, GetUIDStrategy getUIDStrategy)
+            KillStrategy killStrategy, GetUIDStrategy getUIDStrategy, SetSleepStrategy setSleepStrategy, HelpStrategy helpStrategy)
         {
             _strategyCache = new Dictionary<string, Func<int, string?, Task<Result<string>>>>(StringComparer.OrdinalIgnoreCase)
             {
-                { psStrategy.Keyword, (agentID, command) => psStrategy.ProcessCommandAsync(agentID, command) },
-                { shellStrategy.Keyword, (agentID, command) => shellStrategy.ProcessCommandAsync(agentID, command) },
-                { runAsStrategy.Keyword, (agentID, command) => runAsStrategy.ProcessCommandAsync(agentID, command) },
-                { runStrategy.Keyword, (agentID, command) => runStrategy.ProcessCommandAsync(agentID, command) },
-                { runUStrategy.Keyword, (agentID, command) => runUStrategy.ProcessCommandAsync(agentID, command) },
-                { killProcessStrategy.Keyword, (agentID, command) => killProcessStrategy.ProcessCommandAsync(agentID, command) },
-                { escalateStrategy.Keyword, (agentID, command) => escalateStrategy.ProcessCommandAsync(agentID, command) },
-                { dotNetAsmStrategy.Keyword, (agentID, command) => dotNetAsmStrategy.ProcessCommandAsync(agentID, command) },
-                { downloadStrategy.Keyword, (agentID, command) => downloadStrategy.ProcessCommandAsync(agentID, command) },
+                { psStrategy.Keyword,             (agentID, command) => psStrategy.ProcessCommandAsync(agentID, command) },
+                { shellStrategy.Keyword,          (agentID, command) => shellStrategy.ProcessCommandAsync(agentID, command) },
+                { runAsStrategy.Keyword,          (agentID, command) => runAsStrategy.ProcessCommandAsync(agentID, command) },
+                { runStrategy.Keyword,            (agentID, command) => runStrategy.ProcessCommandAsync(agentID, command) },
+                { runUStrategy.Keyword,           (agentID, command) => runUStrategy.ProcessCommandAsync(agentID, command) },
+                { killProcessStrategy.Keyword,    (agentID, command) => killProcessStrategy.ProcessCommandAsync(agentID, command) },
+                { escalateStrategy.Keyword,       (agentID, command) => escalateStrategy.ProcessCommandAsync(agentID, command) },
+                { dotNetAsmStrategy.Keyword,      (agentID, command) => dotNetAsmStrategy.ProcessCommandAsync(agentID, command) },
+                { downloadStrategy.Keyword,       (agentID, command) => downloadStrategy.ProcessCommandAsync(agentID, command) },
                 { cancelDownloadStrategy.Keyword, (agentID, command) => cancelDownloadStrategy.ProcessCommandAsync(agentID, command) },
-                { uploadStrategy.Keyword, (agentID, command) => uploadStrategy.ProcessCommandAsync(agentID, command) },
-                { spawnToStrategy.Keyword, (agentID, command) => spawnToStrategy.ProcessCommandAsync(agentID, command) },
-                { updateHostsStrategy.Keyword, (agentID, command) => updateHostsStrategy.ProcessCommandAsync(agentID, command) },
-                { killStrategy.Keyword, (agentID, command) => killStrategy.ProcessCommandAsync(agentID, command) },
-                { getUIDStrategy.Keyword, (agentID, command) => getUIDStrategy.ProcessCommandAsync(agentID, command) }
+                { uploadStrategy.Keyword,         (agentID, command) => uploadStrategy.ProcessCommandAsync(agentID, command) },
+                { spawnToStrategy.Keyword,        (agentID, command) => spawnToStrategy.ProcessCommandAsync(agentID, command) },
+                { updateHostsStrategy.Keyword,    (agentID, command) => updateHostsStrategy.ProcessCommandAsync(agentID, command) },
+                { killStrategy.Keyword,           (agentID, command) => killStrategy.ProcessCommandAsync(agentID, command) },
+                { getUIDStrategy.Keyword,         (agentID, command) => getUIDStrategy.ProcessCommandAsync(agentID, command) },
+                { setSleepStrategy.Keyword,       (agentID, command) => setSleepStrategy.ProcessCommandAsync(agentID, command) },
+                { helpStrategy.Keyword,           (agentID, command) => helpStrategy.ProcessCommandAsync(agentID, command) },
             };
         }
 

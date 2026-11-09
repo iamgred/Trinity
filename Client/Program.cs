@@ -90,6 +90,8 @@ namespace Client
             builder.Services.AddScoped<UpdateHostsStrategy>();
             builder.Services.AddScoped<KillStrategy>();
             builder.Services.AddScoped<GetUIDStrategy>();
+            builder.Services.AddScoped<SetSleepStrategy>();
+            builder.Services.AddScoped<HelpStrategy>();
 
             var app = builder.Build(); // <- Build happens here, after all services are registered
 

@@ -1,3 +1,49 @@
+.agents-layout {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+}
+
+.agents-layout--split .agents-top {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+}
+
+.agents-top {
+    flex: 1;
+    overflow: auto;
+}
+
+.agents-terminal {
+    flex: 0 0 320px;
+    min-height: 0;
+    border-top: 1px solid var(--border, #2a2a2a);
+}
+
+.ctx-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+}
+
+.ctx-menu {
+    position: fixed;
+    z-index: 9999;
+    min-width: 160px;
+    padding: 4px 0;
+    background: var(--card, #1a1a1a) !important;
+    border: 1px solid var(--border, #2a2a2a) !important;
+    border-radius: 6px !important;
+}
+
+.ctx-cell {
+    display: block;
+    width: 100%;
+    cursor: default;
+}
+
 .agents-header {
     display: flex;
     align-items: center;

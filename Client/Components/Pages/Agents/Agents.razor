@@ -3,80 +3,117 @@
 @rendermode InteractiveServer
 @using Client.Services
 @using Trinity.Shared.DTOs.Agent
+@using Client.Components.UI
 
-<div class="v2-header">
-    <div class="v2-header-left">
-        <span class="v2-header-title">Agents</span>
-        <span class="v2-header-count">@_agents.Count registered · @OnlineCount online</span>
-    </div>
-    <MudTooltip Text="Refresh">
-        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAgentsAsync" />
-    </MudTooltip>
-</div>
+<div class="agents-layout @(_terminalAgent is not null ? "agents-layout--split" : "")">
 
-<div class="v2-table-wrap">
-    <MudTable Items="@FilteredAgents"
-              Dense="true"
-              Hover="true"
-              Elevation="0"
-              Loading="@_loading"
-              LoadingProgressColor="Color.Primary"
-              FixedHeader="true">
-        <HeaderContent>
-            <MudTh>id</MudTh>
-            <MudTh>external</MudTh>
-            <MudTh>internal</MudTh>
-            <MudTh>listener</MudTh>
-            <MudTh>user</MudTh>
-            <MudTh>process</MudTh>
-            <MudTh>pid</MudTh>
-            <MudTh>arch</MudTh>
-            <MudTh>integrity</MudTh>
-            <MudTh>last</MudTh>
-            <MudTh>sleep</MudTh>
-            <MudTh>status</MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="id"        Class="td-mono">@context.agentID</MudTd>
-            <MudTd DataLabel="external"  Class="td-mono">@context.externalIP</MudTd>
-            <MudTd DataLabel="internal"  Class="td-mono">@context.internalIP</MudTd>
-            <MudTd DataLabel="listener">@context.listener</MudTd>
-            <MudTd DataLabel="user">@context.username</MudTd>
-            <MudTd DataLabel="process"   Class="td-mono">@context.processName</MudTd>
-            <MudTd DataLabel="pid"       Class="td-mono">@context.PID</MudTd>
-            <MudTd DataLabel="arch"      Class="td-mono">@context.arch</MudTd>
-            <MudTd DataLabel="integrity">@context.integrity</MudTd>
-            <MudTd DataLabel="last"      Class="td-mono">@FormatLastSeen(context.lastCheckIn)</MudTd>
-            <MudTd DataLabel="sleep"     Class="td-mono">—</MudTd>
-            <MudTd DataLabel="status">
-                <span class="v2-badge @(IsOnline(context) ? "v2-badge-online" : "v2-badge-offline")">
-                    <span class="v2-dot"></span>
-                    @(IsOnline(context) ? "online" : "offline")
-                </span>
-            </MudTd>
-            <MudTd>
-                <div class="v2-row-actions">
-                    <MudTooltip Text="Interact">
-                        <MudIconButton Icon="@Icons.Material.Filled.Terminal"
-                                       Size="Size.Small"
-                                       Disabled="@(!IsOnline(context))"
-                                       OnClick="() => InteractWithAgent(context)" />
-                    </MudTooltip>
-                    <MudTooltip Text="Delete">
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                       Size="Size.Small"
-                                       Color="Color.Error"
-                                       OnClick="@(async () => await DeleteAgentAsync(context))" />
-                    </MudTooltip>
-                </div>
-            </MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <div class="v2-table-empty">
-                <span class="v2-empty-title">No agents have checked in</span>
-                <span class="v2-empty-hint">Deploy a payload to connect agents</span>
+    <div class="agents-top">
+        <div class="v2-header">
+            <div class="v2-header-left">
+                <span class="v2-header-title">Agents</span>
+                <span class="v2-header-count">@_agents.Count registered · @OnlineCount online</span>
             </div>
-        </NoRecordsContent>
-    </MudTable>
+            <MudTooltip Text="Refresh">
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAgentsAsync" />
+            </MudTooltip>
+        </div>
+
+        <div class="v2-table-wrap">
+            <MudTable Items="@FilteredAgents"
+                      Dense="true"
+                      Hover="true"
+                      Elevation="0"
+                      Loading="@_loading"
+                      LoadingProgressColor="Color.Primary"
+                      FixedHeader="true">
+                <HeaderContent>
+                    <MudTh>id</MudTh>
+                    <MudTh>external</MudTh>
+                    <MudTh>internal</MudTh>
+                    <MudTh>listener</MudTh>
+                    <MudTh>user</MudTh>
+                    <MudTh>process</MudTh>
+                    <MudTh>pid</MudTh>
+                    <MudTh>arch</MudTh>
+                    <MudTh>integrity</MudTh>
+                    <MudTh>last</MudTh>
+                    <MudTh>sleep</MudTh>
+                    <MudTh>status</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    @{ var ctx = context; }
+                    <MudTd DataLabel="id"       Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.agentID</span></MudTd>
+                    <MudTd DataLabel="external" Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.externalIP</span></MudTd>
+                    <MudTd DataLabel="internal" Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.internalIP</span></MudTd>
+                    <MudTd DataLabel="listener">               <span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.listener</span></MudTd>
+                    <MudTd DataLabel="user">                   <span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.username</span></MudTd>
+                    <MudTd DataLabel="process"  Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.processName</span></MudTd>
+                    <MudTd DataLabel="pid"      Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.PID</span></MudTd>
+                    <MudTd DataLabel="arch"     Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.arch</span></MudTd>
+                    <MudTd DataLabel="integrity"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.integrity</span></MudTd>
+                    <MudTd DataLabel="last"     Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@FormatLastSeen(ctx.lastCheckIn)</span></MudTd>
+                    <MudTd DataLabel="sleep"    Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">—</span></MudTd>
+                    <MudTd DataLabel="status">
+                        <span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">
+                            <span class="v2-badge @(IsOnline(ctx) ? "v2-badge-online" : "v2-badge-offline")">
+                                <span class="v2-dot"></span>
+                                @(IsOnline(ctx) ? "online" : "offline")
+                            </span>
+                        </span>
+                    </MudTd>
+                    <MudTd>
+                        <div class="v2-row-actions">
+                            <MudTooltip Text="Interact">
+                                <MudIconButton Icon="@Icons.Material.Filled.Terminal"
+                                               Size="Size.Small"
+                                               Disabled="@(!IsOnline(ctx))"
+                                               OnClick="() => InteractWithAgent(ctx)" />
+                            </MudTooltip>
+                            <MudTooltip Text="Delete">
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               Color="Color.Error"
+                                               OnClick="@(async () => await DeleteAgentAsync(ctx))" />
+                            </MudTooltip>
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <div class="v2-table-empty">
+                        <span class="v2-empty-title">No agents have checked in</span>
+                        <span class="v2-empty-hint">Deploy a payload to connect agents</span>
+                    </div>
+                </NoRecordsContent>
+            </MudTable>
+        </div>
+    </div>
+
+    @if (_terminalAgent is not null)
+    {
+        <div class="agents-terminal">
+            <AgentTerminal AgentId="@_terminalAgent.agentID" OnClose="CloseTerminal" />
+        </div>
+    }
+
 </div>
+
+@if (_menuOpen)
+{
+    <div class="ctx-backdrop" @onclick="CloseContextMenu"></div>
+    <MudPaper Class="ctx-menu" Style="@($"left:{_menuX}px;top:{_menuY}px;")" Elevation="8">
+        <MudList T="string" Dense="true" DisablePadding="true">
+            <MudListItem T="string" Icon="@Icons.Material.Filled.Terminal"
+                         Disabled="@(_contextAgent is null || !IsOnline(_contextAgent))"
+                         OnClick="OpenTerminalFromContext">
+                Interact
+            </MudListItem>
+            <MudDivider />
+            <MudListItem T="string" Icon="@Icons.Material.Filled.Delete"
+                         IconColor="Color.Error"
+                         OnClick="DeleteFromContext">
+                Delete
+            </MudListItem>
+        </MudList>
+    </MudPaper>
+}

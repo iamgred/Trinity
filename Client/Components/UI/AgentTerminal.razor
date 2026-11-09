@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.JSInterop
 @using Client.Interpreter
 @using Client.Services
 @using Trinity.Shared.DTOs.Notification
@@ -6,6 +7,7 @@
 
 @inject CommandInterpreter Interpreter
 @inject IConfiguration Config
+@inject IJSRuntime JS
 
 <div class="term-panel">
     <div class="term-header">
@@ -16,7 +18,10 @@
                 @(_connected ? "connected" : "disconnected")
             </span>
         </div>
-        <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Class="term-close-btn" OnClick="OnClose" />
+        <div style="display:flex;align-items:center;gap:4px;">
+            <button class="term-clear-btn" title="Clear (Ctrl+L)" @onclick="ClearOutput">⌫</button>
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Class="term-close-btn" OnClick="OnClose" />
+        </div>
     </div>
 
     <div class="term-output" id="term-output-@AgentId">
@@ -29,11 +34,14 @@
     <div class="term-input-row">
         <span class="term-prompt">❯</span>
         <input class="term-input"
+               @ref="_inputRef"
                @bind="_inputText"
                @bind:event="oninput"
                @onkeydown="OnKeyDownAsync"
                placeholder="shell whoami"
-               disabled="@(!_connected || _sending)" />
+               disabled="@(!_connected || _sending)"
+               autocomplete="off"
+               spellcheck="false" />
         <MudIconButton Icon="@Icons.Material.Filled.Send"
                        Size="Size.Small"
                        Class="term-send-btn"
@@ -46,11 +54,16 @@
     [Parameter] public int AgentId { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
-    private HubConnection? _hub;
-    private List<string> _outputs = [];
-    private string _inputText = string.Empty;
-    private bool _sending;
-    private bool _connected;
+    private HubConnection?    _hub;
+    private List<string>      _outputs     = [];
+    private List<string>      _history     = [];
+    private int               _historyIdx  = -1;
+    private string            _draftInput  = string.Empty;
+    private string            _inputText   = string.Empty;
+    private bool              _sending;
+    private bool              _connected;
+    private bool              _needsScroll;
+    private ElementReference  _inputRef;
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,7 +75,7 @@
 
         _hub.On<TaskNotification>("TaskNotification", async n =>
         {
-            _outputs.Add($"<span class='term-out'>{System.Net.WebUtility.HtmlEncode(n.message)}</span>");
+            Append($"<span class='term-out'>{System.Net.WebUtility.HtmlEncode(n.message)}</span>");
             await InvokeAsync(StateHasChanged);
         });
 
@@ -84,12 +97,33 @@
             await _hub.StartAsync();
             await _hub.InvokeAsync("SubscribeToAgent", AgentId.ToString());
             _connected = true;
-            _outputs.Add("<span class='term-info'>[+] subscribed to agent notifications</span>");
+            Append("<span class='term-info'>[+] subscribed to agent notifications</span>");
         }
         catch (Exception ex)
         {
-            _outputs.Add($"<span class='term-err'>[-] {System.Net.WebUtility.HtmlEncode(ex.Message)}</span>");
+            Append($"<span class='term-err'>[-] {System.Net.WebUtility.HtmlEncode(ex.Message)}</span>");
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_needsScroll)
+        {
+            _needsScroll = false;
+            await JS.InvokeVoidAsync("trinityResize.scrollTerm", $"term-output-{AgentId}");
+        }
+    }
+
+    private void Append(string html)
+    {
+        _outputs.Add(html);
+        _needsScroll = true;
+    }
+
+    private void ClearOutput()
+    {
+        _outputs.Clear();
+        StateHasChanged();
     }
 
     private async Task SendAsync()
@@ -97,20 +131,26 @@
         string input = _inputText.Trim();
         if (string.IsNullOrEmpty(input)) return;
 
-        _inputText = string.Empty;
-        _outputs.Add($"<span class='term-cmd'>❯ {System.Net.WebUtility.HtmlEncode(input)}</span>");
+        _inputText   = string.Empty;
+        _historyIdx  = -1;
+        _draftInput  = string.Empty;
+        if (_history.Count == 0 || _history[^1] != input)
+            _history.Add(input);
+
+        Append($"<span class='term-cmd'>❯ {System.Net.WebUtility.HtmlEncode(input)}</span>");
         _sending = true;
+        await InvokeAsync(StateHasChanged);
 
         try
         {
             var result = await Interpreter.Interpret(AgentId, input);
-            _outputs.Add(result.IsSuccess
+            Append(result.IsSuccess
                 ? $"<span class='term-ok'>[+] {System.Net.WebUtility.HtmlEncode(result.Response ?? string.Empty)}</span>"
                 : $"<span class='term-err'>[-] {System.Net.WebUtility.HtmlEncode(result.Error.Description)}</span>");
         }
         catch (Exception ex)
         {
-            _outputs.Add($"<span class='term-err'>[!] {System.Net.WebUtility.HtmlEncode(ex.Message)}</span>");
+            Append($"<span class='term-err'>[!] {System.Net.WebUtility.HtmlEncode(ex.Message)}</span>");
         }
         finally
         {
@@ -121,7 +161,29 @@
 
     private async Task OnKeyDownAsync(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter") await SendAsync();
+        switch (e.Key)
+        {
+            case "Enter":
+                await SendAsync();
+                break;
+
+            case "ArrowUp":
+                if (_history.Count == 0) break;
+                if (_historyIdx == -1) _draftInput = _inputText;
+                _historyIdx = Math.Min(_historyIdx + 1, _history.Count - 1);
+                _inputText  = _history[_history.Count - 1 - _historyIdx];
+                break;
+
+            case "ArrowDown":
+                if (_historyIdx <= 0) { _historyIdx = -1; _inputText = _draftInput; break; }
+                _historyIdx--;
+                _inputText = _history[_history.Count - 1 - _historyIdx];
+                break;
+
+            case "l" when e.CtrlKey:
+                ClearOutput();
+                break;
+        }
     }
 
     public async ValueTask DisposeAsync()

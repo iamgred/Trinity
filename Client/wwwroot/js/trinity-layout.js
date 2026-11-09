@@ -83,6 +83,10 @@ window.trinityResize = {
             }
         });
     },
+    getHalfHeight: function () {
+        // 44px topbar + 48px navbar + 28px statusbar = 120px chrome
+        return Math.max(200, Math.floor((window.innerHeight - 120) / 2));
+    },
     scrollTerm: function (elemId) {
         const el = document.getElementById(elemId);
         if (el) el.scrollTop = el.scrollHeight;

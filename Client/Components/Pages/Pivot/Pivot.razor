@@ -20,6 +20,15 @@
     </div>
 </div>
 
+@{
+    var _n    = _agents.Count;
+    var _svgH = SvgH;
+    var _svgW = SvgW;
+    var _srvX = 130;
+    var _srvY = _svgH / 2;
+    var _agX  = 700;
+}
+
 @if (_view == "graph")
 {
     <div class="graph-card-v2">
@@ -28,6 +37,7 @@
                 <span><span class="legend-dot legend-dot-server"></span>TeamServer</span>
                 <span><span class="legend-dot legend-dot-online"></span>Online</span>
                 <span><span class="legend-dot legend-dot-offline"></span>Offline</span>
+                <span style="color:rgba(255,255,255,0.25);font-size:10px;">MMB to pan · scroll toolbar to zoom</span>
             </div>
             <div style="display:flex;gap:4px;">
                 <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"            Size="Size.Small" OnClick="ZoomIn" />
@@ -36,58 +46,78 @@
             </div>
         </div>
 
-        <div class="graph-viewport-v2" id="graph-viewport" style="height:@(_graphH)px;">
+        <div class="graph-viewport-v2" id="graph-viewport" style="height:@(_graphH)px; user-select:none;">
             <svg class="graph-svg-v2" viewBox="@_svgViewBox" id="pivot-svg">
 
+                @* ── edges (drawn first, behind nodes) ── *@
                 @{ int idx = 0; }
                 @foreach (var agent in _agents)
                 {
-                    var (ax, ay) = AgentPosition(idx, _agents.Count);
-                    var online   = IsOnline(agent);
-                    var midX     = (ax + 400) / 2;
-                    var midY     = (ay + 280) / 2;
+                    var agY    = _n == 1 ? _srvY : 60 + idx * (_svgH - 120) / Math.Max(_n - 1, 1);
+                    var online = IsOnline(agent);
+                    var midX   = (_srvX + _agX - 38) / 2;
+                    var midY   = (_srvY + agY) / 2;
                     idx++;
-                    <line class="@(online ? "edge-online-v2" : "edge-offline-v2")"
-                          x1="@ax" y1="@ay" x2="400" y2="280" />
-                    @((MarkupString)$"<text class=\"edge-label-v2\" x=\"{midX}\" y=\"{midY - 5}\" text-anchor=\"middle\">{agent.listener}</text>")
+                    <path d="M @_srvX,@_srvY C @(_srvX + 200),@_srvY @(_agX - 258),@agY @(_agX - 38),@agY"
+                          fill="none"
+                          class="@(online ? "edge-online-v2" : "edge-offline-v2")" />
+                    @((MarkupString)$"<text x=\"{midX}\" y=\"{midY - 7}\" class=\"edge-label-v2\" text-anchor=\"middle\">{Shorten(agent.listener, 12)}</text>")
                 }
 
+                @* ── agent computer nodes ── *@
                 @{ idx = 0; }
                 @foreach (var agent in _agents)
                 {
-                    var (ax, ay) = AgentPosition(idx, _agents.Count);
-                    var online   = IsOnline(agent);
-                    var selected = _selectedAgent?.agentID == agent.agentID;
-                    var cx       = ax - 65;
-                    var cy       = ay - 33;
+                    var agY       = _n == 1 ? _srvY : 60 + idx * (_svgH - 120) / Math.Max(_n - 1, 1);
+                    var online    = IsOnline(agent);
+                    var selected  = _selectedAgent?.agentID == agent.agentID;
+                    var monStroke = selected ? "#E87722" : online ? "rgba(53,199,89,0.80)" : "rgba(44,44,50,0.9)";
+                    var monSW     = selected ? "2" : "1";
+                    var hornFill  = online ? "#E87722" : "#2E2E32";
+                    var monGlow   = online ? "filter:drop-shadow(0 0 6px rgba(53,199,89,0.3));" : "";
+                    var hornGlow  = online ? "filter:drop-shadow(0 0 5px rgba(232,119,34,0.65));" : "";
+                    var ledFill   = online ? "#35C759" : "#252528";
                     idx++;
-                    <g @onclick="() => SelectAgent(agent)" style="cursor:pointer;" transform="translate(@cx, @cy)">
-                        <polygon points="0,0 115,0 130,15 130,66 0,66"
-                                 class="@(online ? "node-card-bg-online" : "node-card-bg-offline") @(selected ? "node-card-selected" : "")" />
-                        <rect x="0" y="0" width="2.5" height="66"
-                              class="@(online ? "node-card-accent-online" : "node-card-accent-offline")" />
-                        <line x1="115" y1="0" x2="130" y2="15"
-                              stroke="@(online ? "rgba(53,199,89,0.5)" : "rgba(55,55,60,0.7)")" stroke-width="1" />
-                        <circle cx="121" cy="10" r="3.5"
-                                class="@(online ? "node-status-online" : "node-status-offline")" />
-                        @((MarkupString)$"<text x=\"11\" y=\"21\" class=\"{(online ? "node-card-name-online" : "node-card-name-offline")}\">{Shorten(agent.username, 14)}</text>")
-                        @((MarkupString)$"<text x=\"11\" y=\"37\" class=\"{(online ? "node-card-ip-online" : "node-card-ip-offline")}\">{agent.externalIP}</text>")
-                        @((MarkupString)$"<text x=\"11\" y=\"53\" class=\"node-card-pid\">PID {agent.PID}</text>")
+
+                    <g transform="translate(@_agX,@agY)" @onclick="() => SelectAgent(agent)" style="cursor:pointer;">
+                        @* Horns *@
+                        <polygon points="-22,-40 -11,-40 -19,-61" fill="@hornFill" style="@hornGlow" />
+                        <polygon points="11,-40 22,-40 19,-61"    fill="@hornFill" style="@hornGlow" />
+                        @* Monitor outer *@
+                        <rect x="-38" y="-40" width="76" height="58" rx="2"
+                              fill="#070A0E"
+                              stroke="@monStroke"
+                              stroke-width="@monSW"
+                              style="@monGlow" />
+                        @* Screen inner *@
+                        <rect x="-32" y="-36" width="64" height="47" rx="1" fill="#030507" />
+                        @* Status LED *@
+                        <circle cx="29" cy="-33" r="3.5" fill="@ledFill"
+                                style="@(online ? "filter:drop-shadow(0 0 4px rgba(53,199,89,0.9));" : "")" />
+                        @* Screen text *@
+                        @((MarkupString)$"<text x=\"0\" y=\"-19\" class=\"{(online ? "node-card-name-online" : "node-card-name-offline")}\" text-anchor=\"middle\">{Shorten(agent.username, 10)}</text>")
+                        @((MarkupString)$"<text x=\"0\" y=\"-5\"  class=\"{(online ? "node-card-ip-online" : "node-card-ip-offline")}\"  text-anchor=\"middle\">{Shorten(agent.externalIP, 14)}</text>")
+                        @((MarkupString)$"<text x=\"0\" y=\"8\"   class=\"node-card-pid\" text-anchor=\"middle\">PID {agent.PID}</text>")
+                        @* Stand *@
+                        <rect x="-5" y="18" width="10" height="11" fill="#13161C" />
+                        @* Base *@
+                        <rect x="-22" y="29" width="44" height="5" rx="1" fill="#13161C" />
                     </g>
                 }
 
-                <g transform="translate(400,280)">
-                    <circle r="38" class="node-server-ring" />
+                @* ── TeamServer crosshair node ── *@
+                <g transform="translate(@_srvX,@_srvY)" style="filter:drop-shadow(0 0 12px rgba(232,119,34,0.5));">
+                    <circle r="40" class="node-server-ring" />
                     <circle r="28" class="node-server-bg" />
-                    <line x1="-38" y1="0" x2="38" y2="0" class="node-server-cross" />
-                    <line x1="0" y1="-38" x2="0" y2="38" class="node-server-cross" />
+                    <line x1="-40" y1="0" x2="40" y2="0" class="node-server-cross" />
+                    <line x1="0" y1="-40" x2="0" y2="40" class="node-server-cross" />
                     <circle r="6" class="node-server-core" />
                     @((MarkupString)"<text class=\"node-server-label\" y=\"54\" text-anchor=\"middle\">TEAMSERVER</text>")
                 </g>
 
-                @if (_agents.Count == 0)
+                @if (_n == 0)
                 {
-                    @((MarkupString)"<text x=\"400\" y=\"295\" class=\"graph-empty-text\" text-anchor=\"middle\">No agents connected</text>")
+                    @((MarkupString)$"<text x=\"{_svgW / 2}\" y=\"{_svgH / 2}\" class=\"graph-empty-text\" text-anchor=\"middle\">No agents connected</text>")
                 }
             </svg>
         </div>

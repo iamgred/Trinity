@@ -14,20 +14,25 @@ public partial class Pivot
     private AgentResponse? _selectedAgent;
     private bool _loading;
     private string _view = "graph";
-    private string _svgViewBox = "0 0 800 560";
+    private string _svgViewBox = "0 0 850 500";
     private double _zoom = 1.0;
     private int _graphH = 480;
+
+    private int SvgW => 850;
+    private int SvgH => Math.Max(500, _agents.Count * 105 + 100);
 
     protected override async Task OnInitializedAsync() => await LoadAgentsAsync();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        await JS.InvokeVoidAsync("trinityResize.initGraph", DotNetObjectReference.Create(this), "graph-viewport", 240);
+        var r = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("trinityResize.initGraph", r, "graph-viewport", 240);
+        await JS.InvokeVoidAsync("trinityResize.initGraphPan", r, "graph-viewport");
     }
 
-    [JSInvokable]
-    public void SetGraphHeight(int px) { _graphH = px; InvokeAsync(StateHasChanged); }
+    [JSInvokable] public void SetGraphHeight(int px) { _graphH = px; InvokeAsync(StateHasChanged); }
+    [JSInvokable] public void SyncViewBox(string vb) { _svgViewBox = vb; }
 
     private async Task LoadAgentsAsync()
     {
@@ -35,7 +40,11 @@ public partial class Pivot
         try { _agents = await AgentService.GetTasksAsync(); }
         catch (InvalidOperationException) { _agents = []; }
         catch { _agents = []; }
-        finally { _loading = false; }
+        finally
+        {
+            _loading = false;
+            _svgViewBox = $"0 0 {SvgW} {SvgH}";
+        }
     }
 
     private static bool IsOnline(AgentResponse a)
@@ -47,16 +56,6 @@ public partial class Pivot
     private void SelectAgent(AgentResponse agent)
     {
         _selectedAgent = _selectedAgent?.agentID == agent.agentID ? null : agent;
-    }
-
-    private static (int ax, int ay) AgentPosition(int index, int total)
-    {
-        if (total == 0) return (400, 295);
-        double angle = 2 * Math.PI * index / total - Math.PI / 2;
-        return (
-            (int)(400 + 220 * Math.Cos(angle)),
-            (int)(295 + 180 * Math.Sin(angle))
-        );
     }
 
     private static string Shorten(string? value, int max = 12)
@@ -75,14 +74,14 @@ public partial class Pivot
         return $"{(int)diff.TotalDays}d ago";
     }
 
-    private void ZoomIn() { _zoom = Math.Min(_zoom + 0.2, 3.0); UpdateViewBox(); }
+    private void ZoomIn()  { _zoom = Math.Min(_zoom + 0.2, 3.0); UpdateViewBox(); }
     private void ZoomOut() { _zoom = Math.Max(_zoom - 0.2, 0.3); UpdateViewBox(); }
-    private void ResetZoom() { _zoom = 1.0; _svgViewBox = "0 0 800 560"; }
+    private void ResetZoom() { _zoom = 1.0; _svgViewBox = $"0 0 {SvgW} {SvgH}"; }
 
     private void UpdateViewBox()
     {
-        double w = 800 / _zoom, h = 560 / _zoom;
-        double x = (800 - w) / 2, y = (560 - h) / 2;
+        double w = SvgW / _zoom, h = SvgH / _zoom;
+        double x = (SvgW - w) / 2, y = (SvgH - h) / 2;
         _svgViewBox = $"{x:F0} {y:F0} {w:F0} {h:F0}";
     }
 }

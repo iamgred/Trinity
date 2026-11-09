@@ -26,23 +26,13 @@ public partial class LootPanel : ComponentBase
     private string?   _loadError;
     private bool      _isLoading;
     private LootItem? _selected;
-    private string    _agentFilter = "";
-    private string    _typeFilter  = "";
     private string?   _copyStatus;
     private bool      _noteOpen;
-    private string    _noteAgent = "";
     private string    _noteName  = "";
     private string    _noteText  = "";
     private string?   _noteError;
 
-    private IEnumerable<string> _agentIds => _items
-        .Where(i => i.AgentId is not null)
-        .Select(i => i.AgentId!.Value.ToString())
-        .Distinct().Order();
-
-    private IEnumerable<LootItem> Filtered => _items.Where(i =>
-        (_agentFilter.Length == 0 || i.AgentId?.ToString() == _agentFilter)
-        && (_typeFilter.Length == 0 || i.Type == _typeFilter));
+    private IEnumerable<LootItem> Filtered => _items;
 
     private bool CanSave   => _selected is { Type: "Download", Status: "complete" };
     private bool CanCancel => _selected is { Type: "Download", Status: "chunked" };
@@ -99,12 +89,12 @@ public partial class LootPanel : ComponentBase
 
     private void SaveNote()
     {
-        if (!int.TryParse(_noteAgent, out var agentId) || string.IsNullOrWhiteSpace(_noteName) || string.IsNullOrWhiteSpace(_noteText))
+        if (string.IsNullOrWhiteSpace(_noteName) || string.IsNullOrWhiteSpace(_noteText))
         {
-            _noteError = "Pick an agent and fill in a title and the note.";
+            _noteError = "Fill in a title and the note.";
             return;
         }
-        var note = new LootItem { AgentId = agentId, Type = "Note", Name = _noteName.Trim(), PathOrValue = _noteText.Trim(), Status = "saved", Collected = DateTime.Now };
+        var note = new LootItem { Type = "Note", Name = _noteName.Trim(), PathOrValue = _noteText.Trim(), Status = "saved", Collected = DateTime.Now };
         _items.Insert(0, note);
         _selected = note;
         _noteOpen = false;
@@ -115,11 +105,18 @@ public partial class LootPanel : ComponentBase
         if (_selected is not null) { _items.Remove(_selected); _selected = null; }
     }
 
-    private static string TypeIcon(string type) => type switch
+    private static string FileExtType(string name)
     {
-        "Credential" => "🔑",
-        "Note"       => "📝",
-        _            => "⬇",
+        var ext = Path.GetExtension(name);
+        return ext.Length > 1 ? ext[1..].ToUpperInvariant() : "BIN";
+    }
+
+    private static string TypeIcon(string name) => Path.GetExtension(name).ToLowerInvariant() switch
+    {
+        ".txt" or ".log" or ".md" => "📝",
+        ".ps1" or ".bat" or ".sh" => "⚡",
+        ".exe" or ".dll"          => "⚙",
+        _                         => "⬇",
     };
 
     private static string StatusTone(string status) => status switch

@@ -36,12 +36,8 @@
             </div>
         </div>
 
-        <div class="graph-viewport-v2" id="graph-viewport">
+        <div class="graph-viewport-v2" id="graph-viewport" style="height:@(_graphH)px;">
             <svg class="graph-svg-v2" viewBox="@_svgViewBox" id="pivot-svg">
-                <g transform="translate(400,280)">
-                    <circle r="26" class="node-circle--server-v2" />
-                    @((MarkupString)"<text class=\"node-label-v2\" y=\"42\" text-anchor=\"middle\">TeamServer</text>")
-                </g>
 
                 @{ int idx = 0; }
                 @foreach (var agent in _agents)
@@ -51,16 +47,43 @@
                     var midX     = (ax + 400) / 2;
                     var midY     = (ay + 280) / 2;
                     idx++;
-                    <g @onclick="() => SelectAgent(agent)" style="cursor:pointer;">
-                        <line class="@(online ? "edge-online-v2" : "edge-offline-v2")"
-                              x1="@ax" y1="@ay" x2="400" y2="280" />
-                        @((MarkupString)$"<text class=\"edge-label-v2\" x=\"{midX}\" y=\"{midY - 4}\" text-anchor=\"middle\">HTTP</text>")
-                        <circle cx="@ax" cy="@ay" r="20"
-                                class="@(online ? "node-circle--online-v2" : "node-circle--offline-v2")"
-                                style="@(_selectedAgent?.agentID == agent.agentID ? "stroke-width:3;" : "")" />
-                        @((MarkupString)$"<text class=\"node-label-v2\" x=\"{ax}\" y=\"{ay + 32}\" text-anchor=\"middle\">{Shorten(agent.username)}</text>")
+                    <line class="@(online ? "edge-online-v2" : "edge-offline-v2")"
+                          x1="@ax" y1="@ay" x2="400" y2="280" />
+                    @((MarkupString)$"<text class=\"edge-label-v2\" x=\"{midX}\" y=\"{midY - 5}\" text-anchor=\"middle\">{agent.listener}</text>")
+                }
+
+                @{ idx = 0; }
+                @foreach (var agent in _agents)
+                {
+                    var (ax, ay) = AgentPosition(idx, _agents.Count);
+                    var online   = IsOnline(agent);
+                    var selected = _selectedAgent?.agentID == agent.agentID;
+                    var cx       = ax - 65;
+                    var cy       = ay - 33;
+                    idx++;
+                    <g @onclick="() => SelectAgent(agent)" style="cursor:pointer;" transform="translate(@cx, @cy)">
+                        <polygon points="0,0 115,0 130,15 130,66 0,66"
+                                 class="@(online ? "node-card-bg-online" : "node-card-bg-offline") @(selected ? "node-card-selected" : "")" />
+                        <rect x="0" y="0" width="2.5" height="66"
+                              class="@(online ? "node-card-accent-online" : "node-card-accent-offline")" />
+                        <line x1="115" y1="0" x2="130" y2="15"
+                              stroke="@(online ? "rgba(53,199,89,0.5)" : "rgba(55,55,60,0.7)")" stroke-width="1" />
+                        <circle cx="121" cy="10" r="3.5"
+                                class="@(online ? "node-status-online" : "node-status-offline")" />
+                        @((MarkupString)$"<text x=\"11\" y=\"21\" class=\"{(online ? "node-card-name-online" : "node-card-name-offline")}\">{Shorten(agent.username, 14)}</text>")
+                        @((MarkupString)$"<text x=\"11\" y=\"37\" class=\"{(online ? "node-card-ip-online" : "node-card-ip-offline")}\">{agent.externalIP}</text>")
+                        @((MarkupString)$"<text x=\"11\" y=\"53\" class=\"node-card-pid\">PID {agent.PID}</text>")
                     </g>
                 }
+
+                <g transform="translate(400,280)">
+                    <circle r="38" class="node-server-ring" />
+                    <circle r="28" class="node-server-bg" />
+                    <line x1="-38" y1="0" x2="38" y2="0" class="node-server-cross" />
+                    <line x1="0" y1="-38" x2="0" y2="38" class="node-server-cross" />
+                    <circle r="6" class="node-server-core" />
+                    @((MarkupString)"<text class=\"node-server-label\" y=\"54\" text-anchor=\"middle\">TEAMSERVER</text>")
+                </g>
 
                 @if (_agents.Count == 0)
                 {
@@ -69,22 +92,27 @@
             </svg>
         </div>
 
+        <div class="graph-resize-handle" id="graph-resizer"></div>
+
         @if (_selectedAgent is not null)
         {
             <div class="graph-detail-v2">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <span style="font-size:13px;font-weight:700;color:var(--text-primary);">@_selectedAgent.username</span>
+                    <span style="font-size:12px;font-weight:700;color:var(--brand-orange);font-family:var(--font-mono);">@_selectedAgent.username</span>
                     <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="() => _selectedAgent = null" />
                 </div>
-                <div class="gd-row"><span class="gd-key">ID</span>    <span class="gd-val gd-mono">@_selectedAgent.agentID</span></div>
-                <div class="gd-row"><span class="gd-key">User</span>  <span class="gd-val">@_selectedAgent.username</span></div>
-                <div class="gd-row"><span class="gd-key">Arch</span>  <span class="gd-val gd-mono">@_selectedAgent.arch</span></div>
-                <div class="gd-row"><span class="gd-key">IP</span>    <span class="gd-val gd-mono">@_selectedAgent.externalIP</span></div>
-                <div class="gd-row"><span class="gd-key">Seen</span>  <span class="gd-val">@FormatLastSeen(_selectedAgent.lastCheckIn)</span></div>
+                <div class="gd-row"><span class="gd-key">ID</span>       <span class="gd-val gd-mono">@_selectedAgent.agentID</span></div>
+                <div class="gd-row"><span class="gd-key">User</span>     <span class="gd-val">@_selectedAgent.username</span></div>
+                <div class="gd-row"><span class="gd-key">PID</span>      <span class="gd-val gd-mono">@_selectedAgent.PID</span></div>
+                <div class="gd-row"><span class="gd-key">Arch</span>     <span class="gd-val gd-mono">@_selectedAgent.arch</span></div>
+                <div class="gd-row"><span class="gd-key">Ext IP</span>   <span class="gd-val gd-mono">@_selectedAgent.externalIP</span></div>
+                <div class="gd-row"><span class="gd-key">Int IP</span>   <span class="gd-val gd-mono">@_selectedAgent.internalIP</span></div>
+                <div class="gd-row"><span class="gd-key">Listener</span> <span class="gd-val gd-mono">@_selectedAgent.listener</span></div>
+                <div class="gd-row"><span class="gd-key">Seen</span>     <span class="gd-val">@FormatLastSeen(_selectedAgent.lastCheckIn)</span></div>
                 <div class="gd-row">
                     <span class="gd-key">Status</span>
                     <span class="gd-val @(IsOnline(_selectedAgent) ? "gd-online" : "gd-offline")">
-                        @(IsOnline(_selectedAgent) ? "Online" : "Offline")
+                        @(IsOnline(_selectedAgent) ? "● online" : "○ offline")
                     </span>
                 </div>
             </div>

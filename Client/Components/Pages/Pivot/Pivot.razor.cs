@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
+using Microsoft.JSInterop;
 using Client.Services;
 using Trinity.Shared.DTOs.Agent;
 
@@ -8,7 +8,7 @@ namespace Client.Components.Pages;
 public partial class Pivot
 {
     [Inject] AgentService AgentService { get; set; } = null!;
-    [Inject] ISnackbar Snackbar { get; set; } = null!;
+    [Inject] IJSRuntime JS { get; set; } = null!;
 
     private List<AgentResponse> _agents = [];
     private AgentResponse? _selectedAgent;
@@ -16,8 +16,18 @@ public partial class Pivot
     private string _view = "graph";
     private string _svgViewBox = "0 0 800 560";
     private double _zoom = 1.0;
+    private int _graphH = 480;
 
     protected override async Task OnInitializedAsync() => await LoadAgentsAsync();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await JS.InvokeVoidAsync("trinityResize.initGraph", DotNetObjectReference.Create(this), "graph-viewport", 240);
+    }
+
+    [JSInvokable]
+    public void SetGraphHeight(int px) { _graphH = px; InvokeAsync(StateHasChanged); }
 
     private async Task LoadAgentsAsync()
     {

@@ -21,6 +21,28 @@ window.trinityResize = {
             document.addEventListener('mouseup', onUp);
         });
     },
+    initGraph: function (dotNetRef, viewportId, minH) {
+        const handle = document.getElementById('graph-resizer');
+        if (!handle) return;
+        handle.addEventListener('mousedown', function (startEvt) {
+            startEvt.preventDefault();
+            const viewport = document.getElementById(viewportId);
+            const startY = startEvt.clientY;
+            const startH = viewport ? viewport.offsetHeight : 480;
+            const maxH = Math.floor(window.innerHeight * 0.88);
+            function onMove(e) {
+                const delta = e.clientY - startY;
+                const newH = Math.max(minH, Math.min(maxH, startH + delta));
+                dotNetRef.invokeMethodAsync('SetGraphHeight', newH);
+            }
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            }
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+    },
     scrollTerm: function (elemId) {
         const el = document.getElementById(elemId);
         if (el) el.scrollTop = el.scrollHeight;

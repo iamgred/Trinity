@@ -527,9 +527,9 @@ body {
     background: var(--bg-surface);
     border: 1px solid var(--divider);
     border-radius: 6px;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .graph-toolbar-v2 {
@@ -573,10 +573,22 @@ body {
 }
 
 .graph-viewport-v2 {
-    flex: 1;
-    min-height: 320px;
+    min-height: 240px;
     overflow: hidden;
     position: relative;
+}
+
+.graph-resize-handle {
+    height: 5px;
+    cursor: ns-resize;
+    background: transparent;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.graph-resize-handle:hover {
+    background: var(--brand-orange);
+    opacity: 0.5;
 }
 
 .graph-svg-v2 {
@@ -667,6 +679,88 @@ body {
 
 .gd-offline {
     color: var(--text-muted);
+}
+
+/* ── agent card nodes (SVG inline) ───────────────────────────── */
+.node-card-bg-online {
+    fill: #090C10;
+    stroke: rgba(53,199,89,0.75);
+    stroke-width: 1;
+    filter: drop-shadow(0 0 7px rgba(53,199,89,0.25));
+}
+.node-card-bg-offline {
+    fill: #090C10;
+    stroke: rgba(55,55,60,0.9);
+    stroke-width: 1;
+}
+.node-card-selected {
+    stroke: var(--brand-orange) !important;
+    stroke-width: 2 !important;
+    filter: drop-shadow(0 0 8px rgba(232,119,34,0.5)) !important;
+}
+.node-card-accent-online { fill: #35C759; }
+.node-card-accent-offline { fill: #3A3A3C; }
+.node-card-name-online {
+    fill: var(--brand-orange);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+}
+.node-card-name-offline {
+    fill: rgba(255,255,255,0.38);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+.node-card-ip-online {
+    fill: #35C759;
+    font-size: 10px;
+    font-family: var(--font-mono);
+}
+.node-card-ip-offline {
+    fill: rgba(255,255,255,0.28);
+    font-size: 10px;
+    font-family: var(--font-mono);
+}
+.node-card-pid {
+    fill: rgba(255,255,255,0.22);
+    font-size: 9.5px;
+    font-family: var(--font-mono);
+}
+.node-status-online {
+    fill: #35C759;
+    filter: drop-shadow(0 0 4px rgba(53,199,89,0.9));
+}
+.node-status-offline {
+    fill: none;
+    stroke: #3A3A3C;
+    stroke-width: 1.5;
+}
+/* TeamServer target node */
+.node-server-bg {
+    fill: #0F0A06;
+    stroke: var(--brand-orange);
+    stroke-width: 1.5;
+    filter: drop-shadow(0 0 10px rgba(232,119,34,0.4));
+}
+.node-server-ring {
+    fill: none;
+    stroke: var(--brand-orange);
+    stroke-width: 1;
+    opacity: 0.4;
+}
+.node-server-core { fill: var(--brand-orange); }
+.node-server-cross {
+    stroke: var(--brand-orange);
+    stroke-width: 0.75;
+    opacity: 0.3;
+}
+.node-server-label {
+    fill: var(--brand-orange);
+    font-size: 10px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    letter-spacing: 0.08em;
 }
 
 .auth-page {

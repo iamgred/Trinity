@@ -19,7 +19,7 @@ set(WIDE_HOSTS_LIST "L${HOSTS_INITIALIZER}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Payload UUID Configuration
-set(INPUT_PAYLOAD_UUID "e8ebbf8c-dbfb-41ab-8699-9ac18afded4a" CACHE STRING "The payload unique identifier")
+set(INPUT_PAYLOAD_UUID "47e9f5d4-dc8d-4655-b751-d1ba064d05ff" CACHE STRING "The payload unique identifier")
 
 # Port Configuration
 set(PORT 5069 CACHE STRING "The primary target connection port")

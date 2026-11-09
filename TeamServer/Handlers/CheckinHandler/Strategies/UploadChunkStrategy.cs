@@ -1,6 +1,6 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Text.Json;
-using TeamServer.Interface;
+using Trinity.Shared.Interfaces;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
@@ -15,17 +15,17 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     public class UploadChunkStrategy : ICheckinStrategy
     {
         private readonly IUploadService _uploadService;
-        private readonly CommandService _commandService;
+        private readonly ICommandService _commandService;
         private readonly TaskRepository _taskRepo;
         private readonly AgentRepository _agentRepo;
-        private readonly INotificationHub _hub;
+        private readonly INotificationDispatcher _hub;
 
         public UploadChunkStrategy(
             IUploadService uploadService,
-            CommandService commandService,
+            ICommandService commandService,
             TaskRepository taskRepo,
             AgentRepository agentRepo,
-            INotificationHub notificationHub)
+            INotificationDispatcher notificationHub)
         {
             _uploadService = uploadService;
             _commandService = commandService;

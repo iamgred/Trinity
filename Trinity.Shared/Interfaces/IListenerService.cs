@@ -1,4 +1,4 @@
-// ============================================== { START OF FILE} ============================================== //
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Trinity.Shared.DTOs.Listener;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Https;
@@ -6,7 +6,7 @@ using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
 using Trinity.Shared.Results;
 
-namespace TeamServer.Interface
+namespace Trinity.Shared.Interfaces
 {
     public interface IListenerService
     {
@@ -19,7 +19,8 @@ namespace TeamServer.Interface
         Task<Result<GetListenerDetailsResponse>> GetListener(int ID);
         Task<Result> UpdateHttpListenerAsync(int ID, HttpConfig config);
         Task<Result> UpdateHttpsListenerAsync(int ID, HttpsConfig config);
+        Task<Result> DeleteListenerAsync(int ID);
         Task<Result> RemoveListenerAsync(int ID);
     }
 }
-// ============================================== { END OF FILE} ============================================== //
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

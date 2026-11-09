@@ -1,10 +1,10 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //    
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Interface;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Https;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
+using Trinity.Shared.Interfaces;
 
 
 namespace TeamServer.Controllers

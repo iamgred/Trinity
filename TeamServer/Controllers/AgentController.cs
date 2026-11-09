@@ -1,13 +1,10 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Buffers;
 using System.Text.Json;
-using TeamServer.Interface;
-using TeamServer.Services;
 using Trinity.Shared.DTOs.Checkin;
 using Trinity.Shared.DTOs.Task;
-using Trinity.Shared.Models;
+using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Controllers
 {

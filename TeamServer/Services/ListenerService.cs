@@ -10,11 +10,12 @@ using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Models;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class ListenerService
+    public class ListenerService : IListenerService
     {
         private ILogger _logger;
         private ListenerRespository _listenerRepo;

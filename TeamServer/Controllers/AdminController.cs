@@ -1,7 +1,6 @@
 // ===================================================== { START OF FILE } ===================================================== //
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Interface;
-using TeamServer.Services;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers

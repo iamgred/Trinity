@@ -1,4 +1,4 @@
-using TeamServer.Interface;
+using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Services;
 

@@ -1,6 +1,7 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using TeamServer.Repositories;
 using Trinity.Shared.Errors;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 using Trinity.Shared.Results;
 
@@ -10,7 +11,7 @@ namespace TeamServer.Services
      * Service class for managing Operator entities in the database.
      * Provides methods to perform CRUD operations on Operator records.
      */
-    public class OperatorService
+    public class OperatorService : IOperatorService
     {
         private readonly OperatorRepository _db;
 

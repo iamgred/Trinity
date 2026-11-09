@@ -1,7 +1,7 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Services;
 using Trinity.Shared.DTOs.Tool;
+using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Controllers
 {
@@ -9,14 +9,14 @@ namespace TeamServer.Controllers
     [ApiController]
     public class ArmouryController : ControllerBase
     {
-        private readonly ToolService _toolService;
+        private readonly IToolService _toolService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="toolService"></param>
-        public ArmouryController(ToolService toolService)
+        public ArmouryController(IToolService toolService)
         {
             _toolService = toolService;
         }

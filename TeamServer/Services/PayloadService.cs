@@ -1,5 +1,4 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using TeamServer.Interface;
 using TeamServer.Repositories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Notification;
@@ -12,21 +11,21 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class PayloadService
+    public class PayloadService : IPayloadService
     {
         private readonly PayloadRepository _payloadRepository;
         private readonly ListenerRespository _listenerRepository;
         private readonly IPayloadBuilder _payloadBuilder;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly INotificationHub _hub;
+        private readonly INotificationDispatcher _hub;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public PayloadService(
-            PayloadRepository payloadRepository, 
-            ListenerRespository listenerRepository, 
-            IPayloadBuilder payloadBuilder, 
+            PayloadRepository payloadRepository,
+            ListenerRespository listenerRepository,
+            IPayloadBuilder payloadBuilder,
             IWebHostEnvironment webHostEnvironment,
-            INotificationHub notificationHub)
+            INotificationDispatcher notificationHub)
         {
             _payloadRepository = payloadRepository;
             _listenerRepository = listenerRepository;
@@ -53,10 +52,10 @@ namespace TeamServer.Services
             var payloadUUID = Guid.NewGuid().ToString();
 
             // Call the payload builder to build the payload
-            var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
+            //var buildResult = await _payloadBuilder.BuildAsync(payloadCreationDTO, payloadUUID, listener);
 
             // If the build failed, return an error
-            if (!buildResult.IsSuccess)
+            if (false)
             {
                 await _hub.SendEventLogAsync(
                 payloadCreationDTO.CampaignID.ToString(),

@@ -1,6 +1,6 @@
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
 using System.Text.Json;
-using TeamServer.Interface;
+using Trinity.Shared.Interfaces;
 using TeamServer.Repositories;
 using TeamServer.Services;
 using Trinity.Shared.DTOs.Command;
@@ -14,15 +14,15 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     public class DownloadChunkStrategy : ICheckinStrategy
     {
         private readonly IDownloadService _downloadService;
-        private readonly CommandService _commandService;
+        private readonly ICommandService _commandService;
         private readonly TaskRepository _taskRepo;
-        private readonly INotificationHub _hub;
+        private readonly INotificationDispatcher _hub;
 
         public DownloadChunkStrategy(
             IDownloadService downloadService,
-            CommandService commandService,
+            ICommandService commandService,
             TaskRepository taskRepo,
-            INotificationHub notificationHub)
+            INotificationDispatcher notificationHub)
         {
             _downloadService = downloadService;
             _commandService = commandService;

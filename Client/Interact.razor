@@ -7,6 +7,8 @@
 @using Client.Interpreter
 @using Client.Services
 @implements global::System.IAsyncDisposable
+@using Trinity.Shared.DTOs.Notification
+@implements IAsyncDisposable
 
 @inject CommandInterpreter Interpreter
 @inject IConfiguration Config
@@ -55,15 +57,16 @@
         .WithAutomaticReconnect()
         .Build();
 
-    _hubConnection.On<string>("RecieveTaskOutput", async output =>
+    _hubConnection.On<TaskNotification>("TaskNotification", async notification =>
     {
-        _outputs.Add(output);
+        _outputs.Add(notification.message);
         await InvokeAsync(StateHasChanged);
     });
 
     try
     {
         await _hubConnection.StartAsync();
+        await _hubConnection.InvokeAsync("SubscribeToAgent", AgentId.ToString());
         _outputs.Add("[+] Connected to TeamServer");
     }
     catch (Exception ex)
@@ -86,10 +89,9 @@
         try
         {
             var result = await Interpreter.Interpret(AgentId, input);
-            if (result.IsSuccess)
-                _outputs.Add($"[+] Task queued — ID: {result.Response}");
-            else
-                _outputs.Add($"[-] {result.Error?.Description ?? "Command not recognised."}");
+            _outputs.Add(result.IsSuccess
+                ? $"[+] {result.Response}"
+                : $"[-] {result.Error.Description}");
         }
         catch (Exception ex) { _outputs.Add($"[!] Error: {ex.Message}"); }
         finally

@@ -1,8 +1,7 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Interface;
-using TeamServer.Services;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers
@@ -13,6 +12,7 @@ namespace TeamServer.Controllers
     {
         private readonly IOperatorService _operatorService;
         private readonly IValidator<Operator> _operatorValidator;
+
         /// <summary>
         /// Initializes a new instance of the OperatorController class with the specified OperatorService.
         /// </summary>

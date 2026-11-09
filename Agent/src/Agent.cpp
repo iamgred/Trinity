@@ -535,32 +535,25 @@ Response Agent::CreateWindowsTaskW(const int &taskID, const CommandWinTask &requ
     std::wstring workItemName(request.taskName.begin(), request.taskName.end());
 
     isSuccess = DropFileToDiskW(path);
-    if (!isSuccess)
-        goto e_func;
+    if (!isSuccess) goto e_func;
 
     hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     hr = CoCreateInstance(CLSID_CTaskScheduler, NULL, CLSCTX_INPROC_SERVER, IID_ITaskScheduler, (void **)&pITS);
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     hr = pITS->NewWorkItem(workItemName.c_str(), CLSID_CTask, IID_ITask, (IUnknown **)&pITask);
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     hr = pITask->SetApplicationName(path.c_str());
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     hr = pITask->SetAccountInformation(username.c_str(), NULL);
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     hr = pITask->CreateTrigger(&piNewTrigger, &pITaskTrigger);
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     ZeroMemory(&pTrigger, sizeof(TASK_TRIGGER));
     pTrigger.cbTriggerSize = sizeof(TASK_TRIGGER);
@@ -570,22 +563,18 @@ Response Agent::CreateWindowsTaskW(const int &taskID, const CommandWinTask &requ
     pTrigger.TriggerType = TASK_EVENT_TRIGGER_AT_LOGON;
 
     hr = pITaskTrigger->SetTrigger(&pTrigger);
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     hr = pITask->GetFlags(&dwFlags);
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     dwFlags |= TASK_FLAG_RUN_ONLY_IF_LOGGED_ON;
     hr = pITask->SetFlags(dwFlags);
-    if (FAILED(hr))
-        goto e_func;
+    if (FAILED(hr)) goto e_func;
 
     hr = pITask->QueryInterface(IID_IPersistFile, (void **)&pIPersistFile);
     hr = pIPersistFile->Save(NULL, TRUE);
-    if (FAILED(hr))
-        goto e_clean;
+    if (FAILED(hr)) goto e_clean;
 
     pITask->Run();
     goto e_func;

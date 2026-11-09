@@ -133,6 +133,13 @@ public partial class Agents : IDisposable
              : dt.ToString("dd MMM HH:mm");
     }
 
+    private string RowClass(AgentResponse agent, int _ = 0)
+    {
+        if (_selectedAgent?.agentID == agent.agentID) return "ag-row ag-row-sel";
+        if (!IsOnline(agent)) return "ag-row ag-row-off";
+        return "ag-row";
+    }
+
     private static string FormatSleep(int ms)
     {
         if (ms <= 0) return "—";

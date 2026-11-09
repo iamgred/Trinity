@@ -138,161 +138,92 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 5px;
     padding: 4px 10px;
-    min-width: 200px;
+    min-width: 190px;
 }
 
-.ag-search-icon {
-    color: rgba(255,255,255,0.3);
-    flex-shrink: 0;
-}
+.ag-search-icon { color: rgba(255,255,255,0.25); flex-shrink: 0; }
 
 .ag-search-input {
     background: transparent;
     border: none;
     outline: none;
-    color: rgba(255,255,255,0.85);
+    color: rgba(255,255,255,0.80);
     font-size: 12px;
     width: 100%;
     font-family: inherit;
 }
 
-.ag-search-input::placeholder {
-    color: rgba(255,255,255,0.3);
+.ag-search-input::placeholder { color: rgba(255,255,255,0.25); }
+
+/* ── table headers ── */
+::deep .ag-table-wrap .mud-table-head th {
+    background: #0d0d0d !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 7px 12px !important;
 }
 
-/* ── table header ── */
 .ag-th {
-    font-size: 0.70rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-    color: rgba(255,255,255,0.4) !important;
+    font-size: 0.69rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.04em !important;
+    color: rgba(255,255,255,0.32) !important;
     white-space: nowrap;
+    text-transform: none !important;
 }
 
-.ag-th-status { width: 90px; }
+.ag-th-ico { width: 36px !important; padding-right: 0 !important; }
 
-/* ── row ── */
+/* ── rows ── */
 ::deep .ag-row td {
-    border-bottom: 1px solid rgba(255,255,255,0.045) !important;
-    padding: 9px 14px !important;
-    font-size: 0.82rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    padding: 7px 12px !important;
+    font-size: 0.81rem !important;
+    color: rgba(255,255,255,0.82);
+    transition: opacity 0.15s;
 }
 
-::deep .ag-row:last-child td {
-    border-bottom: none !important;
+::deep .ag-row:hover td { background: rgba(255,255,255,0.03) !important; }
+
+/* selected row — orange tint + left accent bar via box-shadow trick */
+::deep .ag-row-sel td {
+    background: rgba(232,119,34,0.10) !important;
+    color: rgba(255,255,255,0.95) !important;
+}
+::deep .ag-row-sel td:first-child {
+    box-shadow: inset 2px 0 0 #E87722;
 }
 
-/* ── status badge ── */
-.ag-status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.70rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-}
+/* offline row — fade everything */
+::deep .ag-row-off td { opacity: 0.38 !important; }
 
-.ag-status-online {
-    background: rgba(53,199,89,0.12);
-    color: #35C759;
-    border: 1px solid rgba(53,199,89,0.28);
-}
+/* kill MudBlazor's default selected highlight */
+::deep .mud-selected-item td { background: transparent !important; }
 
-.ag-status-offline {
-    background: rgba(255,69,58,0.10);
-    color: #FF453A;
-    border: 1px solid rgba(255,69,58,0.22);
-}
+/* ── icon column ── */
+.ag-td-ico { width: 36px; padding-right: 0 !important; }
+.ag-ico     { display: block; }
+.ag-ico-host { color: rgba(255,255,255,0.35); }
+::deep .ag-row-sel .ag-ico-host { color: var(--accent, #E87722); }
+.ag-ico-smb  { color: #35C759; }
 
-.ag-status-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-}
+/* ── dim cells ── */
+.ag-td-dim { color: rgba(255,255,255,0.38) !important; }
+::deep .ag-row-sel .ag-td-dim { color: rgba(255,255,255,0.55) !important; }
 
-@keyframes ag-pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.35; }
-}
+/* ── id cell ── */
+.ag-td-id { color: rgba(255,255,255,0.40) !important; }
+::deep .ag-row-sel .ag-td-id { color: rgba(255,255,255,0.65) !important; }
 
-.ag-dot-pulse {
-    animation: ag-pulse 2s ease-in-out infinite;
-}
-
-/* ── user cell ── */
-.ag-user-cell {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.ag-user-icon {
-    color: var(--accent, #E87722);
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.ag-user-name {
-    font-weight: 500;
-}
-
-/* ── process cell ── */
-.ag-proc-cell {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-}
-
-.ag-proc-pid {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.35);
-}
-
-/* ── integrity badge ── */
-.ag-integrity-badge {
-    display: inline-block;
-    padding: 1px 7px;
-    border-radius: 4px;
-    font-size: 0.70rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    border: 1px solid;
-}
-
+/* ── integrity inline colour ── */
+.ag-td-integrity { font-size: 0.80rem !important; }
 .ag-integrity-system,
-.ag-integrity-high {
-    background: rgba(255,69,58,0.10);
-    color: #FF453A;
-    border-color: rgba(255,69,58,0.25);
-}
-
-.ag-integrity-medium {
-    background: rgba(255,159,10,0.10);
-    color: #FF9F0A;
-    border-color: rgba(255,159,10,0.25);
-}
-
-.ag-integrity-low {
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.45);
-    border-color: rgba(255,255,255,0.12);
-}
-
-/* ── muted cells ── */
-.ag-td-muted {
-    color: rgba(255,255,255,0.45) !important;
-}
+.ag-integrity-high   { color: #FF6B6B !important; }
+.ag-integrity-medium { color: #E87722 !important; }
+.ag-integrity-low    { color: rgba(255,255,255,0.40) !important; }
 
 /* ── empty state ── */
 .ag-empty {
@@ -304,20 +235,9 @@
     text-align: center;
 }
 
-.ag-empty-icon {
-    color: rgba(255,255,255,0.15);
-}
-
-.ag-empty-title {
-    font-size: 0.88rem;
-    color: rgba(255,255,255,0.45);
-    font-weight: 500;
-}
-
-.ag-empty-hint {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.22);
-}
+.ag-empty-icon  { color: rgba(255,255,255,0.12); }
+.ag-empty-title { font-size: 0.86rem; color: rgba(255,255,255,0.40); font-weight: 500; }
+.ag-empty-hint  { font-size: 0.74rem; color: rgba(255,255,255,0.20); }
 
 /* ── table view ── */
 .ag-table-wrap {

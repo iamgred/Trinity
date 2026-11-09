@@ -149,8 +149,14 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
         }
     }
 
-    private bool IsOnAgentsPage =>
-        Nav.ToBaseRelativePath(Nav.Uri).StartsWith("agents", StringComparison.OrdinalIgnoreCase);
+    private bool IsOnAgentsPage
+    {
+        get
+        {
+            var rel = Nav.ToBaseRelativePath(Nav.Uri);
+            return rel == "" || rel.StartsWith("agents", StringComparison.OrdinalIgnoreCase);
+        }
+    }
 
     private string AgentsNavClass(string view) =>
         IsOnAgentsPage && _workspaceState.AgentView == view ? "c2-nav-item active" : "c2-nav-item";

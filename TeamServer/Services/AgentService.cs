@@ -114,6 +114,13 @@ namespace TeamServer.Services
         /// <returns></returns>
         private async Task<string> ProcessFullyEstablishedCheckin(int agentID, ReadOnlyMemory<byte> requestBody)
         {
+            var agent = await _agentRepo.GetAgentByIDAsync(agentID);
+            if (agent != null)
+            {
+                agent.LastCheckIn = DateTime.UtcNow;
+                await _agentRepo.CommitAsync();
+            }
+
             using JsonDocument doc = JsonDocument.Parse(requestBody);
             var taskResults = doc.RootElement.EnumerateArray();
 

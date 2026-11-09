@@ -3,6 +3,13 @@ using Trinity.Shared.DTOs.Payload;
 
 namespace Client.Services;
 
+/* what the Armory table binds to in Payloads.razor */
+public sealed record PayloadEntry(
+    string Name,
+    long Size,
+    string Type,
+    DateTime CreatedAt);
+
 public class PayloadService
 {
     private readonly HttpClient _http;
@@ -10,30 +17,33 @@ public class PayloadService
     public PayloadService(IHttpClientFactory factory)
         => _http = factory.CreateClient("TeamServer");
 
-    /// <summary>
-    /// GET /api/v1/payloads — returns a summary list of all payloads.
-    /// Uses PayloadDTO (Name, Size, Type, CreateTime) rather than the full model,
-    /// because that's what the API returns for list views.
-    /// </summary>
-    public async Task<List<PayloadDTO>> GetAllAsync()
-        => await _http.GetFromJsonAsync<List<PayloadDTO>>("/api/v1/payloads") ?? [];
-
-    /// <summary>
-    /// POST /api/v1/payloads — requests the server to generate a new payload.
-    /// PayloadCreationDTO carries the config: listener, campaign, architecture, type, etc.
-    /// </summary>
-    public async Task<bool> CreateAsync(PayloadCreationDTO dto)
+    public async Task<List<PayloadEntry>> GetTasksAsync()
     {
-        var response = await _http.PostAsJsonAsync("/api/v1/payloads", dto);
+        var response = await _http.GetAsync("/api/v1/payloads");
+
+        /* 400 means the payload table is empty — not a real error */
+        if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            return [];
+
+        response.EnsureSuccessStatusCode();
+
+        var dtos = await response.Content.ReadFromJsonAsync<List<PayloadDTO>>() ?? [];
+        return dtos.Select(d => new PayloadEntry(d.Name, d.Size, d.Type, d.CreateTime)).ToList();
+    }
+
+    /* renamed from CreateAsync — hits the correct /generate endpoint */
+    public async Task<bool> GenerateAsync(PayloadCreationDTO dto)
+    {
+        var response = await _http.PostAsJsonAsync("/api/v1/payloads/generate", dto);
         return response.IsSuccessStatusCode;
     }
 
-    /// <summary>
-    /// DELETE /api/v1/payloads/{id} — removes a payload.
-    /// </summary>
     public async Task<bool> DeleteAsync(int id)
     {
         var response = await _http.DeleteAsync($"/api/v1/payloads/{id}");
         return response.IsSuccessStatusCode;
     }
+
+    /* build the download URL for a payload by its ID */
+    public string GetDownloadUrl(int payloadId) => $"/api/v1/payloads/{payloadId}";
 }

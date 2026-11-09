@@ -1,0 +1,42 @@
+@page "/events"
+@namespace Client.Components.Pages
+@rendermode InteractiveServer
+
+<div class="v2-header">
+    <div class="v2-header-left">
+        <span class="v2-header-title">Event Log</span>
+        <span class="v2-header-count">@_events.Count events</span>
+    </div>
+    <MudTooltip Text="Clear">
+        <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep"
+                       Size="Size.Small"
+                       OnClick="() => _events.Clear()" />
+    </MudTooltip>
+</div>
+
+<div class="v2-table-wrap">
+    <MudTable Items="@_events"
+              Dense="true"
+              Hover="true"
+              Elevation="0"
+              FixedHeader="true">
+        <HeaderContent>
+            <MudTh>time</MudTh>
+            <MudTh>level</MudTh>
+            <MudTh>message</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="time"    Class="td-mono">@context.Stamp</MudTd>
+            <MudTd DataLabel="level">
+                <span class="@SevClass(context.Level)">@context.Level</span>
+            </MudTd>
+            <MudTd DataLabel="message">@context.Message</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <div class="v2-table-empty">
+                <span class="v2-empty-title">No events recorded</span>
+                <span class="v2-empty-hint">Events appear here as agents check in and tasks run</span>
+            </div>
+        </NoRecordsContent>
+    </MudTable>
+</div>

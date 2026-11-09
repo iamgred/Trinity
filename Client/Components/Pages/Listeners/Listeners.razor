@@ -1,0 +1,102 @@
+@page "/listeners"
+@namespace Client.Components.Pages
+@rendermode InteractiveServer
+@using Client.Services
+
+<div class="v2-header">
+    <div class="v2-header-left">
+        <span class="v2-header-title">Listeners</span>
+        <span class="v2-header-count">@_listeners.Count configured</span>
+    </div>
+    <button class="v2-add-btn" @onclick="OpenCreateDialog">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+        New Listener
+    </button>
+</div>
+
+<div class="v2-table-wrap">
+    <MudTable Items="@FilteredListeners"
+              Dense="true"
+              Hover="true"
+              Elevation="0"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Primary"
+              FixedHeader="true">
+        <HeaderContent>
+            <MudTh>name</MudTh>
+            <MudTh>protocol</MudTh>
+            <MudTh>host</MudTh>
+            <MudTh>port</MudTh>
+            <MudTh>status</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="name">@context.name</MudTd>
+            <MudTd DataLabel="protocol" Class="td-mono">@context.protocol</MudTd>
+            <MudTd DataLabel="host"     Class="td-mono">—</MudTd>
+            <MudTd DataLabel="port"     Class="td-mono">—</MudTd>
+            <MudTd DataLabel="status">
+                <span class="v2-badge @(IsActive(context) ? "v2-badge-active" : "v2-badge-stopped")">
+                    <span class="v2-dot"></span>
+                    @(IsActive(context) ? "active" : "stopped")
+                </span>
+            </MudTd>
+            <MudTd>
+                <div class="v2-row-actions">
+                    <MudTooltip Text="Restart">
+                        <MudIconButton Icon="@Icons.Material.Filled.RestartAlt"
+                                       Size="Size.Small"
+                                       OnClick="() => RestartListenerAsync(context)" />
+                    </MudTooltip>
+                    <MudTooltip Text="Delete">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Size="Size.Small"
+                                       Color="Color.Error"
+                                       OnClick="() => DeleteListenerAsync(context)" />
+                    </MudTooltip>
+                </div>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <div class="v2-table-empty">
+                <span class="v2-empty-title">No listeners configured</span>
+                <span class="v2-empty-hint">Click New Listener to add one</span>
+                <div class="v2-empty-action">
+                    <button class="v2-add-btn" @onclick="OpenCreateDialog">New Listener</button>
+                </div>
+            </div>
+        </NoRecordsContent>
+    </MudTable>
+</div>
+
+<MudDialog @bind-Visible="_createOpen" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">New HTTP Listener</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_newName" Label="Listener Name" Variant="Variant.Outlined" Placeholder="e.g. HTTP-80" />
+            </MudItem>
+            <MudItem xs="12" sm="8">
+                <MudTextField @bind-Value="_newHost" Label="Bind Address" Variant="Variant.Outlined" Placeholder="0.0.0.0" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField @bind-Value="_newPort" Label="Port" Variant="Variant.Outlined" Min="1" Max="65535" />
+            </MudItem>
+        </MudGrid>
+        @if (!string.IsNullOrEmpty(_createError))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-2">@_createError</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseCreateDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateListenerAsync" Disabled="@_creating">
+            @if (_creating) { <MudProgressCircular Size="Size.Small" Indeterminate="true" /> }
+            else { <span>Create</span> }
+        </MudButton>
+    </DialogActions>
+</MudDialog>

@@ -24,7 +24,6 @@ namespace Client
             // Runtime-configured TeamServer connection + typed API clients (DTO-based).
             builder.Services.AddScoped<TeamServerConnection>();
             builder.Services.AddHttpClient<AgentApiClient>();
-            builder.Services.AddHttpClient<TaskApiClient>();
             builder.Services.AddHttpClient<AuthApiClient>();
             builder.Services.AddHttpClient<ListenerApiClient>();
             builder.Services.AddHttpClient<CommandApiClient>();

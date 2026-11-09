@@ -6,11 +6,11 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using Client.Interpreter
 @using Client.Services
+@implements global::System.IAsyncDisposable
 @using Trinity.Shared.DTOs.Notification
 @implements IAsyncDisposable
 
 @inject CommandInterpreter Interpreter
-@inject TaskApiService TaskService
 @inject IConfiguration Config
 
 <PageTitle>Agent @AgentId — Interact</PageTitle>
@@ -93,21 +93,23 @@
                 ? $"[+] {result.Response}"
                 : $"[-] {result.Error.Description}");
         }
-        catch (NotSupportedException ex) { _outputs.Add($"[!] {ex.Message}"); }
-        catch (Exception ex)             { _outputs.Add($"[!] Error: {ex.Message}"); }
+        catch (Exception ex) { _outputs.Add($"[!] Error: {ex.Message}"); }
         finally
         {
             _sending = false;
             StateHasChanged();
         }
     }
+    
 
     private async Task OnKeyDownAsync(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") await SendCommandAsync();
     }
 
-    public async ValueTask DisposeAsync()
+    public async global::System.Threading.Tasks.ValueTask DisposeAsync()
+{
+    if (_hubConnection is not null)
     {
         if (_hubConnection is not null)
         {
@@ -116,4 +118,5 @@
             await _hubConnection.DisposeAsync();
         }
     }
+}
 }

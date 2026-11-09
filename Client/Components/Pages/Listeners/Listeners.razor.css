@@ -1,0 +1,315 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Listeners.razor.css — Trinity C2 v2.0
+   ══════════════════════════════════════════════════════════════════════════ */
+.listeners-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.page-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-title-icon {
+    color: var(--accent);
+    font-size: 26px !important;
+}
+
+.page-title {
+    color: var(--txt) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.add-listener-btn {
+    background-color: var(--accent) !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+}
+
+.stat-row {
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    padding: 16px 18px !important;
+}
+
+.stat-card-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-label {
+    color: var(--txt-muted) !important;
+    font-size: 0.73rem !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    color: var(--txt) !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+}
+
+.stat-value--green {
+    color: var(--green) !important;
+}
+
+.stat-value--muted {
+    color: var(--txt-muted) !important;
+}
+
+.stat-value-sm {
+    color: var(--txt) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.3 !important;
+}
+
+.stat-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon-accent {
+    background-color: var(--accent-dim);
+}
+
+.stat-icon-green {
+    background-color: rgba(76,175,80,0.12);
+}
+
+.stat-icon-muted {
+    background-color: rgba(255,255,255,0.06);
+}
+
+.stat-icon {
+    color: var(--accent);
+    font-size: 22px !important;
+}
+
+.stat-icon-green .stat-icon {
+    color: var(--green);
+}
+
+.stat-icon-muted .stat-icon {
+    color: var(--txt-muted);
+}
+
+.table-card {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
+}
+
+.table-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.table-card-title {
+    color: var(--txt) !important;
+    font-weight: 600 !important;
+}
+
+.table-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.table-search {
+    min-width: 220px;
+}
+
+.refresh-btn {
+    color: var(--txt-muted) !important;
+}
+
+.listeners-table {
+    background-color: transparent !important;
+}
+
+::deep .listeners-table .mud-table-body td {
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    font-size: 0.83rem !important;
+    padding: 10px 16px !important;
+}
+
+::deep .listeners-table .mud-table-row:hover td {
+    background-color: rgba(255,255,255,0.04) !important;
+}
+
+::deep .listeners-table .mud-table-head th {
+    background-color: var(--card-deep) !important;
+    color: var(--txt-muted) !important;
+    font-size: 0.73rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 10px 16px !important;
+}
+
+.td-mono {
+    font-family: 'Cascadia Code', 'Courier New', monospace;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.status-online {
+    background-color: rgba(76,175,80,0.15);
+    color: var(--green);
+    border: 1px solid rgba(76,175,80,0.30);
+}
+
+.status-offline {
+    background-color: rgba(244,67,54,0.12);
+    color: var(--red);
+    border: 1px solid rgba(244,67,54,0.25);
+}
+
+.type-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background-color: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid var(--accent-glow);
+    font-family: 'Cascadia Code', monospace;
+}
+
+.row-action-btn {
+    color: var(--txt-muted) !important;
+    padding: 4px !important;
+}
+
+    .row-action-btn:hover {
+        color: var(--txt) !important;
+    }
+
+.row-action-btn--danger:hover {
+    color: var(--red) !important;
+}
+
+.table-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 40px 16px;
+}
+
+.empty-icon {
+    font-size: 40px !important;
+    color: var(--txt-faint);
+}
+
+.empty-text {
+    color: var(--txt-muted) !important;
+}
+
+.empty-action-btn {
+    color: var(--accent) !important;
+    text-transform: none !important;
+}
+
+.dialog-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dialog-title-icon {
+    color: var(--accent);
+}
+
+.dialog-title-text {
+    color: var(--txt) !important;
+}
+
+.dialog-form {
+    padding: 4px 0;
+}
+
+.dialog-field {
+    width: 100%;
+}
+
+.dialog-error {
+    margin-top: 12px;
+}
+
+.dialog-cancel-btn {
+    text-transform: none !important;
+    color: var(--txt-muted) !important;
+}
+
+.dialog-submit-btn {
+    background-color: var(--accent) !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+    min-width: 90px;
+}
+
+.th-name {
+    min-width: 150px;
+}
+
+.th-host {
+    min-width: 130px;
+}
+
+.th-port {
+    width: 80px;
+}
+
+.th-type {
+    width: 90px;
+}
+
+.th-status {
+    width: 100px;
+}
+
+.th-actions {
+    width: 90px;
+}

@@ -1,36 +1,39 @@
 @page "/logs"
-@layout WorkspaceLayout
 @namespace Client.Components.Pages.Logs
+@rendermode InteractiveServer
 @using Client.Components.Shell
-@using Client.Components.UI
 
-<PageTitle>Trinity · Event Log</PageTitle>
-
-@if (_loadError is not null)
-{
-    <div class="ts-notice" role="status">
-        <span>@_loadError</span>
-        <button type="button" @onclick="LoadAsync">Retry</button>
+<div class="logs-root">
+    <div class="logs-header">
+        <span class="logs-title">Event Log</span>
     </div>
-}
 
-<div class="events" role="log" aria-live="polite">
-    @if (_events.Count == 0 && _loadError is null)
+    @if (_isLoading)
     {
-        <p class="events__empty">@(_isLoading ? "Loading events…" : "No events yet.")</p>
+        <div class="logs-state">Loading events…</div>
     }
-
-    @foreach (var entry in _events)
+    else if (_loadError is not null)
     {
-        <div class="events__row">
-            <span class="events__time">@entry.Time.ToString("HH:mm:ss")</span>
-            <span class="events__cat"><StatusPill Text="@entry.Category" Tone="@entry.Tone" /></span>
-            <span class="events__msg">
-                @foreach (var part in entry.Parts)
-                {
-                    <span class="@part.Style">@part.Text</span>
-                }
-            </span>
+        <div class="logs-state logs-error">@_loadError</div>
+    }
+    else if (_events.Count == 0)
+    {
+        <div class="logs-state logs-empty">No events recorded.</div>
+    }
+    else
+    {
+        <div class="logs-list">
+            @foreach (var entry in _events)
+            {
+                <div class="log-entry log-tone-@entry.Tone">
+                    <span class="log-time">@entry.Time.ToString("HH:mm:ss")</span>
+                    <span class="log-sep">&nbsp;·&nbsp;</span>
+                    @foreach (var part in entry.Parts)
+                    {
+                        <span class="@(string.IsNullOrEmpty(part.Style) ? "log-text" : $"log-text log-{part.Style}")">@part.Text</span>
+                    }
+                </div>
+            }
         </div>
     }
 </div>

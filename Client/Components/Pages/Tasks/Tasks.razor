@@ -195,13 +195,13 @@
                 else if (_detail is not null)
                 {
                     <dl class="detail-fields">
-                        <div><dt>Task ID</dt><dd>@_detail.taskID</dd></div>
-                        <div><dt>Agent</dt><dd>Agent @_detail.agentID</dd></div>
-                        <div><dt>Command Type</dt><dd>@_detail.commandType</dd></div>
-                        <div><dt>Timestamp</dt><dd>@_detail.timestamp.ToLocalTime().ToString("g")</dd></div>
+                        <div><dt>Task ID</dt><dd>@_detail.ID</dd></div>
+                        <div><dt>Agent</dt><dd>Agent @_detail.AgentID</dd></div>
+                        <div><dt>Command Type</dt><dd>@_detail.CommandType</dd></div>
+                        <div><dt>Timestamp</dt><dd>@_detail.CreatedAt.ToLocalTime().ToString("g")</dd></div>
                     </dl>
                     <div class="detail-command-label">Command payload</div>
-                    <pre class="detail-command">@FormatCommand(_detail.command)</pre>
+                    <pre class="detail-command">@FormatCommand(_detail.Command)</pre>
                 }
             </section>
 

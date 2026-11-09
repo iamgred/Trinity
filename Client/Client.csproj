@@ -12,6 +12,7 @@
 		<PackageReference Include="MudBlazor" Version="9.11.0" />
 		<PackageReference Include="Refit" Version="16.4.0" />
 		<PackageReference Include="Refit.HttpClientFactory" Version="16.4.0" />
+		<PackageReference Include="Refit.Reflection" Version="16.4.0" />
 	</ItemGroup>
 
 	<!-- This lets Client use LoginDTO, Agent, Campaign, and all shared models -->

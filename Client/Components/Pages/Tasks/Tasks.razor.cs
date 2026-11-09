@@ -1,3 +1,4 @@
+using TrinityTask = Trinity.Shared.Models.Task;
 using System.Globalization;
 using System.Net.Http;
 using System.Text;
@@ -8,6 +9,7 @@ using Microsoft.JSInterop;
 using Trinity.Shared.DTOs.Task;
 
 namespace Client.Components.Pages.Tasks;
+
 public partial class Tasks
 {
     private class TaskRow
@@ -44,12 +46,12 @@ public partial class Tasks
     private bool _isLoading;
 
     private string _detailIdInput = "";
-    private GetTaskDetailsResponse? _detail;
+    private TrinityTask? _detail;
     private string? _detailError;
     private bool _detailLoading;
 
     [Inject]
-    private TaskApiClient TaskApiClient { get; set; } = default!;
+    private TaskApiService TaskApiClient { get; set; } = default!;
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
@@ -78,9 +80,9 @@ public partial class Tasks
 
         try
         {
-            var tasks = await TaskApiClient.GetTasksAsync();
+            var tasks = await TaskApiClient.GetAllTasksAsync();
             _tasks.AddRange(tasks
-                .OrderByDescending(task => task.timeStamp)
+                .OrderByDescending(task => task.CreatedAt)
                 .Select(ToTaskRow));
             _page = 1;
         }
@@ -106,14 +108,14 @@ public partial class Tasks
         }
     }
 
-    private static TaskRow ToTaskRow(TaskResponse task) => new()
+    private static TaskRow ToTaskRow(TrinityTask task) => new()
     {
-        Name = task.commandType,
-        Client = $"Agent {task.agentID}",
-        Status = task.status,
-        AgentId = task.agentID,
-        CommandType = task.commandType,
-        Timestamp = task.timeStamp
+        Name = task.CommandType.ToString(),
+        Client = $"Agent {task.AgentID}",
+        Status = task.Status.ToString(),
+        AgentId = task.AgentID,
+        CommandType = task.CommandType.ToString(),
+        Timestamp = task.CreatedAt
     };
 
     private IEnumerable<string> Assignees => [];
@@ -162,7 +164,7 @@ public partial class Tasks
         _detailLoading = true;
         try
         {
-            _detail = await TaskApiClient.GetTaskDetailAsync(id);
+            _detail = await TaskApiClient.GetByIdAsync(id);
             if (_detail is null)
             {
                 _detailError = $"No task found with ID {id}.";
@@ -264,8 +266,11 @@ public partial class Tasks
 
     private static readonly Dictionary<string, string> _colorVar = new()
     {
-        ["green"] = "var(--status-green)", ["blue"] = "var(--status-blue)",
-        ["yellow"] = "var(--status-yellow)", ["red"] = "var(--status-red)", ["gray"] = "var(--text-muted)"
+        ["green"] = "var(--status-green)",
+        ["blue"] = "var(--status-blue)",
+        ["yellow"] = "var(--status-yellow)",
+        ["red"] = "var(--status-red)",
+        ["gray"] = "var(--text-muted)"
     };
 
     private string Gradient(List<SliceVm> slices)

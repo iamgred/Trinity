@@ -1,0 +1,349 @@
+.pivot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.page-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-title-icon {
+    color: var(--accent);
+    font-size: 26px !important;
+}
+
+.page-title {
+    color: var(--txt) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.pivot-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.view-toggle {
+    border-color: var(--border) !important;
+}
+
+.view-btn {
+    color: var(--txt-muted) !important;
+    border-color: var(--border) !important;
+    text-transform: none !important;
+    font-size: 0.82rem !important;
+    padding: 4px 12px !important;
+}
+
+.view-btn--active {
+    color: var(--accent) !important;
+    background-color: var(--accent-dim) !important;
+    border-color: var(--accent-glow) !important;
+}
+
+.refresh-btn {
+    color: var(--txt-muted) !important;
+}
+
+.graph-card {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.graph-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    background-color: var(--card-deep);
+}
+
+.graph-legend-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--txt-muted) !important;
+    font-size: 0.76rem !important;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-teamserver {
+    background-color: var(--accent);
+}
+
+.legend-agent {
+    background-color: var(--green);
+}
+
+.legend-offline {
+    background-color: var(--txt-faint);
+}
+
+.ml-2 {
+    margin-left: 8px;
+}
+
+.graph-zoom-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.zoom-btn {
+    color: var(--txt-muted) !important;
+}
+
+    .zoom-btn:hover {
+        color: var(--txt) !important;
+        background-color: rgba(255,255,255,0.06) !important;
+    }
+
+.graph-viewport {
+    width: 100%;
+    height: 480px;
+    background-color: var(--card-deep);
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    overflow: hidden;
+}
+
+.graph-svg {
+    width: 100%;
+    height: 100%;
+    user-select: none;
+}
+
+::deep .node-edge {
+    stroke-width: 1.5;
+    fill: none;
+}
+
+::deep .edge-online {
+    stroke: rgba(76,175,80,0.45);
+    stroke-dasharray: none;
+}
+
+::deep .edge-offline {
+    stroke: rgba(255,255,255,0.12);
+    stroke-dasharray: 5 4;
+}
+
+::deep .node-circle {
+    stroke-width: 0;
+}
+
+::deep .node-circle--server {
+    fill: var(--accent);
+    filter: drop-shadow(0 0 10px rgba(232,119,34,0.5));
+}
+
+::deep .node-circle--online {
+    fill: rgba(76,175,80,0.20);
+    stroke: var(--green);
+    stroke-width: 1.5;
+}
+
+::deep .node-circle--offline {
+    fill: rgba(255,255,255,0.06);
+    stroke: rgba(255,255,255,0.20);
+    stroke-width: 1.5;
+}
+
+::deep .node-label {
+    fill: var(--txt-muted);
+    font-size: 10px;
+    font-family: 'Cascadia Code', 'Courier New', monospace;
+}
+
+::deep .node-icon {
+    fill: rgba(255,255,255,0.90);
+}
+
+::deep .node-group:hover .node-label {
+    fill: var(--txt);
+}
+
+::deep .graph-empty-text {
+    fill: var(--txt-faint);
+    font-size: 14px;
+}
+
+.graph-detail-overlay {
+    position: absolute;
+    top: 56px;
+    right: 16px;
+    width: 240px;
+    background-color: var(--card);
+    border: 1px solid var(--accent-glow);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.40);
+    overflow: hidden;
+    z-index: 10;
+}
+
+.graph-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: rgba(232,119,34,0.08);
+    border-bottom: 1px solid var(--border);
+}
+
+.gd-hostname {
+    color: var(--accent) !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gd-close {
+    color: var(--txt-muted) !important;
+    flex-shrink: 0;
+}
+
+.graph-detail-body {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.gd-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.gd-key {
+    font-size: 0.70rem;
+    color: var(--txt-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+.gd-val {
+    font-size: 0.80rem;
+    color: var(--txt);
+    text-align: right;
+    word-break: break-all;
+}
+
+.gd-mono {
+    font-family: 'Cascadia Code', 'Courier New', monospace;
+    font-size: 0.76rem;
+}
+
+.gd-online {
+    color: var(--green) !important;
+}
+
+.gd-offline {
+    color: var(--red) !important;
+}
+
+.table-card {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
+    margin-bottom: 16px;
+}
+
+.table-card-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.table-card-title {
+    color: var(--txt) !important;
+    font-weight: 600 !important;
+}
+
+.pivot-table {
+    background-color: transparent !important;
+}
+
+::deep .pivot-table .mud-table-body td {
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    font-size: 0.83rem !important;
+    padding: 10px 16px !important;
+}
+
+::deep .pivot-table .mud-table-row:hover td {
+    background-color: rgba(255,255,255,0.04) !important;
+}
+
+::deep .pivot-table .mud-table-head th {
+    background-color: var(--card-deep) !important;
+    color: var(--txt-muted) !important;
+    font-size: 0.73rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 10px 16px !important;
+}
+
+.td-mono {
+    font-family: 'Cascadia Code', 'Courier New', monospace;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.status-online {
+    background-color: rgba(76,175,80,0.15);
+    color: var(--green);
+    border: 1px solid rgba(76,175,80,0.30);
+}
+
+.status-offline {
+    background-color: rgba(244,67,54,0.12);
+    color: var(--red);
+    border: 1px solid rgba(244,67,54,0.25);
+}
+
+.table-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 40px 16px;
+}
+
+.empty-text {
+    color: var(--txt-muted) !important;
+}

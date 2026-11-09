@@ -70,14 +70,12 @@ namespace TeamServer.Services
             var response = blobSpan.Slice(36, blobSpan.Length - UUIDOffset);
 
             var agent = await _agentRepo.GetAgentByCheckInUUID(uuid);
-            if (agent == null)
-            {
-                return await ProcessIntialCheckin(uuid, response);
-            }
+            string result = agent == null
+                ? await ProcessIntialCheckin(uuid, response)
+                : FormatRequest(uuid, await ProcessFullyEstablishedCheckin(agent.ID, response));
 
-            var request = await ProcessFullyEstablishedCheckin(agent.ID, response);
             await _hubContext.Clients.All.SendAsync("AgentPulse");
-            return FormatRequest(uuid, request);
+            return result;
         }
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

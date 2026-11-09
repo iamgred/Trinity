@@ -112,6 +112,7 @@ namespace TeamServer.Services
 
                     return new PayloadDTO
                     {
+                        ID = p.ID,
                         Name = AppendFileExtension(p.FileName, p.Type),
                         Size = size,
                         Type = Enum.GetName(p.Type)!,

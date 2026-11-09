@@ -5,6 +5,7 @@ using Trinity.Shared.Interfaces;
 namespace Client.Services;
 
 public sealed record PayloadEntry(
+    int Id,
     string Name,
     long Size,
     string Type,
@@ -17,7 +18,7 @@ public class PayloadService(IPayloadAPI api)
         try
         {
             var dtos = await api.GetPayloadsAsync() ?? [];
-            return dtos.Select(d => new PayloadEntry(d.Name, d.Size, d.Type, d.CreateTime)).ToList();
+            return dtos.Select(d => new PayloadEntry(d.ID, d.Name, d.Size, d.Type, d.CreateTime)).ToList();
         }
         catch (ApiException) { return []; }
     }

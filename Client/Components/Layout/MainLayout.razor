@@ -59,10 +59,11 @@
             <svg class="c2-ni" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
             Armoury
         </button>
-        <NavLink class="c2-nav-item" href="/payloads" Match="NavLinkMatch.Prefix">
+        <button class="@(_workspaceState.PayloadsOpen ? "c2-nav-item active" : "c2-nav-item")"
+                @onclick="() => { if (_workspaceState.PayloadsOpen) _workspaceState.ClosePayloads(); else _workspaceState.OpenPayloads(); }">
             <svg class="c2-ni" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
-            Generate Payload
-        </NavLink>
+            Payloads
+        </button>
         <div class="c2-nav-spacer"></div>
         <div class="c2-search-box">
             <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="color:rgba(255,255,255,0.35);flex-shrink:0"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -123,6 +124,15 @@
                           @onclick="() => _workspaceState.CloseLoot()">×</span>
                 </button>
             }
+            @if (_workspaceState.PayloadsOpen)
+            {
+                <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == _workspaceState.PayloadsTabIndex ? "active" : "")"
+                        @onclick="() => SetBottomTab(_workspaceState.PayloadsTabIndex)">
+                    Payloads
+                    <span class="c2-tab-x" @onclick:stopPropagation="true"
+                          @onclick="() => _workspaceState.ClosePayloads()">×</span>
+                </button>
+            }
         </div>
         <div class="c2-panel-body">
             @if (_workspaceState.EventLogVisible && _workspaceState.ActiveBottomTab == 0)
@@ -169,6 +179,12 @@
             {
                 <div class="@(_workspaceState.ActiveBottomTab == _workspaceState.LootTabIndex ? "agent-term-container" : "agent-term-container agent-term-container--hidden")">
                     <LootPanel />
+                </div>
+            }
+            @if (_workspaceState.PayloadsOpen)
+            {
+                <div class="@(_workspaceState.ActiveBottomTab == _workspaceState.PayloadsTabIndex ? "agent-term-container" : "agent-term-container agent-term-container--hidden")">
+                    <PayloadsPanel />
                 </div>
             }
         </div>

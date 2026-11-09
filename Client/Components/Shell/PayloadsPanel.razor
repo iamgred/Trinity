@@ -1,0 +1,56 @@
+@namespace Client.Components.Shell
+@rendermode InteractiveServer
+@using Client.Services
+@using Client.Components.Pages.Dialogs
+
+<div class="pp-panel">
+
+    <div class="pp-table-wrap">
+        <table class="pp-table">
+            <thead>
+                <tr>
+                    <th class="pp-th">name</th>
+                    <th class="pp-th">type</th>
+                    <th class="pp-th">size</th>
+                    <th class="pp-th">created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in _payloads)
+                {
+                    var item = p;
+                    var sel  = _selected?.Name == item.Name;
+                    <tr class="pp-row @(sel ? "pp-row-sel" : "")" @onclick="() => _selected = sel ? null : item">
+                        <td class="pp-td pp-td-name">@item.Name</td>
+                        <td class="pp-td pp-td-dim">@item.Type</td>
+                        <td class="pp-td pp-td-dim">@FormatSize(item.Size)</td>
+                        <td class="pp-td pp-td-dim">@item.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+                @if (!_payloads.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="pp-empty">@(_loading ? "Loading…" : "No payloads generated yet.")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pp-footer">
+        <button class="pp-action-btn pp-action-add" @onclick="OpenGenerate">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Generate
+        </button>
+        <button class="pp-action-btn pp-action-remove" disabled="@(_selected == null)" @onclick="HandleDelete">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Delete
+        </button>
+    </div>
+
+</div>
+
+@if (_generateOpen)
+{
+    <GeneratePayloadDialog OnClose="CloseGenerate" OnGenerated="OnGeneratedAsync" />
+}

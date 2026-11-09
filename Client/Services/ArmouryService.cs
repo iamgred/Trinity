@@ -1,10 +1,11 @@
+using System.Net.Http.Headers;
 using Refit;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
 namespace Client.Services;
 
-public class ArmouryService(IArmouryAPI api, IConfiguration config)
+public class ArmouryService(IArmouryAPI api, IConfiguration config, TeamServerConnection connection)
 {
     public async Task<List<Tool>> GetToolsAsync()
     {
@@ -24,11 +25,13 @@ public class ArmouryService(IArmouryAPI api, IConfiguration config)
         {
             var baseUrl = config["TeamServer:BaseUrl"]?.TrimEnd('/') ?? "";
             using var client = new HttpClient { BaseAddress = new Uri(baseUrl + "/") };
+            if (connection.Token is { } token)
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using var form = new MultipartFormDataContent();
             form.Add(new StringContent(name), "Name");
             form.Add(new StringContent(operatorId.ToString()), "OperatorID");
             var sc = new StreamContent(stream);
-            sc.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            sc.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             form.Add(sc, "file", fileName);
             var resp = await client.PostAsync("/api/v1/armoury/upload", form);
             return resp.IsSuccessStatusCode;

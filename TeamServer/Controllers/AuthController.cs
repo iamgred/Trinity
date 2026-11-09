@@ -16,11 +16,13 @@ namespace TeamServer.Controllers
     public class AuthController : ControllerBase
     {
         private readonly OperatorRepository _operators;
+        private readonly CampaignBridgeRepository _campaignBridge;
         private readonly IConfiguration _config;
 
-        public AuthController(OperatorRepository operators, IConfiguration config)
+        public AuthController(OperatorRepository operators, CampaignBridgeRepository campaignBridge, IConfiguration config)
         {
             _operators = operators;
+            _campaignBridge = campaignBridge;
             _config = config;
         }
 
@@ -33,24 +35,30 @@ namespace TeamServer.Controllers
             if (op is null || op.Password != dto.Password)
                 return Unauthorized();
 
-            var token = BuildToken(op.Username);
+            var campaigns = await _campaignBridge.GetCampaignsByOperatorIdAsync(op.ID);
+            var campaignId = campaigns.FirstOrDefault()?.ID;
+
+            var token = BuildToken(op.Username, campaignId);
             return Ok(new LoginResponse { Token = token, Username = op.Username });
         }
 
-        private string BuildToken(string username)
+        private string BuildToken(string username, int? campaignId)
         {
             var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds   = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expiry  = DateTime.UtcNow.AddHours(_config.GetValue<double>("Jwt:ExpiryHours", 8));
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat,
+                new(JwtRegisteredClaimNames.Sub, username),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(JwtRegisteredClaimNames.Iat,
                     DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
                     ClaimValueTypes.Integer64),
             };
+
+            if (campaignId is int id)
+                claims.Add(new Claim("campaignId", id.ToString()));
 
             var jwt = new JwtSecurityToken(
                 issuer:             _config["Jwt:Issuer"],

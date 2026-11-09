@@ -40,7 +40,7 @@ namespace TeamServer.Services
                 foreach (var agent in agents)
                 {
                     bool online = agent.lastCheckIn != default &&
-                        (DateTime.UtcNow - agent.lastCheckIn).TotalMilliseconds < (agent.sleep * 1.5);
+                        (DateTime.UtcNow - agent.lastCheckIn).TotalSeconds < (agent.sleep * 1.5);
 
                     if (online)
                         nowOnline.Add(agent.agentID);

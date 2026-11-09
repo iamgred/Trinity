@@ -49,6 +49,8 @@ namespace Client
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
             builder.Services.AddRefitClient<IArmouryAPI>()
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            builder.Services.AddRefitClient<IFilesAPI>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
 
             // Thin wrappers that pages inject directly (internally use Refit interfaces)
             builder.Services.AddScoped<AgentApiClient>();
@@ -56,6 +58,7 @@ namespace Client
             builder.Services.AddScoped<ListenerApiClient>();
             builder.Services.AddScoped<CommandApiClient>();
             builder.Services.AddScoped<ServerApiClient>();
+            builder.Services.AddScoped<FilesApiClient>();
 
             // App Services
             builder.Services.AddScoped<EventLogService>();

@@ -1,5 +1,3 @@
-using System.Net.Http.Json;
-using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Client.Services;
@@ -10,38 +8,32 @@ public partial class LootPanel : ComponentBase
 {
     private sealed class LootItem
     {
-        public int?   AgentId      { get; init; }
-        public required string Type         { get; init; }
-        public required string Name         { get; init; }
-        public required string PathOrValue  { get; init; }
-        public long?  Size         { get; init; }
-        public long   Received     { get; set; }
-        public required string Status       { get; set; }
-        public required DateTime Collected  { get; init; }
+        public int?   AgentId     { get; init; }
+        public required string Type        { get; init; }
+        public required string Name        { get; init; }
+        public required string PathOrValue { get; init; }
+        public long?  Size        { get; init; }
+        public long   Received    { get; set; }
+        public required string Status      { get; set; }
+        public required DateTime Collected { get; init; }
     }
 
-    [Inject] private IJSRuntime           JS          { get; set; } = default!;
-    [Inject] private TeamServerConnection Connection  { get; set; } = default!;
-    [Inject] private IHttpClientFactory   HttpFactory { get; set; } = default!;
-    [Inject] private IConfiguration       Config      { get; set; } = default!;
+    [Inject] private IJSRuntime    JS      { get; set; } = default!;
+    [Inject] private FilesApiClient Files  { get; set; } = default!;
 
-    private readonly List<LootItem> _items =
-    [
-        new() { AgentId = 1, Type = "Credential", Name = "sample-account", PathOrValue = "sample-password", Status = "saved", Collected = new DateTime(2026, 10, 21, 14, 6, 0) },
-        new() { AgentId = 1, Type = "Note",       Name = "host details",   PathOrValue = "Windows 11 · x64 · domain joined", Status = "saved", Collected = new DateTime(2026, 10, 21, 13, 40, 0) },
-    ];
+    private readonly List<LootItem> _items = [];
 
-    private string?      _loadError;
-    private bool         _isLoading;
-    private LootItem?    _selected;
-    private string       _agentFilter = "";
-    private string       _typeFilter  = "";
-    private string?      _copyStatus;
-    private bool         _noteOpen;
-    private string       _noteAgent = "";
-    private string       _noteName  = "";
-    private string       _noteText  = "";
-    private string?      _noteError;
+    private string?   _loadError;
+    private bool      _isLoading;
+    private LootItem? _selected;
+    private string    _agentFilter = "";
+    private string    _typeFilter  = "";
+    private string?   _copyStatus;
+    private bool      _noteOpen;
+    private string    _noteAgent = "";
+    private string    _noteName  = "";
+    private string    _noteText  = "";
+    private string?   _noteError;
 
     private IEnumerable<string> _agentIds => _items
         .Where(i => i.AgentId is not null)
@@ -49,7 +41,7 @@ public partial class LootPanel : ComponentBase
         .Distinct().Order();
 
     private IEnumerable<LootItem> Filtered => _items.Where(i =>
-        (_agentFilter.Length == 0 || i.AgentId.ToString() == _agentFilter)
+        (_agentFilter.Length == 0 || i.AgentId?.ToString() == _agentFilter)
         && (_typeFilter.Length == 0 || i.Type == _typeFilter));
 
     private bool CanSave   => _selected is { Type: "Download", Status: "complete" };
@@ -57,41 +49,23 @@ public partial class LootPanel : ComponentBase
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
 
-    private Uri? ResolveBaseUri()
-    {
-        if (Connection.BaseAddress is not null) return Connection.BaseAddress;
-        var c = Config["TeamServer:BaseUrl"];
-        return string.IsNullOrWhiteSpace(c) ? null : new Uri(c.TrimEnd('/') + "/");
-    }
-
     private async Task LoadAsync()
     {
-        var baseUri = ResolveBaseUri();
-        if (baseUri is null) { _loadError = "Connect to a TeamServer to load downloads."; return; }
         _isLoading = true;
+        _loadError = null;
         try
         {
-            var http     = HttpFactory.CreateClient();
-            var response = await http.GetAsync(new Uri(baseUri, "api/v1/files?folderName=Loot"));
-            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-            {
-                _items.RemoveAll(i => i.Type == "Download");
-                _loadError = null;
-                return;
-            }
-            response.EnsureSuccessStatusCode();
-            var paths = await response.Content.ReadFromJsonAsync<List<string>>() ?? [];
+            var downloads = await Files.GetLootFilesAsync();
             _items.RemoveAll(i => i.Type == "Download");
-            _items.InsertRange(0, paths.Select(p => new LootItem
+            _items.InsertRange(0, downloads.Select(d => new LootItem
             {
-                Type = "Download", Name = Path.GetFileName(p), PathOrValue = p,
+                Type = "Download", Name = d.Name, PathOrValue = d.Path,
                 Received = 0, Status = "complete", Collected = DateTime.UtcNow,
             }));
-            _loadError = null;
         }
-        catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+        catch (Exception e)
         {
-            _loadError = ServerDown.Is(e) ? ServerDown.Message : $"Could not load downloads: {e.Message}";
+            _loadError = $"Could not load downloads: {e.Message}";
         }
         finally { _isLoading = false; }
     }
@@ -99,10 +73,9 @@ public partial class LootPanel : ComponentBase
     private async Task SaveToDiskAsync()
     {
         if (_selected is null) return;
-        var baseUri = ResolveBaseUri();
-        if (baseUri is null) return;
-        var url = new Uri(baseUri, $"api/v1/files/download/{Uri.EscapeDataString(_selected.Name)}?folderName=Loot");
-        await JS.InvokeVoidAsync("open", url.ToString(), "_blank");
+        var url = await Files.GetDownloadUrlAsync(_selected.Name);
+        if (url is not null)
+            await JS.InvokeVoidAsync("open", url, "_blank");
     }
 
     private void CancelDownload()

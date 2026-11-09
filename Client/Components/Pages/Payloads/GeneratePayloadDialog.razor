@@ -5,9 +5,13 @@
 @using Trinity.Shared.DTOs.Payload
 @using Trinity.Shared.Enums
 @using Campaign = Trinity.Shared.Models.Campaign
+@using Client.Components.Shell
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ListenerApiClient ListenerApi
 @inject CampaignService CampaignService
 @inject IHttpClientFactory HttpFactory
+@inject OperatorService OperatorService
+@inject ProtectedSessionStorage Session
 
 <MudDialog>
     <TitleContent>
@@ -115,9 +119,27 @@
             return;
         }
 
+        int? operatorId;
+        try
+        {
+            operatorId = await GetOperatorIdAsync();
+        }
+        catch (Exception e) when (e is HttpRequestException or JsonException)
+        {
+            _error = ServerDown.Is(e) ? ServerDown.Message : $"Could not load the operator list: {e.Message}";
+            return;
+        }
+
+        if (operatorId is null)
+        {
+            _error = "Your account isn't in the operator list, so the payload can't be linked to you.";
+            return;
+        }
+
         var request = new PayloadCreationDTO
         {
             Name = _name.Trim(),
+            OperatorID = operatorId.Value,
             ListenerID = _listenerId,
             CampaignID = _campaignId,
             Architecture = Arch.x64,
@@ -145,5 +167,17 @@
         {
             _busy = false;
         }
+    }
+
+    private async Task<int?> GetOperatorIdAsync()
+    {
+        var stored = await Session.GetAsync<ShellUser>(ShellUser.StorageKey);
+        if (!stored.Success || stored.Value is null)
+        {
+            return null;
+        }
+
+        var operators = await OperatorService.GetAllAsync();
+        return operators.FirstOrDefault(o => o.Username.Equals(stored.Value.Name, StringComparison.OrdinalIgnoreCase))?.ID;
     }
 }

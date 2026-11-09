@@ -92,7 +92,7 @@
                 var t = term;
                 <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == tabIdx ? "active" : "")"
                         @onclick="() => SetBottomTab(tabIdx)">
-                    @(t.username ?? $"agent {t.agentID}")
+                    @($"{t.username ?? "agent"}@{t.externalIP ?? t.agentID.ToString()}")
                     <span class="c2-tab-x" @onclick:stopPropagation="true"
                           @onclick="() => _workspaceState.CloseAgentTerminal(t.agentID)">×</span>
                 </button>

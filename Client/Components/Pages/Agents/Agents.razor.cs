@@ -19,8 +19,6 @@ public partial class Agents : IDisposable
     private List<AgentResponse> _agents = [];
     private AgentResponse? _selectedAgent = null;
     private bool _loading = false;
-    private string _search = string.Empty;
-    private string _filterStatus = string.Empty;
     private string? _latestSeen = null;
 
     private AgentResponse? _contextAgent;
@@ -38,20 +36,7 @@ public partial class Agents : IDisposable
 
     private int OnlineCount => _agents.Count(IsOnline);
 
-    private IEnumerable<AgentResponse> FilteredAgents
-    {
-        get
-        {
-            var query = _agents.AsEnumerable();
-            if (!string.IsNullOrWhiteSpace(_search))
-                query = query.Where(a =>
-                    (a.username?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true) ||
-                    (a.externalIP?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true));
-            if (_filterStatus == "online") query = query.Where(IsOnline);
-            else if (_filterStatus == "offline") query = query.Where(a => !IsOnline(a));
-            return query;
-        }
-    }
+    private IEnumerable<AgentResponse> FilteredAgents => _agents;
 
     protected override async Task OnInitializedAsync()
     {

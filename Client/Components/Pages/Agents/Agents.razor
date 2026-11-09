@@ -29,10 +29,6 @@
             }
             else
             {
-                <div class="ag-search-wrap">
-                    <svg class="ag-search-icon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input class="ag-search-input" placeholder="Search agents…" @bind="_search" @bind:event="oninput" />
-                </div>
             }
             <MudTooltip Text="Refresh">
                 <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAgentsAsync" />

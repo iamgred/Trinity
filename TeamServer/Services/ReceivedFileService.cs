@@ -1,17 +1,16 @@
+using Trinity.Shared.Enums;
 using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Services;
 
 public sealed class ReceivedFileService : IReceivedFileService
 {
-    // This service lists completed/top-level files, not chunk directories.
     private readonly string _filesDirectory;
 
     public ReceivedFileService(IConfiguration configuration, IWebHostEnvironment environment)
     {
-        // Resolve the same configured storage location used by FileTransferService.
         var root = Path.GetFullPath(configuration["StoragePath"] ?? Path.Combine(environment.ContentRootPath, "storage"));
-        _filesDirectory = Path.Combine(root, "files");
+        _filesDirectory = Path.Combine(root, FileFolders.Loot.ToString());
         Directory.CreateDirectory(_filesDirectory);
     }
 

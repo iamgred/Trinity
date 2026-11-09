@@ -78,12 +78,9 @@
             <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == 0 ? "active" : "")" @onclick="() => SetBottomTab(0)">
                 Event Log <span class="c2-tab-x">×</span>
             </button>
-            <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == 1 ? "active" : "")" @onclick="() => SetBottomTab(1)">
-                Terminal <span class="c2-tab-x">×</span>
-            </button>
             @foreach (var (term, ti) in _workspaceState.OpenAgentTerminals.Select((a, i) => (a, i)))
             {
-                var tabIdx = ti + 2;
+                var tabIdx = ti + 1;
                 var t = term;
                 <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == tabIdx ? "active" : "")"
                         @onclick="() => SetBottomTab(tabIdx)">
@@ -112,24 +109,9 @@
                     }
                 }
             }
-            @if (_workspaceState.ActiveBottomTab == 1)
-            {
-                <div class="term-output" id="term-output">@((MarkupString)_termHtml)</div>
-                <div class="term-input-row">
-                    <span class="term-prompt">
-                        @(_activeAgent > 0 ? $"agent[{_activeAgent}] >" : "trinity@c2 ~$")
-                    </span>
-                    <input class="term-input"
-                           type="text"
-                           @bind="_termInput"
-                           @bind:event="oninput"
-                           @onkeydown="OnTermKeyDown"
-                           placeholder="type a command..." />
-                </div>
-            }
             @foreach (var (term, ti) in _workspaceState.OpenAgentTerminals.Select((a, i) => (a, i)))
             {
-                var tabIdx = ti + 2;
+                var tabIdx = ti + 1;
                 var t = term;
                 <div @key="t.agentID"
                      class="@(_workspaceState.ActiveBottomTab == tabIdx ? "agent-term-container" : "agent-term-container agent-term-container--hidden")">

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using MudBlazor;
 using Client.Services;
 using Client.Components.Shell;
 using Trinity.Shared.DTOs.Agent;
@@ -10,7 +9,6 @@ namespace Client.Components.Pages;
 public partial class Agents
 {
     [Inject] AgentService AgentService { get; set; } = null!;
-    [Inject] ISnackbar Snackbar { get; set; } = null!;
     [Inject] NavigationManager Nav { get; set; } = null!;
     [CascadingParameter] private WorkspaceState Workspace { get; set; } = default!;
 
@@ -80,28 +78,14 @@ public partial class Agents
 
     private void OpenTerminalFromContext()
     {
-        if (_contextAgent is not null && IsOnline(_contextAgent))
-            InteractWithAgent(_contextAgent);
-        _menuOpen = false;
-    }
-
-    private async Task DeleteFromContext()
-    {
         if (_contextAgent is not null)
-            await DeleteAgentAsync(_contextAgent);
-        _menuOpen = false;
+            InteractWithAgent(_contextAgent);
+        CloseContextMenu();
     }
 
-    private async Task DeleteAgentAsync(AgentResponse agent)
+    private void NavigateToLoot()
     {
-        try
-        {
-            await AgentService.DeleteAsync(agent.agentID);
-            Snackbar.Add($"Agent '{agent.username}' removed.", Severity.Warning);
-            if (_selectedAgent?.agentID == agent.agentID) _selectedAgent = null;
-            Workspace.CloseAgentTerminal(agent.agentID);
-            await LoadAgentsAsync();
-        }
-        catch (Exception ex) { Snackbar.Add($"Delete failed: {ex.Message}", Severity.Error); }
+        Nav.NavigateTo($"/loot?agent={_contextAgent?.agentID}");
+        CloseContextMenu();
     }
 }

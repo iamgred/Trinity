@@ -25,11 +25,11 @@ public sealed class WorkspaceState
     {
         var existing = OpenAgentTerminals.FindIndex(t => t.agentID == agent.agentID);
         if (existing >= 0)
-            ActiveBottomTab = existing + 2;
+            ActiveBottomTab = existing + 1;
         else
         {
             OpenAgentTerminals.Add(agent);
-            ActiveBottomTab = OpenAgentTerminals.Count - 1 + 2;
+            ActiveBottomTab = OpenAgentTerminals.Count - 1 + 1;
         }
         Notify();
     }
@@ -39,7 +39,7 @@ public sealed class WorkspaceState
         var idx = OpenAgentTerminals.FindIndex(t => t.agentID == agentId);
         if (idx < 0) return;
         OpenAgentTerminals.RemoveAt(idx);
-        if (ActiveBottomTab >= idx + 2)
+        if (ActiveBottomTab >= idx + 1)
             ActiveBottomTab = Math.Max(0, ActiveBottomTab - 1);
         Notify();
     }

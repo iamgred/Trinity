@@ -4,6 +4,7 @@
 @using Client.Services
 @using Trinity.Shared.DTOs.Agent
 @using Client.Components.UI
+@using Client.Components.Shell
 
 <div>
 
@@ -39,7 +40,6 @@
                     <MudTh>last</MudTh>
                     <MudTh>sleep</MudTh>
                     <MudTh>status</MudTh>
-                    <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     @{ var ctx = context; }
@@ -62,22 +62,6 @@
                             </span>
                         </span>
                     </MudTd>
-                    <MudTd>
-                        <div class="v2-row-actions">
-                            <MudTooltip Text="Interact">
-                                <MudIconButton Icon="@Icons.Material.Filled.Terminal"
-                                               Size="Size.Small"
-                                               Disabled="@(!IsOnline(ctx))"
-                                               OnClick="() => InteractWithAgent(ctx)" />
-                            </MudTooltip>
-                            <MudTooltip Text="Delete">
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                               Size="Size.Small"
-                                               Color="Color.Error"
-                                               OnClick="@(async () => await DeleteAgentAsync(ctx))" />
-                            </MudTooltip>
-                        </div>
-                    </MudTd>
                 </RowTemplate>
                 <NoRecordsContent>
                     <div class="v2-table-empty">
@@ -91,22 +75,11 @@
 
 </div>
 
-@if (_menuOpen)
+@if (_menuOpen && _contextAgent is not null)
 {
-    <div class="ctx-backdrop" @onclick="CloseContextMenu"></div>
-    <MudPaper Class="ctx-menu" Style="@($"left:{_menuX}px;top:{_menuY}px;")" Elevation="8">
-        <MudList T="string" Dense="true" DisablePadding="true">
-            <MudListItem T="string" Icon="@Icons.Material.Filled.Terminal"
-                         Disabled="@(_contextAgent is null || !IsOnline(_contextAgent))"
-                         OnClick="OpenTerminalFromContext">
-                Interact
-            </MudListItem>
-            <MudDivider />
-            <MudListItem T="string" Icon="@Icons.Material.Filled.Delete"
-                         IconColor="Color.Error"
-                         OnClick="DeleteFromContext">
-                Delete
-            </MudListItem>
-        </MudList>
-    </MudPaper>
+    <AgentContextMenu Agent="@_contextAgent"
+                      X="@_menuX" Y="@_menuY"
+                      OnClose="CloseContextMenu"
+                      OnInteract="OpenTerminalFromContext"
+                      OnLoot="NavigateToLoot" />
 }

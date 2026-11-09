@@ -10,6 +10,7 @@
 @inject ListenerApiClient ListenerApi
 @inject CampaignService CampaignService
 @inject IPayloadAPI PayloadApi
+@inject EventLogService EventLog
 
 <Modal Title="Generate Payload" Subtitle="Build an agent that calls back to a listener" IconName="nav-generate.svg"
        FootNote="Built on the team server and added to Payloads." Error="@_error" OnClose="OnClose">
@@ -154,6 +155,7 @@
         try
         {
             await PayloadApi.GenerateAsync(request);
+            EventLog.Add("SUCCESS", $"Payload '{_name.Trim()}' generated.");
             await OnGenerated.InvokeAsync();
         }
         catch (Refit.ApiException e)

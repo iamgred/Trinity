@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Client.Components.Shell;
 using Client.Services;
 
 namespace Client.Components.Pages;
@@ -8,6 +9,8 @@ public partial class Listeners
 {
     [Inject] ListenerApiClient ListenerClient { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
+    [Inject] EventLogService EventLog { get; set; } = null!;
+    [CascadingParameter] private WorkspaceState Workspace { get; set; } = default!;
 
     private IReadOnlyList<ListenerResponse> _listeners = [];
     private bool _loading = false;
@@ -39,7 +42,7 @@ public partial class Listeners
     private async Task LoadListenersAsync()
     {
         _loading = true;
-        try { _listeners = await ListenerClient.GetListenersAsync(); _lastRefresh = DateTime.Now.ToString("HH:mm:ss"); }
+        try { _listeners = await ListenerClient.GetListenersAsync(); Workspace.Listeners = _listeners; _lastRefresh = DateTime.Now.ToString("HH:mm:ss"); }
         catch (InvalidOperationException) { _listeners = []; }
         catch { _listeners = []; }
         finally { _loading = false; }
@@ -55,20 +58,20 @@ public partial class Listeners
     {
         if (string.IsNullOrWhiteSpace(_newName)) { _createError = "Listener name is required."; return; }
         _creating = true; _createError = string.Empty;
-        try { await ListenerClient.CreateHttpListenerAsync(_newName, _newHost, _newPort); Snackbar.Add($"Listener '{_newName}' created.", Severity.Success); _createOpen = false; await LoadListenersAsync(); }
+        try { await ListenerClient.CreateHttpListenerAsync(_newName, _newHost, _newPort); Snackbar.Add($"Listener '{_newName}' created.", Severity.Success); EventLog.Add("SUCCESS", $"Listener '{_newName}' created."); _createOpen = false; await LoadListenersAsync(); }
         catch (Exception ex) { _createError = ex.Message; }
         finally { _creating = false; }
     }
 
     private async Task RestartListenerAsync(ListenerResponse listener)
     {
-        try { await ListenerClient.RestartListenerAsync(listener.id); Snackbar.Add($"Listener '{listener.name}' restarted.", Severity.Info); await LoadListenersAsync(); }
+        try { await ListenerClient.RestartListenerAsync(listener.id); Snackbar.Add($"Listener '{listener.name}' restarted.", Severity.Info); EventLog.Add("INFO", $"Listener '{listener.name}' restarted."); await LoadListenersAsync(); }
         catch (Exception ex) { Snackbar.Add($"Restart failed: {ex.Message}", Severity.Error); }
     }
 
     private async Task DeleteListenerAsync(ListenerResponse listener)
     {
-        try { await ListenerClient.DeleteListenerAsync(listener.id); Snackbar.Add($"Listener '{listener.name}' deleted.", Severity.Warning); await LoadListenersAsync(); }
+        try { await ListenerClient.DeleteListenerAsync(listener.id); Snackbar.Add($"Listener '{listener.name}' deleted.", Severity.Warning); EventLog.Add("WARN", $"Listener '{listener.name}' deleted."); await LoadListenersAsync(); }
         catch (Exception ex) { Snackbar.Add($"Delete failed: {ex.Message}", Severity.Error); }
     }
 }

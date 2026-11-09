@@ -81,6 +81,7 @@ public partial class Agents : IDisposable
         try
         {
             _agents = await AgentService.GetTasksAsync();
+            Workspace.Agents = _agents;
             var latest = _agents.Where(a => a.lastCheckIn != default).OrderByDescending(a => a.lastCheckIn).FirstOrDefault();
             _latestSeen = latest is null ? null : FormatLastSeen(latest.lastCheckIn);
             _svgViewBox = $"0 0 {SvgW} {SvgH}";

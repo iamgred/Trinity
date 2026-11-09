@@ -15,6 +15,7 @@ public partial class ArmouryPanel : ComponentBase
     [Inject] IJSRuntime JS { get; set; } = null!;
     [Inject] IConfiguration Config { get; set; } = null!;
     [Inject] IDialogService DialogService { get; set; } = null!;
+    [Inject] EventLogService EventLog { get; set; } = null!;
 
     private List<Tool> _tools = [];
     private Tool? _selected;
@@ -56,6 +57,7 @@ public partial class ArmouryPanel : ComponentBase
         {
             await using var stream = file.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024);
             await ArmouryService.UploadAsync(name, 1, stream, file.Name);
+            EventLog.Add("SUCCESS", $"Tool '{name}' added to armoury.");
             await RefreshAsync();
         }
     }
@@ -63,7 +65,9 @@ public partial class ArmouryPanel : ComponentBase
     private async SysTask HandleRemove()
     {
         if (_selected == null) return;
+        var name = _selected.Name;
         await ArmouryService.RemoveAsync(_selected.ID);
+        EventLog.Add("WARN", $"Tool '{name}' removed from armoury.");
         await RefreshAsync();
     }
 

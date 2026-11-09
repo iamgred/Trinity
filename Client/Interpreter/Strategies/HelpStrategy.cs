@@ -12,10 +12,11 @@ public class HelpStrategy : ICommandStrategy
         new(StringComparer.OrdinalIgnoreCase)
     {
         ["powershell"]       = ("powershell <script>",                        "Run a PowerShell script or one-liner",                                "Passes <script> to powershell.exe -NonInteractive -EncodedCommand.\nExample: powershell Get-Process"),
-        ["download"]         = ("download <path> [destination]",               "Pull a file from the agent to the team server",                       "Retrieves <path> from the agent. [destination] defaults to the filename.\nExample: download C:\\Users\\Admin\\secret.txt\nExample: download C:\\tools\\nc.exe nc64.exe"),
-        ["upload"]           = ("upload <path>",                              "Push a file from the team server to the agent",                       "Uploads a staged file to <path> on the agent.\nExample: upload C:\\Temp\\tool.exe"),
+        ["download"]         = ("download <path>",                              "Push a file from the team server to the agent",                       "Pushes a file staged on the team server to <path> on the agent.\nExample: download C:\\Temp\\tool.exe"),
+        ["upload"]           = ("upload <path> [destination]",                 "Pull a file from the agent to the team server",                       "Retrieves <path> from the agent. [destination] defaults to the filename.\nExample: upload C:\\Users\\Admin\\secret.txt\nExample: upload C:\\tools\\nc.exe nc64.exe"),
         ["execute-assembly"] = ("execute-assembly <path> [args]",             "Execute a .NET assembly in memory",                                   "Loads and runs the managed assembly at <path> without writing to disk.\nExample: execute-assembly C:\\Tools\\Rubeus.exe kerberoast"),
         ["escalate"]         = ("escalate <regKey> <targetBinary>",           "Escalate privileges via a registry key UAC bypass",                   "Uses <regKey> to hijack a privileged auto-elevated binary.\nExample: escalate HKCU\\...\\ms-settings cmd.exe"),
+        ["persist"]          = ("persist <path> <username> <taskName>",       "Persist via a Windows scheduled task",                                "Creates a scheduled task running <path> as <username>.\nExample: persist C:\\Temp\\agent.exe SYSTEM TrinityUpdate"),
 ["help"]             = ("help [command]",                             "Show all commands, or detail for a specific command",                 "With no argument: list every command.\nWith a keyword: show its usage and description.\nExample: help download"),
     };
 

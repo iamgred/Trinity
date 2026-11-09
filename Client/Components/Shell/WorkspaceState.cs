@@ -1,3 +1,4 @@
+using Client.Services;
 using Trinity.Shared.DTOs.Agent;
 
 namespace Client.Components.Shell;
@@ -7,7 +8,7 @@ public sealed class WorkspaceState
     public IReadOnlyList<AgentResponse> Agents { get; set; } = [];
     public string? AgentsError { get; set; }
     public bool Connected { get; set; }
-    public int ListenerCount { get; set; }
+    public IReadOnlyList<ListenerResponse> Listeners { get; set; } = [];
     public string Filter { get; set; } = "";
     public int? SelectedAgentId { get; set; }
     public int AgentsPanelHeight { get; set; } = 300;

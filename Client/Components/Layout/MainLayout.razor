@@ -193,8 +193,8 @@
 
     <footer class="c2-status-bar">
         <span class="@(_serverOnline ? "c2-ok" : "c2-err")">@(_serverOnline ? "● Connected" : "● Disconnected")</span>
-        <span>@_workspaceState.Agents.Count agents</span>
-        <span>@_workspaceState.ListenerCount listeners</span>
+        <span>@_workspaceState.Agents.Count registered · @_workspaceState.Agents.Count(a => !WorkspaceState.IsStale(a)) online</span>
+        <span>@_workspaceState.Listeners.Count registered · @_workspaceState.Listeners.Count active</span>
         <div class="c2-status-spacer"></div>
         @if (!_workspaceState.EventLogVisible)
         {

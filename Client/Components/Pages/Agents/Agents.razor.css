@@ -38,6 +38,51 @@
     border-radius: 6px !important;
 }
 
+::deep .term-tabs {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #111;
+}
+
+::deep .term-tab-header {
+    background: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    min-height: 36px;
+    flex-shrink: 0;
+}
+
+::deep .term-tab-panel {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.term-tab-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    color: #ccc;
+}
+
+.term-tab-icon {
+    font-size: 14px !important;
+    color: var(--accent, #e87722);
+}
+
+::deep .term-tab-close {
+    width: 18px !important;
+    height: 18px !important;
+    padding: 0 !important;
+    color: #666 !important;
+    margin-left: 2px;
+}
+
+::deep .term-tab-close:hover {
+    color: #ccc !important;
+}
+
 .ctx-cell {
     display: block;
     width: 100%;

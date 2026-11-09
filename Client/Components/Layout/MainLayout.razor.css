@@ -323,6 +323,7 @@
 
 .c2-panel-body {
     flex: 1;
+    padding: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;

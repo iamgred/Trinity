@@ -1,3 +1,31 @@
+.loot {
+    --ts-bg: #0e0e10;
+    --ts-surface: #161618;
+    --ts-input: #202024;
+    --ts-raised: #232327;
+    --ts-border: #2c2c30;
+    --ts-row-border: rgba(44, 44, 48, 0.6);
+    --ts-text: #f5f5f7;
+    --ts-text-2: #9a9aa2;
+    --ts-text-3: #6c6c74;
+    --ts-orange: #f57a1e;
+    --ts-orange-deep: #c85e10;
+    --ts-orange-tint: rgba(245, 122, 30, 0.13);
+    --ts-green: #35c759;
+    --ts-red: #e5484d;
+    --ts-yellow: #f5c518;
+    --ts-sans: "Inter", system-ui, sans-serif;
+    --ts-mono: "JetBrains Mono", ui-monospace, monospace;
+    flex: 1;
+    min-height: 0;
+    margin: -20px -24px;
+    display: flex;
+    flex-direction: column;
+    background: var(--ts-bg);
+    color: var(--ts-text);
+    font-family: var(--ts-sans);
+}
+
 .loot__filters {
     flex: 0 0 45px;
     display: flex;

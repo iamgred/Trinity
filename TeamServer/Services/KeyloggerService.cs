@@ -1,4 +1,4 @@
-using TeamServer.Interface;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Results;

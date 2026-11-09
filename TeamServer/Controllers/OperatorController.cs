@@ -1,7 +1,7 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Services;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers
@@ -10,7 +10,7 @@ namespace TeamServer.Controllers
     [ApiController]
     public class OperatorController : ControllerBase
     {
-        private readonly OperatorService _operatorService;
+        private readonly IOperatorService _operatorService;
         private readonly IValidator<Operator> _operatorValidator;
 
         /// <summary>
@@ -18,7 +18,7 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <param name="operatorService"></param>
         /// <param name="operatorValidator"></param>
-        public OperatorController(OperatorService operatorService, IValidator<Operator> operatorValidator)
+        public OperatorController(IOperatorService operatorService, IValidator<Operator> operatorValidator)
         {
             _operatorService = operatorService;
             _operatorValidator = operatorValidator;

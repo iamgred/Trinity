@@ -1,5 +1,5 @@
 using System.Text.Json;
-using TeamServer.Interface;
+using Trinity.Shared.Interfaces;
 using TeamServer.Repositories;
 using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.DTOs.Task;

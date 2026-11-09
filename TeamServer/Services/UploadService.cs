@@ -2,7 +2,7 @@
 using Trinity.Shared.DTOs.Data;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Results;
-using TeamServer.Interface;
+using Trinity.Shared.Interfaces;
 using Trinity.Shared.Enums;
 
 namespace TeamServer.Services

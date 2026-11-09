@@ -1,5 +1,4 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
-using TeamServer.Interface;
 using TeamServer.Repositories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Notification;
@@ -12,7 +11,7 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class PayloadService
+    public class PayloadService : IPayloadService
     {
         private readonly PayloadRepository _payloadRepository;
         private readonly ListenerRespository _listenerRepository;

@@ -8,7 +8,7 @@ using Trinity.Shared.Results;
 
 namespace TeamServer.Services
 {
-    public class ToolService
+    public class ToolService : IToolService
     {
         private readonly ToolRepository _toolRepo;
         private readonly OperatorRepository _operatorRepo;

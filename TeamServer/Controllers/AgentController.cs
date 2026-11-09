@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Buffers;
 using System.Text.Json;
-using TeamServer.Services;
 using Trinity.Shared.DTOs.Checkin;
 using Trinity.Shared.DTOs.Task;
+using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Controllers
 {
@@ -12,14 +12,14 @@ namespace TeamServer.Controllers
     [ApiController]
     public class AgentController : ControllerBase
     {
-        private AgentService _agentService;
+        private IAgentService _agentService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Initializes a new instance of the AgentController class with the specified AgentService.
         /// </summary>
         /// <param name="agentService">The service that provides agent-related operations.</param>
-        public AgentController(AgentService agentService)
+        public AgentController(IAgentService agentService)
         {
             this._agentService = agentService;
         }

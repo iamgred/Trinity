@@ -1,9 +1,8 @@
 // ==================================================================== { START OF FILE } ===================================================================== //
-using Microsoft.AspNetCore.Mvc;
-using TeamServer.Services;
-using Trinity.Shared.Models;
 using FluentValidation;
-using TeamServer.Interface;
+using Microsoft.AspNetCore.Mvc;
+using Trinity.Shared.Interfaces;
+using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers
 {

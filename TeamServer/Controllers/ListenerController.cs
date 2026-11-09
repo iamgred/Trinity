@@ -1,10 +1,10 @@
 ﻿//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //    
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Services;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Https;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.DTOs.Listener.Tcp;
+using Trinity.Shared.Interfaces;
 
 
 namespace TeamServer.Controllers
@@ -13,7 +13,7 @@ namespace TeamServer.Controllers
     [ApiController]
     public class ListenerController : ControllerBase
     {
-        private ListenerService _listenerService;
+        private IListenerService _listenerService;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
@@ -21,7 +21,7 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <remarks>Intended for use with dependency injection.</remarks>
         /// <param name="listenerService">The ListenerService used by the controller to perform listener-related operations.</param>
-        public ListenerController(ListenerService listenerService)
+        public ListenerController(IListenerService listenerService)
         {
             _listenerService = listenerService;
         }

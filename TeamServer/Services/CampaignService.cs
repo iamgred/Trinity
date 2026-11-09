@@ -14,7 +14,7 @@ namespace TeamServer.Services
      * Provides methods to perform CRUD operations on Campaign records.
      * Also provides methods for managing the relationship between Campaigns and Operators.
      */
-    public class CampaignService
+    public class CampaignService : ICampaignService
     {
         private readonly CampaignBridgeRepository _campaignBridgeRepository;
         private readonly CampaignRepository _campaignRepository;

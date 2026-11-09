@@ -1,8 +1,7 @@
 // ============================================== { START OF FILE } ============================================== //
 using Microsoft.AspNetCore.Mvc;
-using TeamServer.Interface;
-using TeamServer.Services;
 using Trinity.Shared.Enums;
+using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Controllers
 {

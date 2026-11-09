@@ -1,7 +1,7 @@
 using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Results;
-using TeamServer.Interface;
+using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Services
 {

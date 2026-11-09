@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
-using TeamServer.Interface;
-using TeamServer.Services;
 using Trinity.Shared.DTOs.Payload;
+using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Controllers
 {

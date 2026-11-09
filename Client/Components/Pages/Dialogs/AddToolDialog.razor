@@ -4,121 +4,131 @@
 
 <MudDialog Class="atd-dialog">
     <TitleContent>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E87722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="atd-title-row">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E87722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
-            <span style="color:rgba(255,255,255,0.90); font-weight:600; font-size:1.05rem; letter-spacing:0.01em;">Add Tool</span>
+            <div>
+                <div class="atd-title-text">Add Tool</div>
+                <div class="atd-title-sub">Upload a file to the armoury</div>
+            </div>
         </div>
     </TitleContent>
     <DialogContent>
         <div class="atd-accent-bar"></div>
         <div class="atd-body">
-            <MudTextField @bind-Value="_name"
-                          Label="Name"
-                          Variant="Variant.Outlined"
-                          Placeholder="e.g. whoami.o"
-                          FullWidth="true" />
 
-            <label class="atd-file-zone" for="atd-file-input">
-                @if (_file is null)
-                {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
-                         fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    <span class="atd-file-hint">Click to choose a file</span>
-                    <span class="atd-file-sub">Any file type accepted</span>
-                }
-                else
-                {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
-                         fill="none" stroke="#35C759" stroke-width="2.5"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    <span class="atd-file-name">@_file.Name</span>
-                    <span class="atd-file-size">@FormatSize(_file.Size)</span>
-                }
-                <InputFile id="atd-file-input" OnChange="OnFileChange" style="display:none" multiple="false" />
-            </label>
+            <div class="atd-row">
+                <span class="atd-label">Name</span>
+                <input class="atd-input" @bind="_name" @bind:event="oninput" placeholder="e.g. whoami.o" />
+            </div>
+
+            <div class="atd-row">
+                <span class="atd-label">File</span>
+                <label class="atd-file-zone" for="atd-file-input">
+                    @if (_file is null)
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                             fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span class="atd-file-hint">Click to choose a file</span>
+                        <span class="atd-file-sub">Any file type accepted</span>
+                    }
+                    else
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                             fill="none" stroke="#35C759" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span class="atd-file-name">@_file.Name</span>
+                        <span class="atd-file-size">@FormatSize(_file.Size)</span>
+                    }
+                    <InputFile id="atd-file-input" OnChange="OnFileChange" style="display:none" multiple="false" />
+                </label>
+            </div>
 
             @if (_error is not null)
             {
-                <span class="atd-error">@_error</span>
+                <div class="atd-row"><span></span><span class="atd-error">@_error</span></div>
             }
         </div>
     </DialogContent>
     <DialogActions>
-        <div class="atd-actions">
-            <MudButton Variant="Variant.Text" Class="atd-btn-cancel" OnClick="Cancel">Cancel</MudButton>
-            <MudButton Variant="Variant.Filled" Class="atd-btn-add" OnClick="Confirm" Disabled="@(!CanConfirm)">
-                Add Tool
-            </MudButton>
+        <div class="atd-footer">
+            <span class="atd-footer-note">Stored in the armoury and available to all operators.</span>
+            <div class="atd-footer-btns">
+                <button type="button" class="atd-btn-cancel" @onclick="Cancel">Cancel</button>
+                <button type="button" class="atd-btn-add" @onclick="Confirm" disabled="@(!CanConfirm)">Add Tool</button>
+            </div>
         </div>
     </DialogActions>
 </MudDialog>
 
 <style>
-    /* ── dialog surface ── */
+    /* ── surface ── */
     .atd-dialog .mud-paper {
-        background: #161616 !important;
+        background: #1a1a1a !important;
         border: 1px solid rgba(255,255,255,0.09) !important;
         border-radius: 10px !important;
         color: rgba(255,255,255,0.88) !important;
-        box-shadow: 0 24px 48px rgba(0,0,0,0.60) !important;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.65) !important;
+        min-width: 480px !important;
     }
     .atd-dialog .mud-dialog-title {
-        padding: 18px 20px 10px !important;
-        border-bottom: none !important;
+        padding: 16px 20px 10px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.07) !important;
     }
-    .atd-dialog .mud-dialog-content {
-        padding: 0 !important;
-        overflow: visible !important;
+    .atd-dialog .mud-dialog-content { padding: 0 !important; }
+    .atd-dialog .mud-dialog-actions { padding: 0 !important; border-top: 1px solid rgba(255,255,255,0.07) !important; }
+    .atd-dialog .mud-icon-button { color: rgba(255,255,255,0.35) !important; }
+
+    /* ── title ── */
+    .atd-title-row { display: flex; align-items: flex-start; gap: 12px; }
+    .atd-title-text { color: rgba(255,255,255,0.90); font-weight: 600; font-size: 1.0rem; }
+    .atd-title-sub  { color: rgba(255,255,255,0.33); font-size: 0.74rem; margin-top: 2px; }
+
+    /* ── accent ── */
+    .atd-accent-bar { height: 2px; background: linear-gradient(90deg,#E87722,rgba(232,119,34,0.20)); }
+
+    /* ── body ── */
+    .atd-body { display: flex; flex-direction: column; padding: 18px 24px 20px; gap: 0; }
+    .atd-row {
+        display: grid;
+        grid-template-columns: 100px 1fr;
+        gap: 6px 20px;
+        margin-bottom: 12px;
+        align-items: start;
     }
-    .atd-dialog .mud-dialog-actions {
-        padding: 0 !important;
-        border-top: 1px solid rgba(255,255,255,0.07) !important;
+    .atd-label {
+        font-size: 0.74rem;
+        color: rgba(255,255,255,0.40);
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        align-self: center;
+        padding-top: 2px;
     }
 
-    /* ── accent bar ── */
-    .atd-accent-bar {
-        height: 2px;
-        background: linear-gradient(90deg, #E87722 0%, rgba(232,119,34,0.30) 100%);
-        margin-bottom: 20px;
+    /* ── input ── */
+    .atd-input {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 6px;
+        color: rgba(255,255,255,0.88);
+        font-size: 0.84rem;
+        padding: 8px 12px;
+        outline: none;
+        transition: border-color 0.15s;
+        width: 100%;
+        box-sizing: border-box;
+        font-family: inherit;
     }
-
-    /* ── form body ── */
-    .atd-body {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        padding: 0 20px 20px;
-    }
-
-    /* ── MudTextField dark overrides ── */
-    .atd-dialog .mud-input-outlined .mud-input-outlined-border {
-        border-color: rgba(255,255,255,0.14) !important;
-    }
-    .atd-dialog .mud-input-outlined:hover .mud-input-outlined-border {
-        border-color: rgba(255,255,255,0.28) !important;
-    }
-    .atd-dialog .mud-input-outlined.mud-input-outlined-focused .mud-input-outlined-border {
-        border-color: #E87722 !important;
-    }
-    .atd-dialog .mud-input-label {
-        color: rgba(255,255,255,0.40) !important;
-    }
-    .atd-dialog .mud-input-label-animated.mud-shrink {
-        color: #E87722 !important;
-    }
-    .atd-dialog .mud-input input {
-        color: rgba(255,255,255,0.88) !important;
-        caret-color: #E87722 !important;
-    }
+    .atd-input:focus { border-color: #E87722; }
+    .atd-input::placeholder { color: rgba(255,255,255,0.20); }
 
     /* ── file zone ── */
     .atd-file-zone {
@@ -127,82 +137,44 @@
         align-items: center;
         justify-content: center;
         gap: 7px;
-        padding: 26px 16px;
+        padding: 20px 16px;
         border: 1.5px dashed rgba(255,255,255,0.13);
         border-radius: 8px;
         cursor: pointer;
         transition: border-color 0.15s, background 0.15s;
-        min-height: 95px;
+        min-height: 85px;
         background: rgba(255,255,255,0.015);
         user-select: none;
     }
-    .atd-file-zone:hover {
-        border-color: rgba(232,119,34,0.45);
-        background: rgba(232,119,34,0.04);
-    }
-    .atd-file-hint {
-        font-size: 0.82rem;
-        color: rgba(255,255,255,0.45);
-        font-weight: 500;
-    }
-    .atd-file-sub {
-        font-size: 0.72rem;
-        color: rgba(255,255,255,0.22);
-    }
-    .atd-file-name {
-        font-size: 0.84rem;
-        color: rgba(255,255,255,0.82);
-        font-weight: 500;
-        word-break: break-all;
-        text-align: center;
-        max-width: 100%;
-    }
-    .atd-file-size {
-        font-size: 0.72rem;
-        color: rgba(255,255,255,0.35);
-    }
+    .atd-file-zone:hover { border-color: rgba(232,119,34,0.45); background: rgba(232,119,34,0.04); }
+    .atd-file-hint { font-size: 0.82rem; color: rgba(255,255,255,0.45); font-weight: 500; }
+    .atd-file-sub  { font-size: 0.72rem; color: rgba(255,255,255,0.22); }
+    .atd-file-name { font-size: 0.84rem; color: rgba(255,255,255,0.82); font-weight: 500; word-break: break-all; text-align: center; max-width: 100%; }
+    .atd-file-size { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
 
     /* ── error ── */
-    .atd-error {
-        color: #f44336;
-        font-size: 0.79rem;
-    }
+    .atd-error { color: #f44336; font-size: 0.79rem; }
 
-    /* ── actions ── */
-    .atd-actions {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        width: 100%;
-        padding: 12px 20px;
+    /* ── footer ── */
+    .atd-footer {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 24px; gap: 12px; width: 100%;
     }
+    .atd-footer-note { font-size: 0.72rem; color: rgba(255,255,255,0.28); flex: 1; }
+    .atd-footer-btns { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
     .atd-btn-cancel {
-        color: rgba(255,255,255,0.40) !important;
-        text-transform: none !important;
-        font-size: 0.84rem !important;
+        padding: 7px 16px; border-radius: 6px; font-size: 0.83rem;
+        background: transparent; border: 1px solid rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.45); cursor: pointer;
     }
-    .atd-btn-cancel:hover {
-        background: rgba(255,255,255,0.05) !important;
-        color: rgba(255,255,255,0.65) !important;
-    }
+    .atd-btn-cancel:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.70); }
     .atd-btn-add {
-        background: #E87722 !important;
-        color: #fff !important;
-        text-transform: none !important;
-        border-radius: 24px !important;
-        min-width: 110px !important;
-        font-weight: 600 !important;
-        font-size: 0.84rem !important;
-        letter-spacing: 0.02em !important;
+        padding: 7px 20px; border-radius: 24px; font-size: 0.83rem; font-weight: 600;
+        background: #E87722; border: none; color: #fff; cursor: pointer;
+        min-width: 110px; letter-spacing: 0.02em; transition: background 0.15s;
     }
-    .atd-btn-add:hover:not([disabled]) {
-        background: #d06a1c !important;
-    }
-    .atd-btn-add[disabled] {
-        opacity: 0.35 !important;
-        cursor: default !important;
-    }
+    .atd-btn-add:hover:not(:disabled) { background: #d06a1c; }
+    .atd-btn-add:disabled { opacity: 0.35; cursor: default; }
 </style>
 
 @code {

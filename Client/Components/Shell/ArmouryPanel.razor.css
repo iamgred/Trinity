@@ -124,13 +124,15 @@
 .arm-footer {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 7px 14px;
     border-top: 1px solid rgba(255,255,255,0.07);
     background: #111;
     flex-shrink: 0;
     gap: 12px;
 }
+
+.arm-footer-pages { margin-left: auto; }
 
 .arm-footer-info {
     font-size: 0.74rem;

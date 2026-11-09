@@ -2,6 +2,7 @@
 @namespace Client.Components.Pages
 @rendermode InteractiveServer
 @using Client.Components.Shell
+@using Client.Components.UI
 @using Client.Components.Pages.Dialogs
 @using Client.Services
 @using System.Text.Json
@@ -9,62 +10,58 @@
 @inject PayloadService PayloadService
 @inject NavigationManager Nav
 
-<PageTitle>Payloads — Trinity C2</PageTitle>
+<PageTitle>Trinity · Payloads</PageTitle>
 
-<div class="payload-root">
-    <MudPaper Class="armory-card" Elevation="0">
-        <div class="card-header">
-            <MudIcon Icon="@Icons.Material.Filled.Inventory2" Class="card-icon" />
-            <MudText Typo="Typo.h6">Armory</MudText>
-            <MudSpacer />
-            <MudButton StartIcon="@Icons.Material.Filled.Add"
-                       Color="Color.Warning"
-                       Variant="Variant.Filled"
-                       OnClick="@(() => _generateOpen = true)">
-                Generate
-            </MudButton>
-            <MudTooltip Text="Refresh"><MudIconButton Icon="@Icons.Material.Filled.Refresh"
-                           OnClick="LoadAsync" /></MudTooltip>
-        </div>
+<div class="payloads">
+    @if (_loadError is not null)
+    {
+        <MudAlert Severity="Severity.Error" Dense="true" Square="true" Class="payloads__notice"
+                  ContentAlignment="HorizontalAlignment.Left">
+            @_loadError
+            <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="LoadAsync">Retry</MudButton>
+        </MudAlert>
+    }
 
-        @if (_loading)
-        {
-            <MudProgressLinear Color="Color.Warning" Indeterminate="true" Class="mb-2" />
-        }
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+    }
 
-        @if (_loadError is not null)
-        {
-            <MudAlert Severity="Severity.Error" Class="mb-2">@_loadError</MudAlert>
-        }
+    <div class="payloads__scroll">
+        <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Elevation="0" Square="true" Class="payloads__table">
+            <colgroup>
+                <col style="width:30%" /><col style="width:17%" /><col style="width:12%" /><col style="width:41%" />
+            </colgroup>
+            <thead>
+                <tr><th>name</th><th>type</th><th>size</th><th>created</th></tr>
+            </thead>
+            <tbody>
+                @if (_payloads.Count == 0)
+                {
+                    <tr class="payloads__empty"><td colspan="4">@(_loading ? "Loading payloads…" : "No payloads generated yet.")</td></tr>
+                }
+                @foreach (var payload in _payloads)
+                {
+                    <tr class="@(payload == _selected ? "is-selected" : null)" @onclick="() => _selected = payload">
+                        <td>
+                            <span class="payloads__name">
+                                <MudIcon Icon="@Icons.Material.Outlined.InsertDriveFile" Class="payloads__file" />
+                                @payload.Name
+                            </span>
+                        </td>
+                        <td>@payload.Type</td>
+                        <td>@FormatSize(payload.Size)</td>
+                        <td>@payload.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    </div>
 
-        <MudTable Items="@_payloads"
-                  Dense="true"
-                  Hover="true"
-                  Striped="false"
-                  Class="armory-table"
-                  Elevation="0">
-            <HeaderContent>
-                <MudTh>Filename</MudTh>
-                <MudTh>Type</MudTh>
-                <MudTh>Size</MudTh>
-                <MudTh>Created</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Filename">
-                    <MudText Typo="Typo.body2" Class="mono">@context.Name</MudText>
-                </MudTd>
-                <MudTd DataLabel="Type">
-                    <MudChip T="string" Size="Size.Small" Color="Color.Warning"
-                             Variant="Variant.Outlined">@context.Type</MudChip>
-                </MudTd>
-                <MudTd DataLabel="Size">@FormatSize(context.Size)</MudTd>
-                <MudTd DataLabel="Created">@context.CreatedAt.ToString("dd MMM HH:mm")</MudTd>
-            </RowTemplate>
-            <NoRecordsContent>
-                <MudText Class="no-data">No payloads generated yet.</MudText>
-            </NoRecordsContent>
-        </MudTable>
-    </MudPaper>
+    <div class="payloads__actions">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="payloads__generate"
+                   StartIcon="@Icons.Material.Outlined.Bolt" OnClick="() => _generateOpen = true">Generate</MudButton>
+    </div>
 </div>
 
 @if (_generateOpen)

@@ -14,46 +14,59 @@
 
 <PageTitle>Trinity · Operators</PageTitle>
 
-<div class="ts-admin-head">
-    <div>
-        <h3>Operators</h3>
-        <p>Admins create every account. There is no self-registration.</p>
+<div class="ops-page">
+    <div class="ops-head">
+        <div>
+            <MudText Typo="Typo.h5" Class="ops-head__title">Operators</MudText>
+            <MudText Class="ops-head__sub">Admins create every account. There is no self-registration.</MudText>
+        </div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add"
+                   Class="ops-btn ops-btn--primary" OnClick="() => Open(OperatorDialogMode.Create)">Create Operator</MudButton>
     </div>
-    <button type="button" class="ts-btn ts-btn--primary" @onclick="() => Open(OperatorDialogMode.Create)"><Icon Name="btn-plus.svg" Size="13" /> Create Operator</button>
-</div>
 
-@if (_error is not null)
-{
-    <p class="ops__error" role="alert">@_error</p>
-}
+    @if (_error is not null)
+    {
+        <MudAlert Severity="Severity.Error" Dense="true" Class="ops__error">@_error</MudAlert>
+    }
 
-<div class="ops__card">
-    <table class="ts-table">
-        <colgroup><col style="width:5.6%" /><col style="width:15.5%" /><col style="width:15.2%" /><col style="width:42.7%" /><col style="width:21%" /></colgroup>
-        <thead><tr><th>id</th><th>username</th><th>role</th><th>campaigns</th><th>last login</th></tr></thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr class="ts-empty"><td colspan="5">@(_loading ? "Loading accounts…" : "No accounts yet.")</td></tr>
-            }
-            @foreach (var row in _rows)
-            {
-                <tr class="@(row == _selected ? "is-selected" : null)" @onclick="() => _selected = row">
-                    <td>@row.Id</td>
-                    <td>@row.Username</td>
-                    <td><StatusPill Text="@(row.IsAdmin ? "admin" : "operator")" Tone="@(row.IsAdmin ? "orange" : "blue")" /></td>
-                    <td>@CampaignNames(row)</td>
-                    <td>@(row.LastLogin is { } login && login > DateTime.MinValue ? login.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "never")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+    <MudPaper Elevation="0" Class="ops__card">
+        @if (_loading && _rows.Count == 0)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+        }
+        <MudSimpleTable Dense="true" Hover="true" Elevation="0" Square="true" Class="ops__table">
+            <colgroup><col style="width:5.6%" /><col style="width:15.5%" /><col style="width:15.2%" /><col style="width:42.7%" /><col style="width:21%" /></colgroup>
+            <thead><tr><th>id</th><th>username</th><th>role</th><th>campaigns</th><th>last login</th></tr></thead>
+            <tbody>
+                @if (_rows.Count == 0)
+                {
+                    <tr class="ops__empty"><td colspan="5">@(_loading ? "Loading accounts…" : "No accounts yet.")</td></tr>
+                }
+                @foreach (var row in _rows)
+                {
+                    <tr class="@(row == _selected ? "is-selected" : null)" @onclick="() => _selected = row">
+                        <td>@row.Id</td>
+                        <td>@row.Username</td>
+                        <td>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="@(row.IsAdmin ? Color.Primary : Color.Info)"
+                                     Icon="@Icons.Material.Filled.Circle" Class="ops__role">@(row.IsAdmin ? "ADMIN" : "OPERATOR")</MudChip>
+                        </td>
+                        <td>@CampaignNames(row)</td>
+                        <td>@(row.LastLogin is { } login && login > DateTime.MinValue ? login.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "never")</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    </MudPaper>
 
-<div class="ops__actions">
-    <button type="button" class="ts-btn" disabled="@(_selected is null)" @onclick="() => Open(OperatorDialogMode.Edit)"><Icon Name="lucide-pencil.svg" Size="13" /> Edit</button>
-    <button type="button" class="ts-btn" disabled="@(_selected is null)" @onclick="() => Open(OperatorDialogMode.ResetPassword)"><Icon Name="icon-key.svg" Size="13" /> Reset Password</button>
-    <button type="button" class="ts-btn ts-btn--danger" disabled="@(_selected is null)" @onclick="RemoveAsync"><Icon Name="lucide-trash-2.svg" Size="13" /> @(_confirmRemove ? $"Remove {_selected?.Username}?" : "Remove")</button>
+    <div class="ops__actions">
+        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Edit" Class="ops-btn"
+                   Disabled="@(_selected is null)" OnClick="() => Open(OperatorDialogMode.Edit)">Edit</MudButton>
+        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Key" Class="ops-btn"
+                   Disabled="@(_selected is null)" OnClick="() => Open(OperatorDialogMode.ResetPassword)">Reset Password</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Outlined.Delete" Class="ops-btn ops-btn--danger"
+                   Disabled="@(_selected is null)" OnClick="RemoveAsync">@(_confirmRemove ? $"Remove {_selected?.Username}?" : "Remove")</MudButton>
+    </div>
 </div>
 
 @if (_dialogMode is { } mode)

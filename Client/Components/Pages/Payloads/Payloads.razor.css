@@ -1,149 +1,116 @@
+.payloads {
+    flex: 1;
+    margin: -20px -24px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #0e0e10;
+    font-family: "Inter", system-ui, sans-serif;
+}
+
+.payloads ::deep .payloads__notice {
+    border-bottom: 1px solid rgba(229, 72, 77, 0.3);
+    background: rgba(229, 72, 77, 0.08);
+    font-size: 12px;
+}
+
 .payloads__scroll {
     flex: 1;
     min-height: 0;
     overflow: auto;
 }
 
-.payloads__name {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+.payloads ::deep .payloads__table {
+    background: transparent;
 }
 
-.payloads__name ::deep .ts-ico {
-    color: var(--ts-text-2);
-}
-
-button {
-    font: inherit;
-    color: inherit;
-    background: none;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-}
-
-button:disabled {
-    cursor: default;
-}
-
-.ts-notice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 14px;
-    font-size: 12px;
-    color: var(--ts-text-2);
-    background: rgba(229, 72, 77, 0.08);
-    border-bottom: 1px solid rgba(229, 72, 77, 0.3);
-}
-
-.ts-notice button {
-    color: var(--ts-orange);
-    font-weight: 600;
-}
-
-.ts-table {
-    width: 100%;
-    border-collapse: collapse;
+.payloads ::deep .payloads__table table {
     table-layout: fixed;
-    font-family: var(--ts-mono);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
 }
 
-.ts-table th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
+.payloads ::deep .payloads__table thead th {
     padding: 7px 12px 7.5px;
-    background: var(--ts-surface);
-    border-bottom: 1px solid var(--ts-border);
-    color: var(--ts-text-3);
+    background: #141416;
+    border-bottom: 1px solid #2c2c30;
+    color: #6c6c74;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
     font-size: 11px;
     font-weight: 500;
+    line-height: 15px;
     text-align: left;
-    white-space: nowrap;
 }
 
-.ts-table td {
+.payloads ::deep .payloads__table tbody td {
     height: 31px;
     padding: 0 12px;
-    border-bottom: 1px solid var(--ts-row-border);
-    color: var(--ts-text);
+    border-bottom: 1px solid rgba(44, 44, 48, 0.45);
+    color: #f5f5f7;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.ts-table tbody tr {
+.payloads ::deep .payloads__table tbody tr {
     cursor: default;
 }
 
-.ts-table tbody tr:hover td {
-    background: rgba(255, 255, 255, 0.02);
+.payloads ::deep .payloads__table tbody tr.is-selected td {
+    background: rgba(245, 122, 30, 0.1);
 }
 
-.ts-table tbody tr.is-selected td {
-    background: var(--ts-orange-tint);
+.payloads ::deep .payloads__table tbody tr.is-selected td:first-child {
+    box-shadow: inset 2px 0 0 #f57a1e;
 }
 
-.ts-table tbody tr.is-selected td:first-child {
-    box-shadow: inset 2px 0 0 var(--ts-orange);
-}
-
-.ts-table .ts-muted {
-    color: var(--ts-text-3);
-}
-
-.ts-table .ts-empty td {
+.payloads ::deep .payloads__table tr.payloads__empty td {
     height: 60px;
-    color: var(--ts-text-3);
+    color: #6c6c74;
     text-align: center;
-    font-family: var(--ts-sans);
+    font-family: "Inter", system-ui, sans-serif;
 }
 
-.ts-btn {
+.payloads__name {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    height: 34px;
-    padding: 0 15px;
-    border-radius: 8px;
-    border: 1px solid var(--ts-border);
-    background: var(--ts-raised);
-    color: var(--ts-text);
-    font-family: var(--ts-sans);
-    font-size: 12.5px;
-    font-weight: 600;
-    white-space: nowrap;
+    gap: 6px;
 }
 
-.ts-btn:hover:not(:disabled) {
-    border-color: #3a3a40;
+.payloads ::deep .payloads__file {
+    font-size: 14px;
+    color: #9a9aa2;
 }
 
-.ts-btn:disabled {
-    opacity: 0.45;
+.payloads__actions {
+    flex: 0 0 53px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #141416;
+    border-top: 1px solid #2c2c30;
 }
 
-.ts-btn--primary {
+.payloads ::deep .payloads__generate {
     height: 32px;
     padding: 0 14px;
-    border: 0;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #f57a1e, #c85e10);
+    box-shadow: none;
     color: #fff;
-    background: linear-gradient(90deg, var(--ts-orange), var(--ts-orange-deep));
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-transform: none;
 }
 
-.ts-btn--primary:hover:not(:disabled) {
+.payloads ::deep .payloads__generate:hover {
     filter: brightness(1.08);
+    box-shadow: none;
 }
 
-.ts-btn--danger {
-    color: var(--ts-red);
-    background: rgba(229, 72, 77, 0.08);
-    border-color: rgba(229, 72, 77, 0.6);
-}
-
-.ts-btn--danger:hover:not(:disabled) {
-    border-color: var(--ts-red);
+.payloads ::deep .payloads__generate .mud-icon-root {
+    font-size: 15px;
 }

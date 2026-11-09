@@ -2,38 +2,51 @@
 @namespace Client.Components.Pages.Logs
 @rendermode InteractiveServer
 @using Client.Components.Shell
+@using Client.Components.UI
 
-<div class="logs-root">
-    <div class="logs-header">
-        <span class="logs-title">Event Log</span>
-    </div>
+<PageTitle>Trinity · Event Log</PageTitle>
 
-    @if (_isLoading)
+<div class="events">
+    @if (_loadError is not null)
     {
-        <div class="logs-state">Loading events…</div>
+        <MudAlert Severity="Severity.Error" Dense="true" Square="true" Class="events__notice">@_loadError</MudAlert>
     }
-    else if (_loadError is not null)
+
+    @if (_isLoading && _events.Count == 0)
     {
-        <div class="logs-state logs-error">@_loadError</div>
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
     }
-    else if (_events.Count == 0)
-    {
-        <div class="logs-state logs-empty">No events recorded.</div>
-    }
-    else
-    {
-        <div class="logs-list">
-            @foreach (var entry in _events)
-            {
-                <div class="log-entry log-tone-@entry.Tone">
-                    <span class="log-time">@entry.Time.ToString("HH:mm:ss")</span>
-                    <span class="log-sep">&nbsp;·&nbsp;</span>
-                    @foreach (var part in entry.Parts)
+
+    <div class="events__scroll">
+        @if (_events.Count == 0 && !_isLoading && _loadError is null)
+        {
+            <MudText Class="events__empty">No events recorded.</MudText>
+        }
+        else
+        {
+            <MudSimpleTable Dense="true" Elevation="0" Square="true" Class="events__table">
+                <colgroup>
+                    <col style="width:86px" /><col style="width:114px" /><col />
+                </colgroup>
+                <tbody>
+                    @foreach (var entry in _events)
                     {
-                        <span class="@(string.IsNullOrEmpty(part.Style) ? "log-text" : $"log-text log-{part.Style}")">@part.Text</span>
+                        <tr>
+                            <td class="events__time">@entry.Time.ToString("HH:mm:ss")</td>
+                            <td>
+                                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="@TrinityTheme.ToColor(entry.Tone)"
+                                         Icon="@Icons.Material.Filled.Circle" Class="events__tag">@entry.Category.ToUpperInvariant()</MudChip>
+                            </td>
+                            <td class="events__msg">
+                                @foreach (var part in entry.Parts)
+                                {
+                                    <span class="@(string.IsNullOrEmpty(part.Style) ? null : $"events__{part.Style}")">@part.Text</span>
+                                }
+                            </td>
+                        </tr>
                     }
-                </div>
-            }
-        </div>
-    }
+                </tbody>
+            </MudSimpleTable>
+        }
+    </div>
 </div>

@@ -11,67 +11,68 @@
 @inject CampaignService CampaignService
 @inject IPayloadAPI PayloadApi
 
-<Modal Title="Generate Payload" Subtitle="Build an agent that calls back to a listener" IconName="nav-generate.svg"
-       FootNote="Built on the team server and added to Payloads." Error="@_error" OnClose="OnClose">
+<TrinityDialog Title="Generate Payload" Subtitle="Build an agent that calls back to a listener" Icon="@Icons.Material.Outlined.Bolt"
+               FootNote="Built on the team server and added to Payloads." Error="@_error" OnClose="OnClose">
     <ChildContent>
-        <div class="ts-modal__row">
+        <div class="td-row">
             <label for="gp-name">Name</label>
-            <div class="ts-field"><input id="gp-name" @bind="_name" @bind:event="oninput" /></div>
+            <MudTextField T="string" @bind-Value="_name" Immediate="true" Variant="Variant.Outlined" Margin="Margin.Dense" InputId="gp-name" />
         </div>
 
-        <div class="ts-modal__row">
-            <label for="gp-listener">Listener</label>
-            <div class="ts-field">
-                <select id="gp-listener" @bind="_listenerId">
-                    @if (_listeners.Count == 0)
-                    {
-                        <option value="0">No listeners running</option>
-                    }
-                    @foreach (var listener in _listeners)
-                    {
-                        <option value="@listener.id">@listener.name · @listener.protocol.ToUpperInvariant()</option>
-                    }
-                </select>
-                <Icon Name="select-chevron.svg" Size="14" />
-            </div>
+        <div class="td-row">
+            <label>Listener</label>
+            <MudSelect T="int" @bind-Value="_listenerId" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                       AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
+                @if (_listeners.Count == 0)
+                {
+                    <MudSelectItem T="int" Value="0">No listeners running</MudSelectItem>
+                }
+                @foreach (var listener in _listeners)
+                {
+                    <MudSelectItem T="int" Value="@listener.id">@listener.name · @listener.protocol.ToUpperInvariant()</MudSelectItem>
+                }
+            </MudSelect>
         </div>
 
-        <div class="ts-modal__row">
+        <div class="td-row">
             <label>Architecture</label>
             <div>
-                <span class="gp-arch"><Icon Name="lucide-lock.svg" Size="12" /> x64</span>
-                <p class="ts-modal__hint">Trinity agents are built for x64 only.</p>
+                <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" Icon="@Icons.Material.Outlined.Lock" Class="gp-arch">x64</MudChip>
+                <p class="td-hint">Trinity agents are built for x64 only.</p>
             </div>
         </div>
 
-        <div class="ts-modal__row">
+        <div class="td-row">
             <label>Payload Type</label>
-            <SegmentedToggle Options="PayloadTypes" @bind-Value="_type" />
+            <MudToggleGroup T="string" @bind-Value="_type" SelectionMode="SelectionMode.SingleSelection" Color="Color.Primary" FixedContent="true">
+                @foreach (var type in PayloadTypes)
+                {
+                    <MudToggleItem T="string" Value="@type">@type</MudToggleItem>
+                }
+            </MudToggleGroup>
         </div>
 
-        <div class="ts-modal__row">
-            <label for="gp-campaign">Campaign</label>
-            <div class="ts-field">
-                <Icon Name="lucide-flag.svg" Size="13" Class="gp-flag" />
-                <select id="gp-campaign" @bind="_campaignId">
-                    @if (_campaigns.Count == 0)
-                    {
-                        <option value="0">No campaigns</option>
-                    }
-                    @foreach (var campaign in _campaigns)
-                    {
-                        <option value="@campaign.ID">@campaign.Name</option>
-                    }
-                </select>
-                <Icon Name="select-chevron.svg" Size="14" />
-            </div>
+        <div class="td-row">
+            <label>Campaign</label>
+            <MudSelect T="int" @bind-Value="_campaignId" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Flag" AdornmentColor="Color.Primary"
+                       AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
+                @if (_campaigns.Count == 0)
+                {
+                    <MudSelectItem T="int" Value="0">No campaigns</MudSelectItem>
+                }
+                @foreach (var campaign in _campaigns)
+                {
+                    <MudSelectItem T="int" Value="@campaign.ID">@campaign.Name</MudSelectItem>
+                }
+            </MudSelect>
         </div>
     </ChildContent>
     <Footer>
-        <button type="button" class="ts-btn" @onclick="OnClose">Cancel</button>
-        <button type="button" class="ts-btn ts-btn--primary" disabled="@_busy" @onclick="GenerateAsync">@(_busy ? "Generating…" : "Generate")</button>
+        <MudButton Variant="Variant.Outlined" OnClick="OnClose">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_busy" OnClick="GenerateAsync">@(_busy ? "Generating…" : "Generate")</MudButton>
     </Footer>
-</Modal>
+</TrinityDialog>
 
 @code {
     [Parameter] public EventCallback OnClose { get; set; }

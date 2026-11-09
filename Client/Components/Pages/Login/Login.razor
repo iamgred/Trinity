@@ -13,37 +13,41 @@
 <div class="login">
     <img class="login__bg-logo" src="img/shell/login-bg-logo.svg" alt="" width="980" height="980" />
 
-    <form class="login__card" @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
-        <img class="login__logo" src="img/shell/login-logo.svg" alt="Trinity logo" width="150" height="150" />
-        <div class="login__word">TRINITY</div>
-        <div class="login__sub">Sign in to the team server</div>
+    <MudPaper Elevation="0" Class="login__card">
+        <form class="login__form" @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
+            <img class="login__logo" src="img/shell/login-logo.svg" alt="Trinity logo" width="150" height="150" />
+            <MudText Class="login__word">TRINITY</MudText>
+            <MudText Class="login__sub">Sign in to the team server</MudText>
 
-        <label class="login__label" for="login-username">USERNAME</label>
-        <div class="login__field">
-            <Icon Name="icon-user.svg" Size="16" />
-            <input id="login-username" type="text" autocomplete="username" @bind="_username" @bind:event="oninput" />
-        </div>
+            <label class="login__label" for="login-username">USERNAME</label>
+            <div class="login__field">
+                <MudTextField T="string" @bind-Value="_username" Immediate="true" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              InputId="login-username" UserAttributes="@(new Dictionary<string, object?> { ["autocomplete"] = "username" })"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.PersonOutline" />
+            </div>
 
-        <label class="login__label" for="login-password">PASSWORD</label>
-        <div class="login__field">
-            <Icon Name="icon-key.svg" Size="16" />
-            <input id="login-password" class="@(_showPassword ? null : "is-secret")" type="@(_showPassword ? "text" : "password")"
-                   autocomplete="current-password" @bind="_password" @bind:event="oninput" />
-            <button type="button" class="login__eye" title="@(_showPassword ? "Hide password" : "Show password")"
-                    @onclick="() => _showPassword = !_showPassword">
-                <Icon Name="@(_showPassword ? "lucide-eye-off.svg" : "lucide-eye.svg")" Size="16" />
-            </button>
-        </div>
+            <label class="login__label" for="login-password">PASSWORD</label>
+            <div class="login__field login__field--secret">
+                <MudTextField T="string" @bind-Value="_password" Immediate="true" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              InputId="login-password" InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                              UserAttributes="@(new Dictionary<string, object?> { ["autocomplete"] = "current-password" })"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Key" />
+                <MudIconButton Class="login__eye" Size="Size.Small" Title="@(_showPassword ? "Hide password" : "Show password")"
+                               Icon="@(_showPassword ? Icons.Material.Outlined.VisibilityOff : Icons.Material.Outlined.Visibility)"
+                               OnClick="() => _showPassword = !_showPassword" />
+            </div>
 
-        @if (_error is not null)
-        {
-            <p class="login__error" role="alert">@_error</p>
-        }
+            @if (_error is not null)
+            {
+                <MudText Class="login__error" role="alert">@_error</MudText>
+            }
 
-        <button type="submit" class="login__submit" disabled="@_isSigningIn">@(_isSigningIn ? "Signing in…" : "Sign In")</button>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                       Disabled="_isSigningIn" Class="login__submit">@(_isSigningIn ? "Signing in…" : "Sign In")</MudButton>
 
-        <div class="login__note"><Icon Name="icon-lock.svg" Size="12" /> Accounts are created by an admin</div>
-    </form>
+            <div class="login__note"><MudIcon Icon="@Icons.Material.Outlined.Lock" Style="font-size:12px" /> Accounts are created by an admin</div>
+        </form>
+    </MudPaper>
 
     <div class="login__footer">TRINITY · C2 FRAMEWORK</div>
 </div>

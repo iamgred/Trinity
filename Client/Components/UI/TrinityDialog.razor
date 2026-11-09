@@ -1,0 +1,43 @@
+<MudDialog Visible="true" VisibleChanged="OnVisibleChanged" Options="_options" Gutters="false"
+           ContentStyle="padding:0" AriaLabel="@Title"
+           Style="width:542px;max-width:calc(100vw - 32px);border-radius:14px;border:1px solid #2c2c30;background:#18181b;box-shadow:0 30px 80px rgba(0,0,0,0.6);overflow:hidden">
+    <DialogContent>
+        <div class="td">
+            <div class="td__head">
+                <span class="td__badge"><MudIcon Icon="@Icon" /></span>
+                <div class="td__titles">
+                    <div class="td__title">@Title</div>
+                    <div class="td__sub">@Subtitle</div>
+                </div>
+                <MudIconButton Class="td__close" Icon="@Icons.Material.Outlined.Close" Size="Size.Small" Title="Close" OnClick="OnClose" />
+            </div>
+
+            <div class="td__body">@ChildContent</div>
+
+            @if (Error is not null)
+            {
+                <MudText Class="td__error" role="alert">@Error</MudText>
+            }
+
+            <div class="td__foot">
+                <span class="td__note">@FootNote</span>
+                <div class="td__actions">@Footer</div>
+            </div>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = Icons.Material.Outlined.Bolt;
+    [Parameter] public string? FootNote { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private readonly DialogOptions _options = new() { NoHeader = true, CloseOnEscapeKey = true, BackdropClick = true };
+
+    private Task OnVisibleChanged(bool visible) => visible ? Task.CompletedTask : OnClose.InvokeAsync();
+}

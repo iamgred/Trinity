@@ -1,0 +1,214 @@
+.td {
+    color: #f5f5f7;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 13px;
+}
+
+.td__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 67px;
+    padding: 0 20px;
+    border-bottom: 1px solid #2c2c30;
+}
+
+.td__badge {
+    display: grid;
+    place-items: center;
+    flex: 0 0 34px;
+    height: 34px;
+    border-radius: 9px;
+    color: #f57a1e;
+    background: rgba(245, 122, 30, 0.14);
+}
+
+.td__badge ::deep .mud-icon-root {
+    font-size: 18px;
+}
+
+.td__titles {
+    flex: 1;
+    min-width: 0;
+}
+
+.td__title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 19px;
+}
+
+.td__sub {
+    margin-top: 1px;
+    font-size: 12px;
+    line-height: 15px;
+    color: #9a9aa2;
+}
+
+.td__head ::deep .td__close {
+    color: #9a9aa2;
+}
+
+.td__head ::deep .td__close:hover {
+    color: #f5f5f7;
+    background: transparent;
+}
+
+.td__body {
+    padding: 8px 20px 14px;
+}
+
+.td__body ::deep .td-row {
+    display: grid;
+    grid-template-columns: 166px 1fr;
+    align-items: center;
+    min-height: 54px;
+}
+
+.td__body ::deep .td-row > label {
+    color: #c7c7cc;
+    font-size: 13px;
+}
+
+.td__body ::deep .td-hint {
+    margin-top: 6px;
+    color: #6c6c74;
+    font-size: 11.5px;
+}
+
+.td__body ::deep .mud-input-control {
+    margin: 0;
+}
+
+.td__body ::deep .mud-input.mud-input-outlined {
+    height: 38px;
+    border-radius: 8px;
+    background: #202024;
+    color: #f5f5f7;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+}
+
+.td__body ::deep .mud-input-outlined-border {
+    border: 1px solid #2c2c30 !important;
+    border-radius: 8px;
+}
+
+.td__body ::deep .mud-input.mud-input-outlined:focus-within .mud-input-outlined-border {
+    border-color: #f57a1e !important;
+}
+
+.td__body ::deep .mud-input-slot {
+    height: 100%;
+    padding: 0 12px !important;
+}
+
+.td__body ::deep .mud-input-adornment .mud-icon-root {
+    font-size: 15px;
+    color: #9a9aa2;
+}
+
+.td__body ::deep .mud-input-adornment-start ~ .mud-input-slot {
+    padding-left: 8px !important;
+}
+
+.td__body ::deep .mud-select div.mud-input-slot {
+    display: flex !important;
+    align-items: center;
+}
+
+.td__body ::deep .mud-select .mud-input-adornment-end .mud-icon-root {
+    font-size: 18px;
+}
+
+.td__body ::deep .mud-toggle-group {
+    height: 36px;
+    padding: 3px;
+    border: 1px solid #2c2c30;
+    border-radius: 9px;
+    background: #202024;
+}
+
+.td__body ::deep .mud-toggle-item {
+    border: 0 !important;
+    border-radius: 7px !important;
+    color: #9a9aa2;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-transform: none;
+}
+
+.td__body ::deep .mud-toggle-item.mud-toggle-item-selected {
+    background: #f57a1e;
+    color: #fff;
+}
+
+.td__body ::deep .mud-toggle-item .mud-toggle-item-check-icon {
+    display: none;
+}
+
+.td__body ::deep .mud-chip {
+    height: 30px;
+    margin: 0 8px 0 0;
+    border-radius: 999px;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 12.5px;
+}
+
+.td ::deep .td__error {
+    margin: 0 20px 10px;
+    font-size: 12px;
+    color: #e5484d;
+}
+
+.td__foot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 63px;
+    padding: 0 20px;
+    border-top: 1px solid #2c2c30;
+    background: #18181b;
+}
+
+.td__note {
+    flex: 1;
+    max-width: 270px;
+    font-size: 11.5px;
+    line-height: 14px;
+    color: #6c6c74;
+}
+
+.td__actions {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.td__actions ::deep .mud-button-root {
+    height: 34px;
+    padding: 0 15px;
+    border-radius: 8px;
+    box-shadow: none;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-transform: none;
+}
+
+.td__actions ::deep .mud-button-outlined {
+    border: 1px solid #2c2c30;
+    background: #202024;
+    color: #f5f5f7;
+}
+
+.td__actions ::deep .mud-button-filled-primary {
+    background: linear-gradient(90deg, #f57a1e, #c85e10);
+    color: #fff;
+}
+
+.td__actions ::deep .mud-button-filled-primary:hover {
+    filter: brightness(1.08);
+    box-shadow: none;
+}

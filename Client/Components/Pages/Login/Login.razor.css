@@ -1,31 +1,14 @@
-button {
-    font: inherit;
-    color: inherit;
-    background: none;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-}
-
-button:disabled {
-    cursor: default;
-}
-
-p {
-    margin: 0;
-}
-
 .login {
     position: fixed;
     inset: 0;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     color: #f5f5f7;
     font-family: "Inter", system-ui, sans-serif;
     font-size: 13px;
     line-height: normal;
-    align-items: center;
-    justify-content: center;
     background:
         radial-gradient(864px 495px at 72% 22%, rgba(245, 122, 30, 0.24), rgba(245, 122, 30, 0) 60%),
         radial-gradient(720px 450px at 12% 88%, rgba(229, 72, 77, 0.16), rgba(229, 72, 77, 0) 60%),
@@ -46,11 +29,8 @@ p {
     pointer-events: none;
 }
 
-.login__card {
+.login ::deep .login__card {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     width: 466px;
     max-width: calc(100vw - 32px);
     padding: 37px 33px 29px;
@@ -58,6 +38,13 @@ p {
     border: 1px solid rgba(255, 255, 255, 0.07);
     background: rgba(22, 22, 24, 0.78);
     box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+}
+
+.login__form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .login__logo {
@@ -67,17 +54,21 @@ p {
     filter: drop-shadow(0 6px 12px rgba(229, 72, 77, 0.25));
 }
 
-.login__word {
+.login ::deep .login__word {
     padding: 20px 0 0 7.67px;
+    font-family: "Inter", system-ui, sans-serif;
     font-size: 24px;
     font-weight: 800;
     letter-spacing: 7.68px;
+    line-height: 29px;
     color: #f5f5f7;
 }
 
-.login__sub {
+.login ::deep .login__sub {
     padding: 4px 0 22px;
+    font-family: "Inter", system-ui, sans-serif;
     font-size: 13px;
+    line-height: 16px;
     color: #9a9aa2;
 }
 
@@ -87,77 +78,105 @@ p {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.88px;
+    line-height: 13px;
     color: #6c6c74;
 }
 
 .login__field {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    position: relative;
     align-self: stretch;
-    height: 50px;
     margin-bottom: 14px;
+}
+
+.login__field ::deep .mud-input-control {
+    margin: 0;
+}
+
+.login__field ::deep .mud-input.mud-input-outlined {
+    height: 50px;
     padding: 0 15px;
     border-radius: 10px;
-    border: 1px solid #2c2c30;
     background: #202024;
-    color: #6c6c74;
-}
-
-.login__field:focus-within {
-    border-color: #f57a1e;
-    color: #f57a1e;
-}
-
-.login__field input {
-    flex: 1;
-    min-width: 0;
-    height: 100%;
-    border: 0;
-    outline: 0;
-    background: transparent;
     color: #f5f5f7;
-    font-family: inherit;
+    font-family: "Inter", system-ui, sans-serif;
     font-size: 14px;
 }
 
-.login__field input.is-secret {
-    letter-spacing: 1.68px;
+.login__field ::deep .mud-input-outlined-border {
+    border: 1px solid #2c2c30 !important;
+    border-radius: 10px;
 }
 
-.login__eye {
-    display: grid;
-    place-items: center;
+.login__field ::deep .mud-input.mud-input-outlined:focus-within .mud-input-outlined-border {
+    border-color: #f57a1e !important;
+}
+
+.login__field ::deep .mud-input-slot {
+    height: 100%;
+    padding: 0 0 0 12px !important;
+}
+
+.login__field ::deep .mud-input-adornment-start .mud-icon-root {
+    font-size: 17px;
     color: #6c6c74;
 }
 
-.login__eye:hover {
-    color: #f5f5f7;
+.login__field ::deep .mud-input:focus-within .mud-input-adornment-start .mud-icon-root {
+    color: #f57a1e;
 }
 
-.login__error {
+.login__field--secret ::deep .mud-input-slot {
+    padding-right: 36px !important;
+}
+
+.login__field--secret ::deep input[type="password"] {
+    letter-spacing: 1.68px;
+}
+
+.login__field ::deep .login__eye {
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    transform: translateY(-50%);
+    color: #6c6c74;
+}
+
+.login__field ::deep .login__eye:hover {
+    color: #f5f5f7;
+    background: transparent;
+}
+
+.login__field ::deep .login__eye .mud-icon-root {
+    font-size: 17px;
+}
+
+.login ::deep .login__error {
     align-self: stretch;
     margin: -4px 0 6px;
     font-size: 12px;
     color: #e5484d;
 }
 
-.login__submit {
-    align-self: stretch;
+.login ::deep .login__submit {
     height: 48px;
     margin-top: 8px;
     border-radius: 10px;
     background: linear-gradient(90deg, #f57a1e, #c85e10);
+    box-shadow: none;
     color: #fff;
+    font-family: "Inter", system-ui, sans-serif;
     font-size: 14px;
     font-weight: 700;
 }
 
-.login__submit:hover:not(:disabled) {
+.login ::deep .login__submit:hover {
     filter: brightness(1.08);
+    box-shadow: none;
 }
 
-.login__submit:disabled {
+.login ::deep .login__submit.mud-button-disabled {
+    background: linear-gradient(90deg, #f57a1e, #c85e10);
+    color: #fff;
     opacity: 0.7;
 }
 

@@ -1,81 +1,86 @@
 .events {
     flex: 1;
+    margin: -20px -24px;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    background: #0e0e10;
+    font-family: "Inter", system-ui, sans-serif;
+}
+
+.events ::deep .events__notice {
+    border-bottom: 1px solid rgba(229, 72, 77, 0.3);
+    background: rgba(229, 72, 77, 0.08);
+    font-size: 12px;
+}
+
+.events__scroll {
+    flex: 1;
+    min-height: 0;
     padding: 10px 18px;
     overflow: auto;
 }
 
-.events__row {
-    flex: 0 0 31px;
-    display: grid;
-    grid-template-columns: 76px 104px 1fr;
-    column-gap: 10px;
-    align-items: center;
+.events ::deep .events__table {
+    background: transparent;
+}
+
+.events ::deep .events__table table {
+    table-layout: fixed;
+}
+
+.events ::deep .events__table tbody td {
+    height: 33px;
+    padding: 0 10px 0 0;
     border-bottom: 1px solid rgba(44, 44, 48, 0.45);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    vertical-align: middle;
+}
+
+.events ::deep .events__table tbody tr:hover td {
+    background: transparent;
 }
 
 .events__time {
-    font-family: var(--ts-mono);
     font-size: 12px;
-    color: var(--ts-text-3);
+    color: #6c6c74;
+}
+
+.events ::deep .events__tag {
+    height: 19px;
+    margin: 0;
+    padding: 0 7px;
+    border-radius: 4px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+}
+
+.events ::deep .events__tag .mud-chip-icon {
+    margin: 0 5px 0 0;
+    font-size: 6px;
 }
 
 .events__msg {
-    font-family: var(--ts-mono);
     font-size: 12.5px;
-    color: var(--ts-text-2);
+    color: #c7c7cc;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.events__msg .em {
-    color: var(--ts-orange);
+.events__em {
+    color: #f57a1e;
     font-weight: 700;
 }
 
-.events__msg .err {
-    color: var(--ts-red);
+.events__err {
+    color: #e5484d;
 }
 
-.events__empty {
+.events ::deep .events__empty {
     padding: 24px 0;
-    color: var(--ts-text-3);
+    color: #6c6c74;
     font-size: 12.5px;
-}
-
-button {
-    font: inherit;
-    color: inherit;
-    background: none;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-}
-
-button:disabled {
-    cursor: default;
-}
-
-p, h3, h4, h5 {
-    margin: 0;
-}
-
-.ts-notice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 14px;
-    font-size: 12px;
-    color: var(--ts-text-2);
-    background: rgba(229, 72, 77, 0.08);
-    border-bottom: 1px solid rgba(229, 72, 77, 0.3);
-}
-
-.ts-notice button {
-    color: var(--ts-orange);
-    font-weight: 600;
 }

@@ -1,37 +1,105 @@
+.camp-page {
+    padding: 0;
+    color: #f5f5f7;
+    font-family: "Inter", system-ui, sans-serif;
+}
+
+.camp-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.camp-page ::deep .camp-head__title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 24px;
+}
+
+.camp-page ::deep .camp-head__sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #9a9aa2;
+}
+
+.camp-page ::deep .camp-btn {
+    height: 34px;
+    padding: 0 15px;
+    border-radius: 8px;
+    border: 1px solid #2c2c30;
+    background: #202024;
+    box-shadow: none;
+    color: #f5f5f7;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.camp-page ::deep .camp-btn--primary {
+    border: 0;
+    background: linear-gradient(90deg, #f57a1e, #c85e10);
+    color: #fff;
+}
+
+.camp-page ::deep .camp-btn--primary:hover {
+    filter: brightness(1.08);
+    box-shadow: none;
+}
+
+.camp-page ::deep .camp-btn--danger {
+    border-color: rgba(229, 72, 77, 0.6);
+    background: rgba(229, 72, 77, 0.08);
+    color: #e5484d;
+}
+
+.camp-page ::deep .camp-btn--danger.mud-button-disabled {
+    border-color: rgba(229, 72, 77, 0.35);
+    color: rgba(229, 72, 77, 0.55);
+}
+
+.camp-page ::deep .camp__error {
+    margin-bottom: 14px;
+    font-size: 12px;
+}
+
 .camp {
     display: flex;
-    gap: 18px;
     align-items: flex-start;
+    gap: 18px;
 }
 
 .camp__list {
+    display: flex;
     flex: 0 0 320px;
-    display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 9px;
 }
 
-.camp__card {
+.camp-page ::deep .camp__empty {
+    color: #6c6c74;
+    font-size: 12.5px;
+}
+
+.camp-page ::deep .camp__card {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    height: 65px;
-    padding: 13px 15px;
+    gap: 7px;
+    padding: 13px 14px;
     border-radius: 10px;
-    border: 1px solid var(--ts-border);
-    background: var(--ts-surface);
-    text-align: left;
+    border: 1px solid #2c2c30;
+    background: #18181b;
+    cursor: pointer;
+    transition: border-color 0.12s;
 }
 
-.camp__card:hover {
+.camp-page ::deep .camp__card:hover {
     border-color: #3a3a40;
 }
 
-.camp__card.is-selected {
-    border-color: var(--ts-orange);
+.camp-page ::deep .camp__card.is-selected {
+    border-color: #f57a1e;
     background: rgba(245, 122, 30, 0.06);
 }
 
@@ -39,11 +107,15 @@
     display: flex;
     align-items: center;
     gap: 9px;
-    color: var(--ts-text-2);
 }
 
-.camp__card.is-selected .camp__card-top {
-    color: var(--ts-orange);
+.camp-page ::deep .camp__flag {
+    font-size: 16px;
+    color: #c7c7cc;
+}
+
+.camp-page ::deep .camp__card.is-selected .camp__flag {
+    color: #f57a1e;
 }
 
 .camp__card-name {
@@ -52,18 +124,37 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--ts-text);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .camp__card-meta {
     display: flex;
-    justify-content: flex-start;
     align-items: center;
-    gap: 5px;
-    color: var(--ts-text-3);
-    font-size: 11.5px;
+    gap: 4px;
+    padding-left: 1px;
+    font-size: 12px;
+    color: #6c6c74;
+}
+
+.camp__card-meta ::deep .mud-icon-root {
+    font-size: 12px;
+}
+
+.camp-page ::deep .camp__status {
+    height: 18px;
+    margin: 0;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+}
+
+.camp-page ::deep .camp__status .mud-chip-icon {
+    margin: 0 4px 0 0;
+    font-size: 6px;
 }
 
 .camp__detail {
@@ -74,55 +165,59 @@
 .camp__detail-head {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 10px;
+    margin-bottom: 14px;
 }
 
-.camp__detail-head > div {
+.camp__detail-titles {
     flex: 1;
+    min-width: 0;
 }
 
-.camp__detail-head h4 {
+.camp__detail-name {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--ts-text);
 }
 
-.camp__detail-head p {
-    margin-top: 4px;
-    font-size: 12px;
-    color: var(--ts-text-3);
+.camp-page ::deep .camp__detail-title {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 21px;
+}
+
+.camp-page ::deep .camp__detail-sub {
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: #6c6c74;
 }
 
 .camp__panels {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start;
+    gap: 17px;
 }
 
-.camp__panel {
-    min-height: 273px;
-    padding: 17px;
+.camp-page ::deep .camp__panel {
+    min-height: 272px;
+    padding: 16px;
     border-radius: 12px;
-    border: 1px solid var(--ts-border);
-    background: var(--ts-surface);
+    border: 1px solid #2c2c30;
+    background: #18181b;
 }
 
-.camp__panel h5 {
-    margin: 0 0 10px;
-    font-family: var(--ts-mono);
+.camp-page ::deep .camp__panel-label {
+    display: block;
+    margin-bottom: 10px;
+    color: #6c6c74;
     font-size: 10.5px;
     font-weight: 600;
-    letter-spacing: 1.5px;
-    color: var(--ts-text-3);
+    letter-spacing: 1.7px;
+    line-height: 13px;
 }
 
-.camp__panel-sub {
-    margin-top: 22px !important;
+.camp-page ::deep .camp__panel-label--sub {
+    margin-top: 20px;
 }
 
 .camp__op {
@@ -133,240 +228,65 @@
     margin-bottom: 6px;
     padding: 0 10px;
     border-radius: 8px;
-    background: var(--ts-raised);
+    background: #202024;
 }
 
-.camp__avatar {
-    display: grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 14px;
-    background: rgba(245, 122, 30, 0.16);
-    color: var(--ts-orange);
+.camp-page ::deep .camp__avatar {
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(245, 122, 30, 0.45);
+    background: rgba(245, 122, 30, 0.14);
+    color: #f57a1e;
     font-size: 12px;
     font-weight: 700;
 }
 
 .camp__op-text {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
-    gap: 2px;
+    line-height: 15px;
 }
 
-.camp__op-text b {
+.camp__op-name {
     font-size: 13px;
     font-weight: 600;
-    color: var(--ts-text);
 }
 
-.camp__op-text small {
-    font-size: 11px;
-    color: var(--ts-text-3);
+.camp__op-role {
+    font-size: 11.5px;
+    color: #6c6c74;
 }
 
-.camp__op button {
-    display: grid;
-    place-items: center;
-    color: var(--ts-text-3);
+.camp-page ::deep .camp__op-remove {
+    color: #6c6c74;
 }
 
-.camp__op button:hover {
-    color: var(--ts-red);
-}
-
-.camp__assign {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    width: 100%;
-    height: 33px;
-    padding: 0 11px;
-    border-radius: 8px;
-    border: 1px dashed rgba(245, 122, 30, 0.6);
-    color: var(--ts-orange);
-    font-size: 12.5px;
-    font-weight: 600;
-}
-
-.camp__assign:hover {
-    background: rgba(245, 122, 30, 0.06);
+.camp-page ::deep .camp__op-remove:hover {
+    color: #f5f5f7;
+    background: transparent;
 }
 
 .camp__assign-pick {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-bottom: 8px;
+    margin: 4px 0 8px;
 }
 
-.camp__assign-pick button {
-    padding: 5px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--ts-border);
-    background: var(--ts-input);
-    color: var(--ts-text);
-    font-family: var(--ts-mono);
-    font-size: 12px;
-}
-
-.camp__assign-pick button:hover {
-    border-color: var(--ts-orange);
-}
-
-.camp__assign-pick span,
-.camp__na,
-.camp__empty {
-    font-size: 12px;
-    color: var(--ts-text-3);
-}
-
-.camp__error {
-    margin-bottom: 12px;
-    font-size: 12.5px;
-    color: var(--ts-red);
-}
-
-button {
-    font: inherit;
-    color: inherit;
-    background: none;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-}
-
-button:disabled {
-    cursor: default;
-}
-
-p, h3, h4, h5 {
-    margin: 0;
-}
-
-.ts-admin-head {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.ts-admin-head h3 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--ts-text);
-}
-
-.ts-admin-head p {
-    margin-top: 4px;
-    font-size: 13px;
-    color: var(--ts-text-2);
-}
-
-.ts-admin-head .ts-btn {
-    margin-left: auto;
-}
-
-.ts-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    height: 34px;
-    padding: 0 15px;
+.camp-page ::deep .camp__assign {
+    justify-content: flex-start;
+    height: 33px;
+    padding: 0 12px;
     border-radius: 8px;
-    border: 1px solid var(--ts-border);
-    background: var(--ts-raised);
-    color: var(--ts-text);
-    font-family: var(--ts-sans);
+    border: 1px dashed rgba(245, 122, 30, 0.55);
     font-size: 12.5px;
     font-weight: 600;
-    white-space: nowrap;
+    text-transform: none;
 }
 
-.ts-btn:hover:not(:disabled) {
-    border-color: #3a3a40;
-}
-
-.ts-btn:disabled {
-    opacity: 0.45;
-}
-
-.ts-btn--primary {
-    height: 32px;
-    padding: 0 14px;
-    border: 0;
-    color: #fff;
-    background: linear-gradient(90deg, var(--ts-orange), var(--ts-orange-deep));
-}
-
-.ts-btn--primary:hover:not(:disabled) {
-    filter: brightness(1.08);
-}
-
-.ts-btn--danger {
-    color: var(--ts-red);
-    background: rgba(229, 72, 77, 0.08);
-    border-color: rgba(229, 72, 77, 0.6);
-}
-
-.ts-btn--danger:hover:not(:disabled) {
-    border-color: var(--ts-red);
-}
-
-.ts-modal__row {
-    display: grid;
-    grid-template-columns: 150px 1fr;
-    column-gap: 16px;
-    align-items: start;
-    padding: 8px 0;
-}
-
-.ts-modal__row > label {
-    padding-top: 11px;
+.camp-page ::deep .camp__na {
+    color: #6c6c74;
     font-size: 12.5px;
-    color: var(--ts-text);
-}
-
-.ts-field {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    height: 38px;
-    padding: 0 13px;
-    border-radius: 9px;
-    border: 1px solid var(--ts-border);
-    background: var(--ts-input);
-    color: var(--ts-text-3);
-}
-
-.ts-field:focus-within {
-    border-color: var(--ts-orange);
-}
-
-.ts-field input,
-.ts-field select {
-    flex: 1;
-    min-width: 0;
-    height: 100%;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--ts-text);
-    font-family: var(--ts-mono);
-    font-size: 13px;
-}
-
-.ts-field select {
-    appearance: none;
-    cursor: pointer;
-}
-
-.ts-field select option {
-    background: var(--ts-input);
-}
-
-.ts-field input::placeholder {
-    color: var(--ts-text-3);
+    line-height: 18px;
 }

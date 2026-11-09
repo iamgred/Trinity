@@ -7,65 +7,69 @@
 @inject AdminService AdminService
 @inject IHttpClientFactory HttpFactory
 
-<Modal Title="@Title" Subtitle="@Subtitle" IconName="topbar-user.svg" Error="@_error"
-       FootNote="Share the password with the operator directly." OnClose="OnClose">
+<TrinityDialog Title="@Title" Subtitle="@Subtitle" Icon="@Icons.Material.Outlined.PersonOutline" Error="@_error"
+               FootNote="Share the password with the operator directly." OnClose="OnClose">
     <ChildContent>
         @if (Mode != OperatorDialogMode.ResetPassword)
         {
-            <div class="ts-modal__row">
+            <div class="td-row">
                 <label for="op-username">Username</label>
-                <div class="ts-field">
-                    <Icon Name="topbar-user.svg" Size="14" />
-                    <input id="op-username" autocomplete="off" @bind="_username" @bind:event="oninput" />
-                </div>
+                <MudTextField T="string" @bind-Value="_username" Immediate="true" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              InputId="op-username" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.PersonOutline"
+                              UserAttributes="@(new Dictionary<string, object?> { ["autocomplete"] = "off" })" />
             </div>
         }
 
         @if (Mode != OperatorDialogMode.Edit)
         {
-            <div class="ts-modal__row">
+            <div class="td-row">
                 <label for="op-password">Password</label>
-                <div class="ts-field">
-                    <Icon Name="icon-key.svg" Size="14" />
-                    <input id="op-password" type="password" autocomplete="new-password" @bind="_password" @bind:event="oninput" />
-                </div>
+                <MudTextField T="string" @bind-Value="_password" Immediate="true" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              InputId="op-password" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Key"
+                              UserAttributes="@(new Dictionary<string, object?> { ["autocomplete"] = "new-password" })" />
             </div>
-            <div class="ts-modal__row">
+            <div class="td-row">
                 <label for="op-confirm">Confirm Password</label>
-                <div class="ts-field">
-                    <Icon Name="icon-key.svg" Size="14" />
-                    <input id="op-confirm" type="password" autocomplete="new-password" @bind="_confirm" @bind:event="oninput" />
-                </div>
+                <MudTextField T="string" @bind-Value="_confirm" Immediate="true" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              InputId="op-confirm" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Key"
+                              UserAttributes="@(new Dictionary<string, object?> { ["autocomplete"] = "new-password" })" />
             </div>
         }
 
         @if (Mode == OperatorDialogMode.Create)
         {
-            <div class="ts-modal__row">
+            <div class="td-row">
                 <label>Role</label>
-                <SegmentedToggle Options="Roles" @bind-Value="_role" LabelFor="RoleLabel" />
+                <MudToggleGroup T="string" @bind-Value="_role" SelectionMode="SelectionMode.SingleSelection" Color="Color.Primary" FixedContent="true">
+                    @foreach (var role in Roles)
+                    {
+                        <MudToggleItem T="string" Value="@role">@RoleLabel(role)</MudToggleItem>
+                    }
+                </MudToggleGroup>
             </div>
         }
 
         @if (Mode != OperatorDialogMode.ResetPassword && _role == "operator")
         {
-            <div class="ts-modal__row">
+            <div class="td-row">
                 <label>Campaigns</label>
                 <div class="op-chips">
                     @foreach (var campaign in Campaigns.Where(c => _campaignIds.Contains(c.ID)))
                     {
-                        <Chip Text="@campaign.Name" IconName="lucide-flag.svg" OnRemove="() => _campaignIds.Remove(campaign.ID)" />
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Primary" Icon="@Icons.Material.Outlined.Flag"
+                                 OnClose="_ => _campaignIds.Remove(campaign.ID)">@campaign.Name</MudChip>
                     }
                     @if (Campaigns.Any(c => !_campaignIds.Contains(c.ID)))
                     {
-                        <Chip Text="Add" Tone="ghost" IconName="btn-plus.svg" OnClick="() => _pickerOpen = !_pickerOpen" />
+                        <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.Add" Class="op-add"
+                                 OnClick="() => _pickerOpen = !_pickerOpen">Add</MudChip>
                     }
                     @if (_pickerOpen)
                     {
                         <div class="op-picker">
                             @foreach (var campaign in Campaigns.Where(c => !_campaignIds.Contains(c.ID)))
                             {
-                                <button type="button" @onclick="() => AddCampaign(campaign.ID)">@campaign.Name</button>
+                                <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" OnClick="() => AddCampaign(campaign.ID)">@campaign.Name</MudChip>
                             }
                         </div>
                     }
@@ -74,10 +78,10 @@
         }
     </ChildContent>
     <Footer>
-        <button type="button" class="ts-btn" @onclick="OnClose">Cancel</button>
-        <button type="button" class="ts-btn ts-btn--primary" disabled="@_busy" @onclick="SubmitAsync">@SubmitLabel</button>
+        <MudButton Variant="Variant.Outlined" OnClick="OnClose">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_busy" OnClick="SubmitAsync">@SubmitLabel</MudButton>
     </Footer>
-</Modal>
+</TrinityDialog>
 
 @code {
     [Parameter] public OperatorDialogMode Mode { get; set; }

@@ -16,112 +16,128 @@
 
 <PageTitle>Trinity · Campaigns</PageTitle>
 
-<div class="ts-admin-head">
-    <div>
-        <h3>Campaigns</h3>
-        <p>Agents, payloads and operator access are scoped to a campaign.</p>
-    </div>
-    <button type="button" class="ts-btn ts-btn--primary" @onclick="NewCampaignAsync"><Icon Name="btn-plus.svg" Size="13" /> New Campaign</button>
-</div>
-
-@if (_error is not null)
-{
-    <p class="camp__error" role="alert">@_error</p>
-}
-
-<div class="camp">
-    <div class="camp__list">
-        @if (_campaigns.Count == 0 && _error is null)
-        {
-            <p class="camp__empty">@(_loading ? "Loading campaigns…" : "No campaigns yet.")</p>
-        }
-        @foreach (var campaign in _campaigns)
-        {
-            <button type="button" class="camp__card @(campaign.ID == _selected?.ID ? "is-selected" : null)" @onclick="() => SelectAsync(campaign)">
-                <span class="camp__card-top">
-                    <Icon Name="lucide-flag.svg" Size="14" />
-                    <span class="camp__card-name">@campaign.Name</span>
-                    @* TODO(connect to backend): campaigns have no status yet *@
-                    <StatusPill Text="active" Tone="green" />
-                </span>
-                <span class="camp__card-meta">
-                    @* TODO(connect to backend): agents aren't linked to campaigns yet *@
-                    <Icon Name="lucide-monitor.svg" Size="11" /> – agents ·
-                    <Icon Name="lucide-users.svg" Size="11" /> @OperatorCount(campaign) operators
-                </span>
-            </button>
-        }
-    </div>
-
-    @if (_selected is not null)
-    {
-        <div class="camp__detail">
-            <div class="camp__detail-head">
-                <div>
-                    <h4>@_selected.Name <StatusPill Text="active" Tone="green" /></h4>
-                    @* TODO(connect to backend): no created date or creator yet *@
-                    <p>Campaign #@_selected.ID</p>
-                </div>
-                <button type="button" class="ts-btn" @onclick="OpenRename"><Icon Name="lucide-pencil.svg" Size="13" /> Rename</button>
-                <button type="button" class="ts-btn ts-btn--danger" disabled title="Needs a campaign status in the API">Close Campaign</button>
-            </div>
-
-            <div class="camp__panels">
-                <section class="camp__panel">
-                    <h5>ASSIGNED OPERATORS</h5>
-                    @foreach (var op in AssignedOperators)
-                    {
-                        <div class="camp__op">
-                            <span class="camp__avatar">@op.Username[..1].ToUpperInvariant()</span>
-                            <span class="camp__op-text"><b>@op.Username</b><small>operator</small></span>
-                            <button type="button" title="Remove @op.Username from this campaign" @onclick="() => UnassignAsync(op)"><Icon Name="lucide-x.svg" Size="13" /></button>
-                        </div>
-                    }
-
-                    @if (_assignOpen)
-                    {
-                        <div class="camp__assign-pick">
-                            @foreach (var op in UnassignedOperators)
-                            {
-                                <button type="button" @onclick="() => AssignAsync(op)">@op.Username</button>
-                            }
-                            @if (!UnassignedOperators.Any())
-                            {
-                                <span>Every operator is already assigned.</span>
-                            }
-                        </div>
-                    }
-                    <button type="button" class="camp__assign" @onclick="() => _assignOpen = !_assignOpen">
-                        <Icon Name="btn-plus.svg" Size="13" /> Assign operator…
-                    </button>
-                </section>
-
-                <section class="camp__panel">
-                    <h5>AGENTS IN CAMPAIGN</h5>
-                    @* TODO(connect to backend): agents and payloads don't say which campaign they're in *@
-                    <p class="camp__na">Not available yet: the agents API does not say which campaign an agent belongs to.</p>
-
-                    <h5 class="camp__panel-sub">PAYLOADS BUILT FOR THIS CAMPAIGN</h5>
-                    <p class="camp__na">Not available yet: the payloads API does not return the campaign.</p>
-                </section>
-            </div>
+<div class="camp-page">
+    <div class="camp-head">
+        <div>
+            <MudText Typo="Typo.h5" Class="camp-head__title">Campaigns</MudText>
+            <MudText Class="camp-head__sub">Agents, payloads and operator access are scoped to a campaign.</MudText>
         </div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add"
+                   Class="camp-btn camp-btn--primary" OnClick="NewCampaignAsync">New Campaign</MudButton>
+    </div>
+
+    @if (_error is not null)
+    {
+        <MudAlert Severity="Severity.Error" Dense="true" Class="camp__error">@_error</MudAlert>
     }
+
+    @if (_loading && _campaigns.Count == 0)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+    }
+
+    <div class="camp">
+        <div class="camp__list">
+            @if (_campaigns.Count == 0 && _error is null && !_loading)
+            {
+                <MudText Class="camp__empty">No campaigns yet.</MudText>
+            }
+            @foreach (var campaign in _campaigns)
+            {
+                <MudPaper Elevation="0" Class="@($"camp__card{(campaign.ID == _selected?.ID ? " is-selected" : "")}")"
+                          @onclick="() => SelectAsync(campaign)">
+                    <div class="camp__card-top">
+                        <MudIcon Icon="@Icons.Material.Outlined.Flag" Class="camp__flag" />
+                        <span class="camp__card-name">@campaign.Name</span>
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Success"
+                                 Icon="@Icons.Material.Filled.Circle" Class="camp__status">ACTIVE</MudChip>
+                    </div>
+                    <div class="camp__card-meta">
+                        <MudIcon Icon="@Icons.Material.Outlined.Monitor" /> – agents ·
+                        <MudIcon Icon="@Icons.Material.Outlined.Group" /> @OperatorCount(campaign) operators
+                    </div>
+                </MudPaper>
+            }
+        </div>
+
+        @if (_selected is not null)
+        {
+            <div class="camp__detail">
+                <div class="camp__detail-head">
+                    <div class="camp__detail-titles">
+                        <div class="camp__detail-name">
+                            <MudText Typo="Typo.h6" Class="camp__detail-title">@_selected.Name</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Success"
+                                     Icon="@Icons.Material.Filled.Circle" Class="camp__status">ACTIVE</MudChip>
+                        </div>
+                        <MudText Class="camp__detail-sub">Campaign #@_selected.ID</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Edit" Class="camp-btn"
+                               OnClick="OpenRename">Rename</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" Class="camp-btn camp-btn--danger" Disabled="true"
+                               Title="Needs a campaign status in the API">Close Campaign</MudButton>
+                </div>
+
+                <div class="camp__panels">
+                    <MudPaper Elevation="0" Class="camp__panel">
+                        <MudText Typo="Typo.overline" Class="camp__panel-label">ASSIGNED OPERATORS</MudText>
+                        @foreach (var op in AssignedOperators)
+                        {
+                            <div class="camp__op">
+                                <MudAvatar Size="Size.Small" Class="camp__avatar">@op.Username[..1].ToUpperInvariant()</MudAvatar>
+                                <div class="camp__op-text">
+                                    <span class="camp__op-name">@op.Username</span>
+                                    <span class="camp__op-role">operator</span>
+                                </div>
+                                <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small" Class="camp__op-remove"
+                                               Title="@($"Remove {op.Username} from this campaign")" OnClick="() => UnassignAsync(op)" />
+                            </div>
+                        }
+
+                        @if (_assignOpen)
+                        {
+                            <div class="camp__assign-pick">
+                                @foreach (var op in UnassignedOperators)
+                                {
+                                    <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Outlined.Add"
+                                             OnClick="() => AssignAsync(op)">@op.Username</MudChip>
+                                }
+                                @if (!UnassignedOperators.Any())
+                                {
+                                    <MudText Class="camp__na">Every operator is already assigned.</MudText>
+                                }
+                            </div>
+                        }
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth="true" StartIcon="@Icons.Material.Outlined.Add"
+                                   Class="camp__assign" OnClick="() => _assignOpen = !_assignOpen">Assign operator…</MudButton>
+                    </MudPaper>
+
+                    <MudPaper Elevation="0" Class="camp__panel">
+                        <MudText Typo="Typo.overline" Class="camp__panel-label">AGENTS IN CAMPAIGN</MudText>
+                        <MudText Class="camp__na">Not available yet: the agents API does not say which campaign an agent belongs to.</MudText>
+
+                        <MudText Typo="Typo.overline" Class="camp__panel-label camp__panel-label--sub">PAYLOADS BUILT FOR THIS CAMPAIGN</MudText>
+                        <MudText Class="camp__na">Not available yet: the payloads API does not return the campaign.</MudText>
+                    </MudPaper>
+                </div>
+            </div>
+        }
+    </div>
 </div>
 
 @if (_renameOpen && _selected is not null)
 {
-    <Modal Title="Rename Campaign" Subtitle="@($"Campaign #{_selected.ID}")" IconName="lucide-pencil.svg" Error="@_renameError"
-           OnClose="() => _renameOpen = false">
+    <TrinityDialog Title="Rename Campaign" Subtitle="@($"Campaign #{_selected.ID}")" Icon="@Icons.Material.Outlined.Edit"
+                   Error="@_renameError" OnClose="() => _renameOpen = false">
         <ChildContent>
-            <div class="ts-modal__row">
+            <div class="td-row">
                 <label for="rename-name">Name</label>
-                <div class="ts-field"><input id="rename-name" @bind="_renameValue" @bind:event="oninput" /></div>
+                <MudTextField T="string" @bind-Value="_renameValue" Immediate="true" Variant="Variant.Outlined" Margin="Margin.Dense" InputId="rename-name" />
             </div>
         </ChildContent>
         <Footer>
-            <button type="button" class="ts-btn" @onclick="() => _renameOpen = false">Cancel</button>
-            <button type="button" class="ts-btn ts-btn--primary" @onclick="RenameAsync">Rename</button>
+            <MudButton Variant="Variant.Outlined" OnClick="() => _renameOpen = false">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RenameAsync">Rename</MudButton>
         </Footer>
-    </Modal>
+    </TrinityDialog>
 }

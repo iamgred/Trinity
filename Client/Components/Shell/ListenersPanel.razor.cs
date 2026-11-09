@@ -51,7 +51,7 @@ public partial class ListenersPanel : ComponentBase
         {
             { x => x.IsEdit,          true            },
             { x => x.InitialName,     details.Name    },
-            { x => x.InitialType,     details.Protocol },
+            { x => x.InitialType,     _selected.protocol },
             { x => x.InitialHosts,    details.Hosts   },
             { x => x.InitialC2Port,   details.C2Port  },
             { x => x.InitialBindPort, details.BindPort },

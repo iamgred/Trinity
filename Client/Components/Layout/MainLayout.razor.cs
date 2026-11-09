@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Client.Components.Shell;
+using Client.Services;
 using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.Enums.Tasks;
 
@@ -14,6 +15,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     [Inject] IConfiguration Config { get; set; } = null!;
     [Inject] IJSRuntime JS { get; set; } = null!;
     [Inject] NavigationManager Nav { get; set; } = null!;
+    [Inject] EventLogService EventLog { get; set; } = null!;
 
     private readonly MudTheme _theme = new()
     {
@@ -52,9 +54,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private void SetBottomTab(int idx) { _workspaceState.ActiveBottomTab = idx; }
     private bool _serverOnline = false;
     private HubConnection? _hub;
-    private readonly List<EventEntry> _events = [];
     private readonly HashSet<int> _subscribedAgents = [];
-    private record EventEntry(string Stamp, string Level, string Message);
     private readonly WorkspaceState _workspaceState = new();
 
     protected override void OnInitialized()
@@ -129,7 +129,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     public void SetPanelHeight(int px) { _bottomH = px; InvokeAsync(StateHasChanged); }
 
     private static string SevClass(string level) => level switch { "ERROR" or "CRIT" => "sev-error", "WARN" => "sev-warn", "SUCCESS" => "sev-ok", _ => "sev-info" };
-    private void AddEvent(string level, string msg) => _events.Add(new EventEntry(DateTime.Now.ToString("HH:mm:ss"), level, msg));
+    private void AddEvent(string level, string msg) => EventLog.Add(level, msg);
 
     private async Task SyncAgentSubscriptionsAsync()
     {

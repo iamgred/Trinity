@@ -58,6 +58,7 @@ namespace Client
             builder.Services.AddScoped<ServerApiClient>();
 
             // App Services
+            builder.Services.AddScoped<EventLogService>();
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<AgentService>();
             builder.Services.AddScoped<ListenerService>();

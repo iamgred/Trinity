@@ -120,13 +120,13 @@
         <div class="c2-panel-body">
             @if (_workspaceState.EventLogVisible && _workspaceState.ActiveBottomTab == 0)
             {
-                @if (_events.Count == 0)
+                @if (EventLog.Events.Count == 0)
                 {
                     <div style="color:var(--text-muted);font-size:12px;padding:12px 0;">No events yet.</div>
                 }
                 else
                 {
-                    @foreach (var ev in _events)
+                    @foreach (var ev in EventLog.Events)
                     {
                         <div class="ev-row">
                             <span class="ev-stamp">@ev.Stamp</span>

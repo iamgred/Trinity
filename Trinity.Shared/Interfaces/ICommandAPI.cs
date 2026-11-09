@@ -45,10 +45,10 @@ namespace Trinity.Shared.Interfaces
         Task<CommandCreationResponse> QueueSetSleepCommandAsync(int agentID, [Body] SetSleepDTO dto);
 
         [Post("/api/v1/commands/{agentID}/execute/kill")]
-        Task<CommandCreationResponse> QueueKillAgentCommandAsync(int agentID);
+        Task<CommandCreationResponse> QueueKillAgentCommandAsync(int agentID, [Body] KillAgentDTO dto);
 
         [Post("/api/v1/commands/{agentID}/execute/getuid")]
-        Task<CommandCreationResponse> QueueGetUIDCommandAsync(int agentID);
+        Task<CommandCreationResponse> QueueGetUIDCommandAsync(int agentID, [Body] GetUIDDTO dto);
 
         [Post("/api/v1/commands/{agentID}/execute/escalate")]
 

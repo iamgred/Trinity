@@ -1,4 +1,5 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
@@ -34,7 +35,7 @@ namespace Client.Interpreter.Strategies
                 return CommandError.TooFewArgs(Keyword);
             }
 
-            var taskID = await _client.QueueGetUIDCommandAsync(agentID);
+            var taskID = await _client.QueueGetUIDCommandAsync(agentID, new GetUIDDTO());
             return $"Tasked agent to get user ID #{taskID}";
         }
     }

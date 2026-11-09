@@ -1,4 +1,5 @@
-﻿using Trinity.Shared.Errors;
+﻿using Trinity.Shared.DTOs.Command;
+using Trinity.Shared.Errors;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
 
@@ -34,7 +35,7 @@ namespace Client.Interpreter.Strategies
                 return CommandError.TooFewArgs(Keyword);
             }
 
-            var taskID = await _client.QueueKillAgentCommandAsync(agentID);
+            var taskID = await _client.QueueKillAgentCommandAsync(agentID, new KillAgentDTO());
             return $"Tasked agent terminate #{taskID}";
         }
     }

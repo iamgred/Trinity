@@ -13,7 +13,7 @@ public sealed class CommandApiClient(ICommandAPI api)
             switch (pathSuffix)
             {
                 case "execute/getuid":
-                    await api.QueueGetUIDCommandAsync(agentId);
+                    await api.QueueGetUIDCommandAsync(agentId, new GetUIDDTO());
                     break;
                 case "set/sleep":
                 case "execute/setsleep":

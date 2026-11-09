@@ -1,0 +1,112 @@
+.term-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #111;
+    border-radius: var(--radius, 8px);
+    border: 1px solid var(--border, #2a2a2a);
+    overflow: hidden;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 0.82rem;
+}
+
+.term-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    flex-shrink: 0;
+}
+
+.term-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ccc;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.term-icon {
+    color: var(--accent, #e87722);
+}
+
+.term-status {
+    font-size: 0.68rem;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.term-status--on {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.term-status--off {
+    background: rgba(244, 67, 54, 0.12);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.25);
+}
+
+.term-close-btn {
+    color: #666 !important;
+}
+
+.term-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.term-line {
+    line-height: 1.5;
+    word-break: break-all;
+}
+
+::deep .term-cmd  { color: #aaa; }
+::deep .term-out  { color: #d4d4d4; white-space: pre-wrap; }
+::deep .term-ok   { color: #4caf50; }
+::deep .term-err  { color: #f44336; }
+::deep .term-info { color: #64b5f6; }
+
+.term-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid #2a2a2a;
+    flex-shrink: 0;
+    background: #0d0d0d;
+}
+
+.term-prompt {
+    color: var(--accent, #e87722);
+    flex-shrink: 0;
+}
+
+.term-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #d4d4d4;
+    font-family: inherit;
+    font-size: inherit;
+    caret-color: var(--accent, #e87722);
+}
+
+.term-input::placeholder {
+    color: #444;
+}
+
+.term-send-btn {
+    color: var(--accent, #e87722) !important;
+    flex-shrink: 0;
+}

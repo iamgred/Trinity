@@ -1,0 +1,136 @@
+@using Microsoft.AspNetCore.SignalR.Client
+@using Client.Interpreter
+@using Client.Services
+@using Trinity.Shared.DTOs.Notification
+@implements IAsyncDisposable
+
+@inject CommandInterpreter Interpreter
+@inject IConfiguration Config
+
+<div class="term-panel">
+    <div class="term-header">
+        <div class="term-title">
+            <span class="term-icon">❯</span>
+            <span>Agent @AgentId</span>
+            <span class="term-status @(_connected ? "term-status--on" : "term-status--off")">
+                @(_connected ? "connected" : "disconnected")
+            </span>
+        </div>
+        <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Class="term-close-btn" OnClick="OnClose" />
+    </div>
+
+    <div class="term-output" id="term-output-@AgentId">
+        @foreach (var line in _outputs)
+        {
+            <div class="term-line">@((MarkupString)line)</div>
+        }
+    </div>
+
+    <div class="term-input-row">
+        <span class="term-prompt">❯</span>
+        <input class="term-input"
+               @bind="_inputText"
+               @bind:event="oninput"
+               @onkeydown="OnKeyDownAsync"
+               placeholder="shell whoami"
+               disabled="@(!_connected || _sending)" />
+        <MudIconButton Icon="@Icons.Material.Filled.Send"
+                       Size="Size.Small"
+                       Class="term-send-btn"
+                       Disabled="@(!_connected || _sending)"
+                       OnClick="SendAsync" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public int AgentId { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private HubConnection? _hub;
+    private List<string> _outputs = [];
+    private string _inputText = string.Empty;
+    private bool _sending;
+    private bool _connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string baseUrl = Config["TeamServer:BaseUrl"]!;
+        _hub = new HubConnectionBuilder()
+            .WithUrl($"{baseUrl}/register")
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hub.On<TaskNotification>("TaskNotification", async n =>
+        {
+            _outputs.Add($"<span class='term-out'>{System.Net.WebUtility.HtmlEncode(n.message)}</span>");
+            await InvokeAsync(StateHasChanged);
+        });
+
+        _hub.Reconnected += async _ =>
+        {
+            _connected = true;
+            await _hub.InvokeAsync("SubscribeToAgent", AgentId.ToString());
+            await InvokeAsync(StateHasChanged);
+        };
+
+        _hub.Reconnecting += _ =>
+        {
+            _connected = false;
+            return InvokeAsync(StateHasChanged);
+        };
+
+        try
+        {
+            await _hub.StartAsync();
+            await _hub.InvokeAsync("SubscribeToAgent", AgentId.ToString());
+            _connected = true;
+            _outputs.Add("<span class='term-info'>[+] subscribed to agent notifications</span>");
+        }
+        catch (Exception ex)
+        {
+            _outputs.Add($"<span class='term-err'>[-] {System.Net.WebUtility.HtmlEncode(ex.Message)}</span>");
+        }
+    }
+
+    private async Task SendAsync()
+    {
+        string input = _inputText.Trim();
+        if (string.IsNullOrEmpty(input)) return;
+
+        _inputText = string.Empty;
+        _outputs.Add($"<span class='term-cmd'>❯ {System.Net.WebUtility.HtmlEncode(input)}</span>");
+        _sending = true;
+
+        try
+        {
+            var result = await Interpreter.Interpret(AgentId, input);
+            _outputs.Add(result.IsSuccess
+                ? $"<span class='term-ok'>[+] {System.Net.WebUtility.HtmlEncode(result.Response ?? string.Empty)}</span>"
+                : $"<span class='term-err'>[-] {System.Net.WebUtility.HtmlEncode(result.Error.Description)}</span>");
+        }
+        catch (Exception ex)
+        {
+            _outputs.Add($"<span class='term-err'>[!] {System.Net.WebUtility.HtmlEncode(ex.Message)}</span>");
+        }
+        finally
+        {
+            _sending = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnKeyDownAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SendAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hub is not null)
+        {
+            if (_hub.State == HubConnectionState.Connected)
+                await _hub.InvokeAsync("UnsubscribeFromAgent", AgentId.ToString());
+            await _hub.DisposeAsync();
+        }
+    }
+}

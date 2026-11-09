@@ -1,0 +1,24 @@
+.home-layout {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    gap: 0;
+    overflow: hidden;
+}
+
+.home-layout--split .home-top {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+}
+
+.home-top {
+    flex: 1;
+    overflow: auto;
+}
+
+.home-terminal {
+    flex: 0 0 320px;
+    min-height: 0;
+    border-top: 1px solid var(--border, #2a2a2a);
+}

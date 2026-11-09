@@ -1,7 +1,199 @@
-﻿@page "/template-home"
+﻿@page "/home"
+@namespace Client.Components.Pages
+@rendermode InteractiveServer
+@using Client.Services
+@using Client.Components.UI
+@using Agent = Trinity.Shared.Models.Agent
 
-<PageTitle>Home</PageTitle>
+@inject AgentService AgentService
 
-<h1>Hello, world!</h1>
+<div class="home-layout @(_terminalAgent is not null ? "home-layout--split" : "")">
 
-Welcome to your new app.
+    <!-- Top section: graph / table -->
+    <div class="home-top">
+        <div class="v2-header">
+            <div class="v2-header-left">
+                <span class="v2-header-title">Agents</span>
+                <span class="v2-header-count">@_agents.Count registered · @OnlineCount online</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                    <MudButton OnClick='() => _view = "table"'
+                               Color="@(_view == "table" ? Color.Primary : Color.Default)">Table</MudButton>
+                    <MudButton OnClick='() => _view = "graph"'
+                               Color="@(_view == "graph" ? Color.Primary : Color.Default)">Graph</MudButton>
+                </MudButtonGroup>
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAsync" />
+            </div>
+        </div>
+
+        @if (_view == "table")
+        {
+            <div class="v2-table-wrap">
+                <MudTable Items="@_agents"
+                          Dense="true"
+                          Hover="true"
+                          Elevation="0"
+                          Loading="@_loading"
+                          LoadingProgressColor="Color.Primary"
+                          FixedHeader="true">
+                    <HeaderContent>
+                        <MudTh>id</MudTh>
+                        <MudTh>external ip</MudTh>
+                        <MudTh>user</MudTh>
+                        <MudTh>arch</MudTh>
+                        <MudTh>last seen</MudTh>
+                        <MudTh>status</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="id"       Class="td-mono">@context.ID</MudTd>
+                        <MudTd DataLabel="external" Class="td-mono">@context.ExternalIP</MudTd>
+                        <MudTd DataLabel="user">@context.Username</MudTd>
+                        <MudTd DataLabel="arch"     Class="td-mono">@context.Architecure</MudTd>
+                        <MudTd DataLabel="last"     Class="td-mono">@FormatLastSeen(context.LastCheckIn)</MudTd>
+                        <MudTd DataLabel="status">
+                            <span class="v2-badge @(IsOnline(context) ? "v2-badge-online" : "v2-badge-offline")">
+                                <span class="v2-dot"></span>@(IsOnline(context) ? "online" : "offline")
+                            </span>
+                        </MudTd>
+                        <MudTd>
+                            <MudTooltip Text="Open terminal">
+                                <MudIconButton Icon="@Icons.Material.Filled.Terminal"
+                                               Size="Size.Small"
+                                               Disabled="@(!IsOnline(context))"
+                                               OnClick="() => OpenTerminal(context)" />
+                            </MudTooltip>
+                        </MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <div class="v2-table-empty">
+                            <span class="v2-empty-title">No agents have checked in</span>
+                            <span class="v2-empty-hint">Deploy a payload to connect agents</span>
+                        </div>
+                    </NoRecordsContent>
+                </MudTable>
+            </div>
+        }
+        else
+        {
+            <div class="graph-card-v2">
+                <div class="graph-toolbar-v2">
+                    <div class="graph-legend">
+                        <span><span class="legend-dot legend-dot-server"></span>TeamServer</span>
+                        <span><span class="legend-dot legend-dot-online"></span>Online</span>
+                        <span><span class="legend-dot legend-dot-offline"></span>Offline</span>
+                    </div>
+                    <div style="display:flex;gap:4px;">
+                        <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"            Size="Size.Small" OnClick="ZoomIn" />
+                        <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"           Size="Size.Small" OnClick="ZoomOut" />
+                        <MudIconButton Icon="@Icons.Material.Filled.CenterFocusStrong" Size="Size.Small" OnClick="ResetZoom" />
+                    </div>
+                </div>
+
+                <div class="graph-viewport-v2">
+                    <svg class="graph-svg-v2" viewBox="@_svgViewBox">
+                        <g transform="translate(400,280)">
+                            <circle r="26" class="node-circle--server-v2" />
+                            @((MarkupString)"<text class=\"node-label-v2\" y=\"42\" text-anchor=\"middle\">TeamServer</text>")
+                        </g>
+
+                        @{ int idx = 0; }
+                        @foreach (var agent in _agents)
+                        {
+                            var (ax, ay) = AgentPosition(idx, _agents.Count);
+                            var online   = IsOnline(agent);
+                            var midX     = (ax + 400) / 2;
+                            var midY     = (ay + 280) / 2;
+                            idx++;
+                            <g @onclick="() => OpenTerminal(agent)" style="cursor:pointer;">
+                                <line class="@(online ? "edge-online-v2" : "edge-offline-v2")"
+                                      x1="@ax" y1="@ay" x2="400" y2="280" />
+                                @((MarkupString)$"<text class=\"edge-label-v2\" x=\"{midX}\" y=\"{midY - 4}\" text-anchor=\"middle\">HTTP</text>")
+                                <circle cx="@ax" cy="@ay" r="20"
+                                        class="@(online ? "node-circle--online-v2" : "node-circle--offline-v2")"
+                                        style="@(_terminalAgent?.ID == agent.ID ? "stroke-width:3;" : "")" />
+                                @((MarkupString)$"<text class=\"node-label-v2\" x=\"{ax}\" y=\"{ay + 32}\" text-anchor=\"middle\">{agent.Username ?? "?"}</text>")
+                            </g>
+                        }
+
+                        @if (_agents.Count == 0)
+                        {
+                            @((MarkupString)"<text x=\"400\" y=\"295\" class=\"graph-empty-text\" text-anchor=\"middle\">No agents connected</text>")
+                        }
+                    </svg>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Terminal panel — shown when an agent is selected -->
+    @if (_terminalAgent is not null)
+    {
+        <div class="home-terminal">
+            <AgentTerminal AgentId="@_terminalAgent.ID"
+                           OnClose="CloseTerminal" />
+        </div>
+    }
+
+</div>
+
+@code {
+    private List<Agent> _agents = [];
+    private Agent? _terminalAgent;
+    private bool _loading;
+    private string _view = "table";
+    private string _svgViewBox = "0 0 800 560";
+    private double _zoom = 1.0;
+
+    private int OnlineCount => _agents.Count(IsOnline);
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try   { _agents = await AgentService.GetTasksAsync(); }
+        catch { _agents = []; }
+        finally { _loading = false; }
+    }
+
+    private void OpenTerminal(Agent agent)
+    {
+        if (!IsOnline(agent)) return;
+        _terminalAgent = agent;
+    }
+
+    private void CloseTerminal() => _terminalAgent = null;
+
+    private static bool IsOnline(Agent a)
+        => a.LastCheckIn != default && (DateTime.UtcNow - a.LastCheckIn).TotalSeconds < 120;
+
+    private static string FormatLastSeen(DateTime dt)
+    {
+        if (dt == default) return "Never";
+        var diff = DateTime.UtcNow - dt;
+        if (diff.TotalSeconds < 60)  return $"{(int)diff.TotalSeconds}s ago";
+        if (diff.TotalMinutes < 60)  return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours < 24)    return $"{(int)diff.TotalHours}h ago";
+        return $"{(int)diff.TotalDays}d ago";
+    }
+
+    private static (int ax, int ay) AgentPosition(int index, int total)
+    {
+        if (total == 0) return (400, 295);
+        double angle = 2 * Math.PI * index / total - Math.PI / 2;
+        return ((int)(400 + 220 * Math.Cos(angle)), (int)(295 + 180 * Math.Sin(angle)));
+    }
+
+    private void ZoomIn()    { _zoom = Math.Min(_zoom + 0.2, 3.0); UpdateViewBox(); }
+    private void ZoomOut()   { _zoom = Math.Max(_zoom - 0.2, 0.3); UpdateViewBox(); }
+    private void ResetZoom() { _zoom = 1.0; _svgViewBox = "0 0 800 560"; }
+
+    private void UpdateViewBox()
+    {
+        double w = 800 / _zoom, h = 560 / _zoom;
+        double x = (800 - w) / 2, y = (560 - h) / 2;
+        _svgViewBox = $"{x:F0} {y:F0} {w:F0} {h:F0}";
+    }
+}

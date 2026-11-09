@@ -75,7 +75,7 @@
 
         _hub.On<TaskNotification>("TaskNotification", async n =>
         {
-            Append($"<span class='term-out'>{System.Net.WebUtility.HtmlEncode(n.message)}</span>");
+            Append($"<span class='term-out'><span class='term-task-id'>[#{n.TaskID}]</span> {System.Net.WebUtility.HtmlEncode(n.message)}</span>");
             await InvokeAsync(StateHasChanged);
         });
 

@@ -16,10 +16,13 @@ public sealed class WorkspaceState
 
     public int ActiveBottomTab { get; set; } = 0;
     public bool EventLogVisible { get; set; } = true;
-    public bool PanelVisible => EventLogVisible || OpenAgentTerminals.Count > 0;
+    public bool PanelVisible => EventLogVisible || OpenAgentTerminals.Count > 0 || ArmouryOpen;
     public List<AgentResponse> OpenAgentTerminals { get; } = [];
 
     public string AgentView { get; private set; } = "table";
+    public bool ArmouryOpen { get; private set; } = false;
+
+    public int ArmouryTabIndex => (EventLogVisible ? 1 : 0) + OpenAgentTerminals.Count;
 
     public event Action? Changed;
     public event Action? AgentsChanged;
@@ -28,6 +31,21 @@ public sealed class WorkspaceState
     public void NotifyAgentsChanged() => AgentsChanged?.Invoke();
 
     public void SetAgentView(string view) { AgentView = view; Notify(); }
+
+    public void OpenArmoury()
+    {
+        ArmouryOpen = true;
+        ActiveBottomTab = ArmouryTabIndex;
+        Notify();
+    }
+
+    public void CloseArmoury()
+    {
+        ArmouryOpen = false;
+        if (ActiveBottomTab >= ArmouryTabIndex)
+            ActiveBottomTab = 0;
+        Notify();
+    }
 
     public void CloseEventLog()
     {

@@ -87,7 +87,8 @@
 }
 
 ::deep .term-cmd  { color: #aaa; }
-::deep .term-out  { color: #d4d4d4; white-space: pre-wrap; }
+::deep .term-out      { color: #d4d4d4; white-space: pre-wrap; }
+::deep .term-task-id  { color: rgba(232,119,34,0.70); font-size: 0.78em; margin-right: 2px; }
 ::deep .term-ok   { color: #4caf50; }
 ::deep .term-err  { color: #f44336; }
 ::deep .term-info { color: #64b5f6; }

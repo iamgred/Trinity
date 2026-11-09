@@ -1,0 +1,98 @@
+@using Trinity.Shared.Models
+@using Client.Services
+
+<div class="arm-panel">
+
+    <div class="arm-table-wrap">
+        <table class="arm-table">
+            <thead>
+                <tr>
+                    <th class="arm-th arm-th-ico"></th>
+                    <th class="arm-th">name</th>
+                    <th class="arm-th">type</th>
+                    <th class="arm-th arm-th-path">path</th>
+                    <th class="arm-th">size</th>
+                    <th class="arm-th">added at</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var tool in PagedTools)
+                {
+                    var t = tool;
+                    var sel = _selected?.ID == t.ID;
+                    <tr class="arm-row @(sel ? "arm-row-sel" : "")"
+                        @onclick="() => _selected = sel ? null : t">
+                        <td class="arm-td arm-td-ico">@((MarkupString)TypeIcon(t))</td>
+                        <td class="arm-td arm-td-name">@t.Name</td>
+                        <td class="arm-td arm-td-type">@TypeLabel(t)</td>
+                        <td class="arm-td arm-td-path">
+                            <span class="arm-path-text">@t.Path</span>
+                            <button class="arm-copy-btn @(IsCopied(t) ? "arm-copied" : "")"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => CopyPath(t)">
+                                @if (IsCopied(t))
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <span>Copied</span>
+                                }
+                                else
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                }
+                            </button>
+                        </td>
+                        <td class="arm-td arm-td-dim">@FormatSize(t.Size)</td>
+                        <td class="arm-td arm-td-dim">@t.AddedDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+                @if (!_tools.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="arm-empty">No tools in the armoury</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="arm-footer">
+        <div class="arm-footer-info">
+            @if (_tools.Any())
+            {
+                var start = (_page - 1) * _rows + 1;
+                var end   = Math.Min(_page * _rows, _tools.Count);
+                <span>Showing @start–@end of @_tools.Count tools</span>
+            }
+        </div>
+        <div class="arm-footer-pages">
+            <span class="arm-rpp-label">Rows per page</span>
+            <select class="arm-rpp-select" @onchange="e => { _rows = int.Parse(e.Value!.ToString()!); _page = 1; }">
+                <option value="8" selected>8</option>
+                <option value="16">16</option>
+                <option value="32">32</option>
+            </select>
+            <button class="arm-page-btn" disabled="@(_page <= 1)" @onclick="() => _page--">‹</button>
+            @for (int p = 1; p <= TotalPages; p++) {
+                var pn = p;
+                <button class="arm-page-btn @(_page == pn ? "arm-page-active" : "")" @onclick="() => _page = pn">@pn</button>
+            }
+            <button class="arm-page-btn" disabled="@(_page >= TotalPages)" @onclick="() => _page++">›</button>
+        </div>
+        <div class="arm-footer-actions">
+            <label class="arm-action-btn arm-action-add">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add
+                <InputFile OnChange="HandleUpload" style="display:none" />
+            </label>
+            <button class="arm-action-btn arm-action-edit" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+            </button>
+            <button class="arm-action-btn arm-action-remove" disabled="@(_selected == null)" @onclick="HandleRemove">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Remove
+            </button>
+        </div>
+    </div>
+
+</div>

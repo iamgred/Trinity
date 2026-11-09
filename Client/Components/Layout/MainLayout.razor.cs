@@ -16,6 +16,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     [Inject] IJSRuntime JS { get; set; } = null!;
     [Inject] NavigationManager Nav { get; set; } = null!;
     [Inject] EventLogService EventLog { get; set; } = null!;
+    [Inject] TeamServerConnection Connection { get; set; } = null!;
 
     private readonly MudTheme _theme = new()
     {
@@ -53,12 +54,20 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private int _bottomH = 220;
     private void SetBottomTab(int idx) { _workspaceState.ActiveBottomTab = idx; }
     private bool _serverOnline = false;
+    private bool _redirecting = false;
     private HubConnection? _hub;
     private readonly HashSet<int> _subscribedAgents = [];
     private readonly WorkspaceState _workspaceState = new();
 
     protected override void OnInitialized()
     {
+        if (Connection.Token is null)
+        {
+            _redirecting = true;
+            Nav.NavigateTo("/login", replace: true);
+            return;
+        }
+
         _workspaceState.Changed += () => InvokeAsync(async () =>
         {
             await SyncAgentSubscriptionsAsync();
@@ -68,7 +77,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        if (!firstRender || _redirecting) return;
         _bottomH = await JS.InvokeAsync<int>("trinityResize.getHalfHeight");
         await InitResizeAsync();
         await ConnectHubAsync();

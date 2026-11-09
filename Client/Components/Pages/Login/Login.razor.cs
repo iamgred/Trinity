@@ -34,6 +34,12 @@ public partial class Login
     private bool _showPassword;
     private bool _isSigningIn;
 
+    protected override void OnInitialized()
+    {
+        if (TeamServerConnection.Token is not null)
+            Nav.NavigateTo("/agents", replace: true);
+    }
+
     private async Task HandleLogin()
     {
         _error = null;

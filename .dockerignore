@@ -1,0 +1,11 @@
+# Host build output must not be copied into the image: a stale obj/project.assets.json from the
+# host shadows the restore the Dockerfile performs (NETSDK1064: package not found).
+**/obj/
+**/bin/
+**/out/build/
+.git/
+.gitignore
+Payloads/
+uploads/
+storage/
+*.user

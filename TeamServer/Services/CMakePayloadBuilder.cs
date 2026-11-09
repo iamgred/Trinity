@@ -34,9 +34,9 @@ namespace TeamServer.Services
         {
             try
             {
-                string agentPath = Path.Combine(_webHostEnvironment.ContentRootPath, "..", "Agent");
-
-                agentPath = Path.GetFullPath(agentPath);
+                string agentPath = Path.GetFullPath(
+                    Path.Combine(_webHostEnvironment.ContentRootPath, "..", "Agent")
+                );
 
                 if (!Directory.Exists(agentPath))
                 {
@@ -73,6 +73,19 @@ namespace TeamServer.Services
                     return PayloadError.GenerationFailed();
                 }
 
+                // A toolchain file, when configured, decides the compiler and linker pair; otherwise the
+                // compiler path above is passed directly, which is the pre-existing behaviour.
+                string toolchainName = GetToolchainName(Enum.GetName(payloadCreationDTO.Architecture)!);
+
+                string toolchainArgument = string.IsNullOrWhiteSpace(toolchainName)
+                    ? string.Empty
+                    : $"-DCMAKE_TOOLCHAIN_FILE=\"{agentPath}/cmake/toolchains/{toolchainName}\" ";
+
+                Console.WriteLine(
+                    $"payload build: toolchain={(string.IsNullOrWhiteSpace(toolchainName) ? "none" : toolchainName)} "
+                        + $"arch={payloadCreationDTO.Architecture} build={buildRoot}"
+                );
+
                 // Configure the build environment and generate build files using CMake
                 Result configureResult = await RunProcessAsync(
                     "cmake",
@@ -84,7 +97,8 @@ namespace TeamServer.Services
                     $"-DPORT={config.C2Port} " +
                     $"-DINPUT_USER_AGENT=\"{config.UserAgent}\" " +
                     $"-DINPUT_REQUEST_HEADER=\"{config.Header}\" " +
-                    $"-DCMAKE_CXX_COMPILER=\"{compiler}\" "
+                    toolchainArgument +
+                    (string.IsNullOrWhiteSpace(toolchainName) ? $"-DCMAKE_CXX_COMPILER=\"{compiler}\" " : string.Empty)
                 );
 
                 if (!configureResult.IsSuccess)
@@ -135,6 +149,24 @@ namespace TeamServer.Services
                 "x64" => _configuration["PayloadBuilder:Compilers:x64"] ?? "x86_64-w64-mingw32-g++",
                 "x86" => _configuration["PayloadBuilder:Compilers:x86"] ?? "i686-w64-mingw32-g++",
                 "x32" => _configuration["PayloadBuilder:Compilers:x86"] ?? "i686-w64-mingw32-g++",
+                _ => string.Empty,
+            };
+        }
+
+        /// <summary>
+        /// Resolves the CMake toolchain file for a CPU architecture. When set,
+        /// <c>PayloadBuilder:Toolchains:&lt;arch&gt;</c> names a file under
+        /// <c>&lt;source&gt;/cmake/toolchains/</c> and CMake is passed
+        /// <c>-DCMAKE_TOOLCHAIN_FILE</c>; the toolchain, not a compiler path, then decides the
+        /// compiler and linker pair. Unset keeps the historical behaviour of passing
+        /// <c>-DCMAKE_CXX_COMPILER</c> directly.
+        /// </summary>
+        private string GetToolchainName(string architecture)
+        {
+            return architecture.ToLowerInvariant() switch
+            {
+                "x64" => _configuration["PayloadBuilder:Toolchains:x64"] ?? string.Empty,
+                "x86" or "x32" => _configuration["PayloadBuilder:Toolchains:x86"] ?? string.Empty,
                 _ => string.Empty,
             };
         }

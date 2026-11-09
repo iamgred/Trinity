@@ -65,6 +65,23 @@ target_compile_definitions(Agent PRIVATE COMM_PORT=${CLEAN_PORT})
 target_compile_definitions(Agent PRIVATE COMM_REQUEST_HEADER="${INPUT_REQUEST_HEADER}")
 
 
+# ---- MinGW-w64 cross build ----------------------------------------------------------------
+# The sources name their import libraries with MSVC `#pragma comment(lib, ...)` directives, which
+# clang ignores, so the same set is linked explicitly when targeting Windows GNU. mscoree.lib is
+# absent on purpose: MinGW ships no such import library and cmake/compat/mingw/metahost.h resolves
+# CLRCreateInstance from mscoree.dll at runtime instead.
+if(MINGW)
+  target_link_libraries(Agent PRIVATE
+    winhttp iphlpapi psapi shlwapi user32 ole32 oleaut32 uuid ws2_32 mstask taskschd comctl32 advapi32 shell32)
+
+  # MinGW has no metahost.h and no mscoree import library; the compat header supplies the CLR
+  # hosting declarations and resolves CLRCreateInstance from mscoree.dll. -DINITGUID makes
+  # guiddef.h define the CLSID_/IID_ values that would otherwise need an import library.
+  # Both are scoped to MINGW so an MSVC build keeps using the Windows SDK headers.
+  target_include_directories(Agent PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/compat/mingw)
+  target_compile_definitions(Agent PRIVATE INITGUID)
+endif()
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Agent PROPERTY CXX_STANDARD 20)
 endif()

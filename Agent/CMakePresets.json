@@ -60,6 +60,22 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "$env{VSINSTALLDIR}Common7/IDE/CommonExtensions/Microsoft/CMake/cmake/Microsoft/SegmentHeap.cmake"
             }
+        },
+        {
+            "name": "mingw-clang-x86_64",
+            "displayName": "MinGW Clang x86_64 (cross, container)",
+            "description": "Cross-compiles Agent/ to a Windows x86_64 PE with clang/lld/mingw. Selected by PayloadBuilder:Toolchains:x64.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/mingw-clang-x86_64",
+            "condition": {
+                "type": "notEquals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/mingw-w64-clang.cmake",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         }
     ]
 }

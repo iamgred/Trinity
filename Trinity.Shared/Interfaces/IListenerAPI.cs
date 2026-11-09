@@ -2,6 +2,7 @@
 using Refit;
 using Trinity.Shared.DTOs.Listener;
 using Trinity.Shared.DTOs.Listener.Http;
+using Trinity.Shared.DTOs.Listener.Https;
 using Trinity.Shared.DTOs.Listener.Tcp;
 using Trinity.Shared.DTOs.Listener.Smb;
 
@@ -14,6 +15,9 @@ namespace Trinity.Shared.Interfaces
 
         [Post("/api/v1/listeners/http")]
         Task CreateHttpListenerAsync([Body] CreateHttpListenerRequest request);
+
+        [Post("/api/v1/listeners/https")]
+        Task CreateHttpsListenerAsync([Body] CreateHttpsListenerRequest request);
 
         [Post("/api/v1/listeners/tcp")]
         Task CreateTcpListenerAsync([Body] CreateTcpListenerRequest request);

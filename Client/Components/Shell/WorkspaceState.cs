@@ -16,13 +16,15 @@ public sealed class WorkspaceState
 
     public int ActiveBottomTab { get; set; } = 0;
     public bool EventLogVisible { get; set; } = true;
-    public bool PanelVisible => EventLogVisible || OpenAgentTerminals.Count > 0 || ArmouryOpen;
+    public bool PanelVisible => EventLogVisible || OpenAgentTerminals.Count > 0 || ArmouryOpen || ListenersOpen;
     public List<AgentResponse> OpenAgentTerminals { get; } = [];
 
     public string AgentView { get; private set; } = "table";
     public bool ArmouryOpen { get; private set; } = false;
+    public bool ListenersOpen { get; private set; } = false;
 
     public int ArmouryTabIndex => (EventLogVisible ? 1 : 0) + OpenAgentTerminals.Count;
+    public int ListenersTabIndex => ArmouryTabIndex + (ArmouryOpen ? 1 : 0);
 
     public event Action? Changed;
     public event Action? AgentsChanged;
@@ -43,6 +45,21 @@ public sealed class WorkspaceState
     {
         ArmouryOpen = false;
         if (ActiveBottomTab >= ArmouryTabIndex)
+            ActiveBottomTab = 0;
+        Notify();
+    }
+
+    public void OpenListeners()
+    {
+        ListenersOpen = true;
+        ActiveBottomTab = ListenersTabIndex;
+        Notify();
+    }
+
+    public void CloseListeners()
+    {
+        ListenersOpen = false;
+        if (ActiveBottomTab >= ListenersTabIndex)
             ActiveBottomTab = 0;
         Notify();
     }

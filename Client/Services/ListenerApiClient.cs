@@ -1,5 +1,6 @@
 using Refit;
 using Trinity.Shared.DTOs.Listener.Http;
+using Trinity.Shared.DTOs.Listener.Https;
 using Trinity.Shared.DTOs.Listener.Tcp;
 using Trinity.Shared.DTOs.Listener.Smb;
 using Trinity.Shared.Interfaces;
@@ -26,6 +27,28 @@ public sealed class ListenerApiClient(IListenerAPI api)
         {
             var request = new CreateHttpListenerRequest(name, new HttpConfig(port, port, null, null, [host], "round-robin", "3"));
             await api.CreateHttpListenerAsync(request);
+            return true;
+        }
+        catch (ApiException) { return false; }
+    }
+
+    public async Task<bool> CreateHttpListenerAsync(string name, List<string> hosts, int bindPort, int c2Port, string? userAgent, string? header, string rotationStrategy, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new CreateHttpListenerRequest(name, new HttpConfig(bindPort, c2Port, userAgent, header, hosts, rotationStrategy, "3"));
+            await api.CreateHttpListenerAsync(request);
+            return true;
+        }
+        catch (ApiException) { return false; }
+    }
+
+    public async Task<bool> CreateHttpsListenerAsync(string name, List<string> hosts, int c2Port, string? userAgent, string? header, string rotationStrategy, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new CreateHttpsListenerRequest(name, new HttpsConfig(c2Port, userAgent, header, hosts, rotationStrategy, "3"));
+            await api.CreateHttpsListenerAsync(request);
             return true;
         }
         catch (ApiException) { return false; }

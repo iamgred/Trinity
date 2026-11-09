@@ -1,0 +1,351 @@
+@namespace Client.Components.Pages.Dialogs
+@rendermode InteractiveServer
+
+<MudDialog Class="nld-dialog">
+    <TitleContent>
+        <div class="nld-title-row">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E87722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+            </svg>
+            <div>
+                <div class="nld-title-text">New Listener</div>
+                <div class="nld-title-sub">Agents call back to the team server through a listener</div>
+            </div>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <div class="nld-accent-bar"></div>
+        <div class="nld-body">
+
+            <!-- Name -->
+            <div class="nld-field-row">
+                <label class="nld-label">Name</label>
+                <input class="nld-input" @bind="_name" @bind:event="oninput" placeholder="e.g. https-main" />
+            </div>
+
+            <!-- Type -->
+            <div class="nld-field-row">
+                <label class="nld-label">Type</label>
+                <div class="nld-type-btns">
+                    <button class="nld-type-btn @(_type == "HTTP" ? "nld-type-active" : "")" @onclick='() => SetType("HTTP")'>HTTP</button>
+                    <button class="nld-type-btn @(_type == "HTTPS" ? "nld-type-active" : "")" @onclick='() => SetType("HTTPS")'>HTTPS</button>
+                </div>
+                @if (_type == "HTTPS")
+                {
+                    <span class="nld-type-note">SMB is peer-to-peer only. Tor publishes the listener as an onion service.</span>
+                }
+            </div>
+
+            <!-- Hosts -->
+            <div class="nld-field-row">
+                <label class="nld-label">Hosts</label>
+                <div class="nld-hosts-box">
+                    @foreach (var (h, i) in _hosts.Select((h, i) => (h, i)))
+                    {
+                        var idx = i;
+                        <div class="nld-host-chip">
+                            <span>@h</span>
+                            <button class="nld-host-x" @onclick="() => _hosts.RemoveAt(idx)">×</button>
+                        </div>
+                    }
+                    <button class="nld-add-host-btn" @onclick="AddHostField">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Add host
+                    </button>
+                </div>
+                @if (_addingHost)
+                {
+                    <div class="nld-host-input-row">
+                        <input class="nld-input nld-host-input" @bind="_hostInput" @bind:event="oninput"
+                               placeholder="e.g. 10.0.0.5" @onkeydown="OnHostKeyDown" />
+                        <button class="nld-host-confirm" @onclick="ConfirmHost">Add</button>
+                        <button class="nld-host-cancel" @onclick="() => _addingHost = false">Cancel</button>
+                    </div>
+                }
+            </div>
+
+            <!-- Host Rotation -->
+            <div class="nld-field-row">
+                <label class="nld-label">Host Rotation</label>
+                <select class="nld-select" @bind="_rotation">
+                    <option value="round-robin">round-robin</option>
+                    <option value="random">random</option>
+                </select>
+            </div>
+
+            <!-- Ports -->
+            <div class="nld-field-row">
+                <label class="nld-label">@(_type == "HTTPS" ? "C2 Port" : "C2 Port / Bind Port")</label>
+                <div class="nld-ports-row">
+                    <input class="nld-input nld-port-input" type="number" min="1" max="65535"
+                           @bind="_c2Port" @bind:event="oninput" placeholder="@(_type == "HTTPS" ? "443" : "8080")" />
+                    @if (_type == "HTTP")
+                    {
+                        <input class="nld-input nld-port-input" type="number" min="1" max="65535"
+                               @bind="_bindPort" @bind:event="oninput" placeholder="8080" />
+                    }
+                </div>
+            </div>
+
+            <!-- TLS Certificate (HTTPS only) -->
+            @if (_type == "HTTPS")
+            {
+                <div class="nld-field-row">
+                    <label class="nld-label">TLS Certificate</label>
+                    <div class="nld-tls-btns">
+                        <button class="nld-tls-btn @(_selfSigned ? "nld-tls-active" : "")" @onclick="() => _selfSigned = true">Self-signed</button>
+                        <button class="nld-tls-btn @(!_selfSigned ? "nld-tls-active" : "")" disabled>Upload .pfx</button>
+                    </div>
+                    <span class="nld-type-note" style="margin-top:4px;">A self-signed certificate is generated when the listener starts.</span>
+                </div>
+            }
+
+            <!-- User-Agent -->
+            <div class="nld-field-row">
+                <label class="nld-label">User-Agent</label>
+                <input class="nld-input" @bind="_userAgent" @bind:event="oninput"
+                       placeholder="Mozilla/5.0 (Windows NT 10.0; Win64; x64)" />
+            </div>
+
+            <!-- Header -->
+            <div class="nld-field-row">
+                <label class="nld-label">Header</label>
+                <input class="nld-input" @bind="_header" @bind:event="oninput" placeholder="Accept: */*" />
+            </div>
+
+            @if (_error is not null)
+            {
+                <span class="nld-error">@_error</span>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <div class="nld-footer">
+            <span class="nld-footer-note">
+                @if (_type == "HTTPS")
+                {
+                    <text>HTTPS encrypts agent traffic with TLS on the C2 port.</text>
+                }
+                else
+                {
+                    <text>HTTP listener will bind on the specified port.</text>
+                }
+            </span>
+            <div class="nld-footer-btns">
+                <button class="nld-btn-cancel" @onclick="Cancel">Cancel</button>
+                <button class="nld-btn-save @(!CanSave ? "nld-btn-disabled" : "")" @onclick="Confirm" disabled="@(!CanSave)">
+                    Save &amp; Start
+                </button>
+            </div>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    /* ── dialog surface ── */
+    .nld-dialog .mud-paper {
+        background: #161616 !important;
+        border: 1px solid rgba(255,255,255,0.09) !important;
+        border-radius: 10px !important;
+        color: rgba(255,255,255,0.88) !important;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.65) !important;
+        min-width: 460px !important;
+    }
+    .nld-dialog .mud-dialog-title { padding: 16px 20px 10px !important; border-bottom: none !important; }
+    .nld-dialog .mud-dialog-content { padding: 0 !important; overflow: visible !important; }
+    .nld-dialog .mud-dialog-actions { padding: 0 !important; border-top: 1px solid rgba(255,255,255,0.07) !important; }
+
+    /* title */
+    .nld-title-row { display: flex; align-items: flex-start; gap: 12px; }
+    .nld-title-text { color: rgba(255,255,255,0.90); font-weight: 600; font-size: 1.0rem; letter-spacing: 0.01em; }
+    .nld-title-sub  { color: rgba(255,255,255,0.35); font-size: 0.74rem; margin-top: 2px; }
+
+    /* accent bar */
+    .nld-accent-bar { height: 2px; background: linear-gradient(90deg, #E87722, rgba(232,119,34,0.25)); }
+
+    /* body */
+    .nld-body { display: flex; flex-direction: column; gap: 0; padding: 16px 20px 20px; }
+    .nld-field-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .nld-label { font-size: 0.74rem; color: rgba(255,255,255,0.40); font-weight: 500; letter-spacing: 0.03em; }
+
+    /* inputs */
+    .nld-input {
+        background: #0e0e0e;
+        border: 1px solid rgba(255,255,255,0.11);
+        border-radius: 6px;
+        color: rgba(255,255,255,0.85);
+        font-size: 0.83rem;
+        padding: 8px 11px;
+        outline: none;
+        transition: border-color 0.15s;
+        width: 100%;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+    .nld-input:focus { border-color: #E87722; }
+    .nld-input::placeholder { color: rgba(255,255,255,0.22); }
+    input[type=number].nld-input::-webkit-inner-spin-button { opacity: 0.3; }
+
+    /* type toggle */
+    .nld-type-btns { display: flex; gap: 0; border: 1px solid rgba(255,255,255,0.11); border-radius: 6px; overflow: hidden; width: fit-content; }
+    .nld-type-btn {
+        padding: 7px 20px;
+        background: transparent;
+        border: none;
+        color: rgba(255,255,255,0.45);
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.12s, color 0.12s;
+    }
+    .nld-type-btn:not(.nld-type-active):hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.70); }
+    .nld-type-active { background: #E87722 !important; color: #fff !important; }
+    .nld-type-note { font-size: 0.72rem; color: rgba(255,255,255,0.28); line-height: 1.4; }
+
+    /* hosts box */
+    .nld-hosts-box {
+        display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+        background: #0e0e0e; border: 1px solid rgba(255,255,255,0.11);
+        border-radius: 6px; padding: 8px 10px; min-height: 40px;
+    }
+    .nld-host-chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(255,255,255,0.07); border-radius: 4px;
+        padding: 3px 8px; font-size: 0.78rem; color: rgba(255,255,255,0.75);
+    }
+    .nld-host-x {
+        background: none; border: none; color: rgba(255,255,255,0.35);
+        cursor: pointer; font-size: 0.90rem; padding: 0; line-height: 1;
+    }
+    .nld-host-x:hover { color: #f44336; }
+    .nld-add-host-btn {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: none; border: none; color: #E87722;
+        font-size: 0.78rem; cursor: pointer; padding: 2px 4px;
+    }
+    .nld-host-input-row { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+    .nld-host-input { flex: 1; }
+    .nld-host-confirm, .nld-host-cancel {
+        padding: 6px 12px; border-radius: 5px; font-size: 0.78rem;
+        cursor: pointer; border: 1px solid;
+    }
+    .nld-host-confirm { background: #E87722; border-color: #E87722; color: #fff; }
+    .nld-host-cancel  { background: transparent; border-color: rgba(255,255,255,0.14); color: rgba(255,255,255,0.45); }
+
+    /* ports */
+    .nld-ports-row { display: flex; gap: 10px; }
+    .nld-port-input { width: 110px !important; flex: 0 0 110px; }
+
+    /* select */
+    .nld-select {
+        background: #0e0e0e; border: 1px solid rgba(255,255,255,0.11);
+        border-radius: 6px; color: rgba(255,255,255,0.80); font-size: 0.83rem;
+        padding: 8px 11px; outline: none; width: 100%; cursor: pointer;
+    }
+    .nld-select:focus { border-color: #E87722; }
+
+    /* TLS */
+    .nld-tls-btns { display: flex; gap: 0; border: 1px solid rgba(255,255,255,0.11); border-radius: 6px; overflow: hidden; width: fit-content; }
+    .nld-tls-btn {
+        padding: 7px 18px; background: transparent; border: none;
+        color: rgba(255,255,255,0.45); font-size: 0.82rem; font-weight: 500; cursor: pointer;
+        transition: background 0.12s, color 0.12s;
+    }
+    .nld-tls-btn:disabled { opacity: 0.35; cursor: default; }
+    .nld-tls-active { background: #E87722 !important; color: #fff !important; }
+
+    /* error */
+    .nld-error { color: #f44336; font-size: 0.79rem; }
+
+    /* footer */
+    .nld-footer { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 20px; gap: 12px; }
+    .nld-footer-note { font-size: 0.72rem; color: rgba(255,255,255,0.28); flex: 1; }
+    .nld-footer-btns { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .nld-btn-cancel {
+        padding: 7px 16px; border-radius: 6px; font-size: 0.83rem;
+        background: transparent; border: 1px solid rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.45); cursor: pointer;
+    }
+    .nld-btn-cancel:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.70); }
+    .nld-btn-save {
+        padding: 7px 20px; border-radius: 24px; font-size: 0.83rem; font-weight: 600;
+        background: #E87722; border: none; color: #fff; cursor: pointer;
+        min-width: 110px; letter-spacing: 0.02em;
+    }
+    .nld-btn-save:hover:not(:disabled) { background: #d06a1c; }
+    .nld-btn-disabled { opacity: 0.35 !important; cursor: default !important; }
+</style>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    public sealed class Result
+    {
+        public string Name { get; init; } = "";
+        public bool IsHttps { get; init; }
+        public List<string> Hosts { get; init; } = [];
+        public int C2Port { get; init; }
+        public int BindPort { get; init; }
+        public string RotationStrategy { get; init; } = "round-robin";
+        public string? UserAgent { get; init; }
+        public string? Header { get; init; }
+    }
+
+    private string _name = "";
+    private string _type = "HTTP";
+    private List<string> _hosts = [];
+    private string _rotation = "round-robin";
+    private int _c2Port = 8080;
+    private int _bindPort = 8080;
+    private string _userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
+    private string _header = "Accept: */*";
+    private bool _selfSigned = true;
+    private string? _error;
+    private bool _addingHost = false;
+    private string _hostInput = "";
+
+    private bool CanSave => !string.IsNullOrWhiteSpace(_name) && _hosts.Count > 0 && _c2Port is >= 1 and <= 65535;
+
+    private void SetType(string t)
+    {
+        _type = t;
+        if (t == "HTTPS") _c2Port = 443;
+        else { _c2Port = 8080; _bindPort = 8080; }
+    }
+
+    private void AddHostField() { _addingHost = true; _hostInput = ""; }
+
+    private void ConfirmHost()
+    {
+        var h = _hostInput.Trim();
+        if (!string.IsNullOrWhiteSpace(h) && !_hosts.Contains(h))
+            _hosts.Add(h);
+        _addingHost = false;
+        _hostInput = "";
+    }
+
+    private void OnHostKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") ConfirmHost();
+        else if (e.Key == "Escape") _addingHost = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Confirm()
+    {
+        if (!CanSave) { _error = "Name and at least one host are required."; return; }
+        MudDialog.Close(DialogResult.Ok(new Result
+        {
+            Name = _name.Trim(),
+            IsHttps = _type == "HTTPS",
+            Hosts = [.._hosts],
+            C2Port = _c2Port,
+            BindPort = _type == "HTTP" ? _bindPort : _c2Port,
+            RotationStrategy = _rotation,
+            UserAgent = string.IsNullOrWhiteSpace(_userAgent) ? null : _userAgent.Trim(),
+            Header = string.IsNullOrWhiteSpace(_header) ? null : _header.Trim(),
+        }));
+    }
+}

@@ -2,59 +2,60 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Forms
 
-<MudDialog>
+<MudDialog Class="atd-dialog">
     <TitleContent>
         <div style="display:flex; align-items:center; gap:10px;">
-            <MudIcon Icon="@Icons.Material.Filled.Shield" Style="color:#E87722;" />
-            <MudText Typo="Typo.h6" Style="color:white; font-weight:600;">Add Tool</MudText>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E87722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span style="color:rgba(255,255,255,0.90); font-weight:600; font-size:1.05rem; letter-spacing:0.01em;">Add Tool</span>
         </div>
     </TitleContent>
     <DialogContent>
-        <MudDivider Style="background-color:#E87722; height:2px; margin-bottom:20px;" />
-        <div style="display:flex; flex-direction:column; gap:16px;">
-            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined"
-                          Placeholder="e.g. whoami.o" FullWidth="true" />
+        <div class="atd-accent-bar"></div>
+        <div class="atd-body">
+            <MudTextField @bind-Value="_name"
+                          Label="Name"
+                          Variant="Variant.Outlined"
+                          Placeholder="e.g. whoami.o"
+                          FullWidth="true" />
 
-            <div class="atd-file-zone" @onclick="TriggerPicker">
+            <label class="atd-file-zone" for="atd-file-input">
                 @if (_file is null)
                 {
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
-                         fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"
+                         fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"
                          stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                         <polyline points="17 8 12 3 7 8"/>
                         <line x1="12" y1="3" x2="12" y2="15"/>
                     </svg>
                     <span class="atd-file-hint">Click to choose a file</span>
+                    <span class="atd-file-sub">Any file type accepted</span>
                 }
                 else
                 {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                         fill="none" stroke="#35C759" stroke-width="2"
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                         fill="none" stroke="#35C759" stroke-width="2.5"
                          stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
                     </svg>
                     <span class="atd-file-name">@_file.Name</span>
                     <span class="atd-file-size">@FormatSize(_file.Size)</span>
                 }
-                <InputFile id="atd-file-input" OnChange="OnFileChange" style="display:none" />
-            </div>
+                <InputFile id="atd-file-input" OnChange="OnFileChange" style="display:none" multiple="false" />
+            </label>
 
             @if (_error is not null)
             {
-                <span style="color:#f44336; font-size:0.80rem;">@_error</span>
+                <span class="atd-error">@_error</span>
             }
         </div>
     </DialogContent>
     <DialogActions>
-        <div style="display:flex; justify-content:flex-end; gap:8px; width:100%; padding:4px 0 0 0;">
-            <MudButton Variant="Variant.Text"
-                       Style="color:rgba(255,255,255,0.5); text-transform:none;"
-                       OnClick="Cancel">Cancel</MudButton>
-            <MudButton Variant="Variant.Filled"
-                       Style="background:#E87722; color:white; text-transform:none; border-radius:24px; min-width:110px;"
-                       OnClick="Confirm"
-                       Disabled="@(!CanConfirm)">
+        <div class="atd-actions">
+            <MudButton Variant="Variant.Text" Class="atd-btn-cancel" OnClick="Cancel">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Class="atd-btn-add" OnClick="Confirm" Disabled="@(!CanConfirm)">
                 Add Tool
             </MudButton>
         </div>
@@ -62,28 +63,150 @@
 </MudDialog>
 
 <style>
+    /* ── dialog surface ── */
+    .atd-dialog .mud-paper {
+        background: #161616 !important;
+        border: 1px solid rgba(255,255,255,0.09) !important;
+        border-radius: 10px !important;
+        color: rgba(255,255,255,0.88) !important;
+        box-shadow: 0 24px 48px rgba(0,0,0,0.60) !important;
+    }
+    .atd-dialog .mud-dialog-title {
+        padding: 18px 20px 10px !important;
+        border-bottom: none !important;
+    }
+    .atd-dialog .mud-dialog-content {
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+    .atd-dialog .mud-dialog-actions {
+        padding: 0 !important;
+        border-top: 1px solid rgba(255,255,255,0.07) !important;
+    }
+
+    /* ── accent bar ── */
+    .atd-accent-bar {
+        height: 2px;
+        background: linear-gradient(90deg, #E87722 0%, rgba(232,119,34,0.30) 100%);
+        margin-bottom: 20px;
+    }
+
+    /* ── form body ── */
+    .atd-body {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 0 20px 20px;
+    }
+
+    /* ── MudTextField dark overrides ── */
+    .atd-dialog .mud-input-outlined .mud-input-outlined-border {
+        border-color: rgba(255,255,255,0.14) !important;
+    }
+    .atd-dialog .mud-input-outlined:hover .mud-input-outlined-border {
+        border-color: rgba(255,255,255,0.28) !important;
+    }
+    .atd-dialog .mud-input-outlined.mud-input-outlined-focused .mud-input-outlined-border {
+        border-color: #E87722 !important;
+    }
+    .atd-dialog .mud-input-label {
+        color: rgba(255,255,255,0.40) !important;
+    }
+    .atd-dialog .mud-input-label-animated.mud-shrink {
+        color: #E87722 !important;
+    }
+    .atd-dialog .mud-input input {
+        color: rgba(255,255,255,0.88) !important;
+        caret-color: #E87722 !important;
+    }
+
+    /* ── file zone ── */
     .atd-file-zone {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        padding: 24px 16px;
-        border: 1.5px dashed rgba(255,255,255,0.15);
+        gap: 7px;
+        padding: 26px 16px;
+        border: 1.5px dashed rgba(255,255,255,0.13);
         border-radius: 8px;
         cursor: pointer;
         transition: border-color 0.15s, background 0.15s;
-        min-height: 90px;
+        min-height: 95px;
+        background: rgba(255,255,255,0.015);
+        user-select: none;
     }
-    .atd-file-zone:hover { border-color: rgba(232,119,34,0.5); background: rgba(232,119,34,0.04); }
-    .atd-file-hint { font-size: 0.80rem; color: rgba(255,255,255,0.30); }
-    .atd-file-name { font-size: 0.84rem; color: rgba(255,255,255,0.80); font-weight: 500; word-break: break-all; text-align: center; }
-    .atd-file-size { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
+    .atd-file-zone:hover {
+        border-color: rgba(232,119,34,0.45);
+        background: rgba(232,119,34,0.04);
+    }
+    .atd-file-hint {
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.45);
+        font-weight: 500;
+    }
+    .atd-file-sub {
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.22);
+    }
+    .atd-file-name {
+        font-size: 0.84rem;
+        color: rgba(255,255,255,0.82);
+        font-weight: 500;
+        word-break: break-all;
+        text-align: center;
+        max-width: 100%;
+    }
+    .atd-file-size {
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.35);
+    }
+
+    /* ── error ── */
+    .atd-error {
+        color: #f44336;
+        font-size: 0.79rem;
+    }
+
+    /* ── actions ── */
+    .atd-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 20px;
+    }
+    .atd-btn-cancel {
+        color: rgba(255,255,255,0.40) !important;
+        text-transform: none !important;
+        font-size: 0.84rem !important;
+    }
+    .atd-btn-cancel:hover {
+        background: rgba(255,255,255,0.05) !important;
+        color: rgba(255,255,255,0.65) !important;
+    }
+    .atd-btn-add {
+        background: #E87722 !important;
+        color: #fff !important;
+        text-transform: none !important;
+        border-radius: 24px !important;
+        min-width: 110px !important;
+        font-weight: 600 !important;
+        font-size: 0.84rem !important;
+        letter-spacing: 0.02em !important;
+    }
+    .atd-btn-add:hover:not([disabled]) {
+        background: #d06a1c !important;
+    }
+    .atd-btn-add[disabled] {
+        opacity: 0.35 !important;
+        cursor: default !important;
+    }
 </style>
 
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-    [Inject] IJSRuntime JS { get; set; } = default!;
 
     private string _name = string.Empty;
     private IBrowserFile? _file;
@@ -91,14 +214,12 @@
 
     private bool CanConfirm => !string.IsNullOrWhiteSpace(_name) && _file is not null;
 
-    private async Task TriggerPicker()
-        => await JS.InvokeVoidAsync("document.getElementById('atd-file-input').click");
-
     private void OnFileChange(InputFileChangeEventArgs e)
     {
         _file = e.File;
         if (string.IsNullOrWhiteSpace(_name))
             _name = Path.GetFileNameWithoutExtension(e.File.Name);
+        _error = null;
     }
 
     private void Cancel() => MudDialog.Cancel();

@@ -15,14 +15,14 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     public class UploadChunkStrategy : ICheckinStrategy
     {
         private readonly IUploadService _uploadService;
-        private readonly CommandService _commandService;
+        private readonly ICommandService _commandService;
         private readonly TaskRepository _taskRepo;
         private readonly AgentRepository _agentRepo;
         private readonly INotificationDispatcher _hub;
 
         public UploadChunkStrategy(
             IUploadService uploadService,
-            CommandService commandService,
+            ICommandService commandService,
             TaskRepository taskRepo,
             AgentRepository agentRepo,
             INotificationDispatcher notificationHub)

@@ -14,13 +14,13 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     public class DownloadChunkStrategy : ICheckinStrategy
     {
         private readonly IDownloadService _downloadService;
-        private readonly CommandService _commandService;
+        private readonly ICommandService _commandService;
         private readonly TaskRepository _taskRepo;
         private readonly INotificationDispatcher _hub;
 
         public DownloadChunkStrategy(
             IDownloadService downloadService,
-            CommandService commandService,
+            ICommandService commandService,
             TaskRepository taskRepo,
             INotificationDispatcher notificationHub)
         {

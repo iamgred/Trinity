@@ -16,8 +16,7 @@ public class HelpStrategy : ICommandStrategy
         ["upload"]           = ("upload <path>",                              "Push a file from the team server to the agent",                       "Uploads a staged file to <path> on the agent.\nExample: upload C:\\Temp\\tool.exe"),
         ["execute-assembly"] = ("execute-assembly <path> [args]",             "Execute a .NET assembly in memory",                                   "Loads and runs the managed assembly at <path> without writing to disk.\nExample: execute-assembly C:\\Tools\\Rubeus.exe kerberoast"),
         ["escalate"]         = ("escalate <regKey> <targetBinary>",           "Escalate privileges via a registry key UAC bypass",                   "Uses <regKey> to hijack a privileged auto-elevated binary.\nExample: escalate HKCU\\...\\ms-settings cmd.exe"),
-        ["keylogger"]        = ("keylogger <start|stop>",                     "Start or stop the keylogger",                                         "Starts or stops the in-memory keylogger on the agent.\nExample: keylogger start\nExample: keylogger stop"),
-        ["help"]             = ("help [command]",                             "Show all commands, or detail for a specific command",                 "With no argument: list every command.\nWith a keyword: show its usage and description.\nExample: help download"),
+["help"]             = ("help [command]",                             "Show all commands, or detail for a specific command",                 "With no argument: list every command.\nWith a keyword: show its usage and description.\nExample: help download"),
     };
 
     public Task<Result<string>> ProcessCommandAsync(int agentID, string command)

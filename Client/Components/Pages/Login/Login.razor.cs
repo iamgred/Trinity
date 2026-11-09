@@ -2,6 +2,7 @@ using Client.Components.Shell;
 using Client.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Trinity.Shared.Interfaces;
 
 namespace Client.Components.Pages.Login;
 
@@ -17,6 +18,9 @@ public partial class Login
 
     [Inject]
     private AdminService AdminService { get; set; } = default!;
+
+    [Inject]
+    private ICampaignAPI CampaignAPI { get; set; } = default!;
 
     [Inject]
     private ProtectedSessionStorage Session { get; set; } = default!;
@@ -65,6 +69,8 @@ public partial class Login
             // forget the password once its sent
             _password = "";
 
+            await TrySetCampaignIdAsync();
+
             var user = new ShellUser(_username.Trim(), await IsAdminAsync(_username.Trim()) ? "admin" : "operator");
             await Session.SetAsync(ShellUser.StorageKey, user);
             Nav.NavigateTo("agents");
@@ -77,6 +83,17 @@ public partial class Login
         {
             _isSigningIn = false;
         }
+    }
+
+    private async Task TrySetCampaignIdAsync()
+    {
+        try
+        {
+            var campaigns = await CampaignAPI.GetCampaignsAsync();
+            if (campaigns is { Count: > 0 })
+                TeamServerConnection.SetCampaignId(campaigns[0].ID);
+        }
+        catch (HttpRequestException) { }
     }
 
     // TODO(connect to backend): login doesn't say if you're an admin, so check the admin list

@@ -59,8 +59,8 @@ public partial class LootPanel : ComponentBase
             _items.RemoveAll(i => i.Type == "Download");
             _items.InsertRange(0, downloads.Select(d => new LootItem
             {
-                Type = "Download", Name = d.Name, PathOrValue = d.Path,
-                Received = 0, Status = "complete", Collected = DateTime.UtcNow,
+                Type = "Download", Name = d.Name, PathOrValue = d.Name,
+                Size = d.Size, Received = d.Size, Status = "complete", Collected = d.LastModified,
             }));
         }
         catch (Exception e)
@@ -77,6 +77,7 @@ public partial class LootPanel : ComponentBase
         if (url is not null)
             await JS.InvokeVoidAsync("open", url, "_blank");
     }
+
 
     private void CancelDownload()
     {

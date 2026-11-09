@@ -3,6 +3,9 @@ namespace Client.Services;
 public sealed class TeamServerConnection
 {
     public Uri? BaseAddress { get; private set; }
+    public int? CampaignId { get; private set; }
+
+    public void SetCampaignId(int id) => CampaignId = id;
 
     public void Configure(string address)
     {

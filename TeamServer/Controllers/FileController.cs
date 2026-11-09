@@ -1,6 +1,5 @@
 // ============================================== { START OF FILE } ============================================== //
 using Microsoft.AspNetCore.Mvc;
-using Trinity.Shared.Enums;
 using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Controllers
@@ -9,84 +8,28 @@ namespace TeamServer.Controllers
     [Route(Routes.Files)]
     public class FilesController : ControllerBase
     {
-        private readonly IFileStorageService _fileStorageService;
-        public FilesController(IFileStorageService fileStorageService)
+        private readonly IReceivedFileService _files;
+
+        public FilesController(IReceivedFileService files)
         {
-            _fileStorageService = fileStorageService;
+            _files = files;
         }
 
-        /// <summary>
-        /// Uploads a file to the uploads directory.
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        // [HttpPost("upload")]
-        // public async Task<IActionResult> UploadFileAsync([FromBody] IFormFile file)
-        // {
-        //     var result = await _fileStorageService.SaveFileAsync(file);
-
-        //     if (!result.IsSuccess)
-        //     {
-        //         return BadRequest(result.Error);
-        //     }
-
-        //     return Ok(result.Response);
-        // }
-
-        /// <summary>
-        /// Downloads a file from the uploads or loot directory.
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="folderName"></param>
-        /// <returns></returns>
-        [HttpGet("download/{fileName}")]
-        public async Task<IActionResult> DownloadFileAsync(
-            string fileName,
-            [FromQuery] FileFolders folderName)
+        [HttpGet("{campaignId:int}")]
+        public async Task<IActionResult> ListFilesAsync(int campaignId)
         {
-            var result = await _fileStorageService.GetFileAsync(fileName, folderName);
-
-            if (!result.IsSuccess)
-            {
-                return NotFound(result.Error);
-            }
-
-            return File(result.Response!, "application/octet-stream", fileName);
+            var files = await _files.ListFilesAsync(campaignId);
+            return Ok(files);
         }
 
-        /// <summary>
-        /// Lists all files in the uploads or loot directory.
-        /// </summary>
-        /// <param name="folderName"></param>
-        /// <returns></returns>
-        [HttpGet]
-        public IActionResult ListFiles([FromQuery] FileFolders folderName)
+        [HttpGet("{campaignId:int}/download/{fileName}")]
+        public async Task<IActionResult> DownloadFileAsync(int campaignId, string fileName)
         {
-            var result = _fileStorageService.ListFiles(folderName);
+            var stream = await _files.OpenFileAsync(campaignId, fileName);
+            if (stream is null)
+                return NotFound();
 
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result.Error);
-            }
-
-            return Ok(result.Response);
-        }
-        /// <summary>
-        /// Uploads a file to the uploads directory.
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<IActionResult> UploadFile(IFormFile file)
-        {
-            var result = await _fileStorageService.SaveFileAsync(file);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result.Error);
-            }
-
-            return Ok(result.Response);
+            return File(stream, "application/octet-stream", fileName);
         }
     }
 }

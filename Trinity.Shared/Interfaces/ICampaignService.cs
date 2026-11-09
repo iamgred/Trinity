@@ -11,6 +11,7 @@ namespace Trinity.Shared.Interfaces
         Task<Result> CreateCampaignAsync(Campaign newCampaign);
         Task<Result> UpdateCampaignAsync(Campaign updatedCampaign);
         Task<Result> DeleteCampaignAsync(int campaignID);
+        Task<Result<List<Campaign>>> GetCampaignsByOperatorIdAsync(int operatorId);
         Task<Result<List<Operator>>> GetOperatorsByCampaignIdAsync(int campaignID);
         Task<Result> AssignOperatorToCampaignAsync(int operatorID, int campaignID);
         Task<Result> RemoveOperatorFromCampaignAsync(int operatorID, int campaignID);

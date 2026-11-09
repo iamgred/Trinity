@@ -95,7 +95,7 @@ public partial class Login
     {
         try
         {
-            var campaigns = await CampaignAPI.GetCampaignsAsync();
+            var campaigns = await CampaignAPI.GetMyCampaignsAsync();
             if (campaigns is { Count: > 0 })
                 TeamServerConnection.SetCampaignId(campaigns[0].ID);
         }

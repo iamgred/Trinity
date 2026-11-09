@@ -9,6 +9,9 @@ namespace Trinity.Shared.Interfaces
         [Get("/api/v1/campaigns")]
         Task<List<CampaignModel>> GetCampaignsAsync();
 
+        [Get("/api/v1/campaigns/mine")]
+        Task<List<CampaignModel>> GetMyCampaignsAsync();
+
         [Get("/api/v1/campaigns/{id}")]
         Task<CampaignModel> GetByIdAsync(int id);
 

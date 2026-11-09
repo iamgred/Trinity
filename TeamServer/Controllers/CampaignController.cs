@@ -1,6 +1,9 @@
 // ==================================================================== { START OF FILE } ===================================================================== //
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using TeamServer.Repositories;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
@@ -12,11 +15,33 @@ namespace TeamServer.Controllers
     {
         private readonly ICampaignService _campaignService;
         private readonly IValidator<Campaign> _campaignValidator;
+        private readonly OperatorRepository _operators;
 
-        public CampaignController(ICampaignService campaignService, IValidator<Campaign> campaignValidator)
+        public CampaignController(ICampaignService campaignService, IValidator<Campaign> campaignValidator, OperatorRepository operators)
         {
             _campaignService = campaignService;
             _campaignValidator = campaignValidator;
+            _operators = operators;
+        }
+
+        /// <summary>
+        /// Get campaigns assigned to the authenticated operator
+        /// </summary>
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMyCampaignsAsync()
+        {
+            var username = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                        ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (username is null)
+                return Unauthorized();
+
+            var op = await _operators.GetByUsernameAsync(username);
+            if (op is null)
+                return NotFound();
+
+            var result = await _campaignService.GetCampaignsByOperatorIdAsync(op.ID);
+            return result.IsSuccess ? Ok(result.Response) : BadRequest(result.Error);
         }
 
         /// <summary>

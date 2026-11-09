@@ -15,6 +15,14 @@ namespace TeamServer.Repositories
         /// </summary>
         /// <param name="campaignID"></param>
         /// <returns>A list of Operators associated with the specified Campaign ID.</returns>
+        public async Task<List<Campaign>> GetCampaignsByOperatorIdAsync(int operatorId)
+        {
+            return await _context.CampaignBridges
+                .Where(cb => cb.OperatorID == operatorId)
+                .Join(_context.Campaigns, cb => cb.CampaignID, c => c.ID, (cb, c) => c)
+                .ToListAsync();
+        }
+
         public async Task<List<Operator>> GetOperatorsByCampaignIdAsync(int campaignID)
         {
             List<Operator> result = await _context.CampaignBridges

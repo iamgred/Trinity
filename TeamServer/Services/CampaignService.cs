@@ -72,6 +72,11 @@ namespace TeamServer.Services
             return Result.Success();
         }
 
+        public async Task<Result<List<Campaign>>> GetCampaignsByOperatorIdAsync(int operatorId)
+        {
+            return await _campaignBridgeRepository.GetCampaignsByOperatorIdAsync(operatorId);
+        }
+
         public async Task<Result<List<Operator>>> GetOperatorsByCampaignIdAsync(int campaignID)
         {
             var campaign = await _campaignRepository.GetCampaignByIdAsync(campaignID);

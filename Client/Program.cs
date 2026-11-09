@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Client.Components;
 using Client.Interpreter;
 using Client.Interpreter.Strategies;
@@ -34,7 +35,11 @@ namespace Client
             // so no Bearer token is required here.
             builder.Services.AddHttpClient("TeamServer", c => c.BaseAddress = new Uri(teamServerUrl));
 
-            var refitSettings = new RefitSettings();
+            var refitSettings = new RefitSettings
+            {
+                ContentSerializer = new SystemTextJsonContentSerializer(
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+            };
 
             // Refit typed HTTP clients — all scoped, all share the circuit's AuthTokenHandler.
             // Using RestService.For<T> (not IHttpClientFactory) so the scoped handler is

@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using Trinity.Shared.Models;
+using Trinity.Shared.DTOs.Agent;
 
 namespace Client.Services;
 
@@ -14,8 +14,8 @@ public class AgentService
     /// GET /api/v1/agents — returns every agent currently checked in.
     /// Returns an empty list (not null) if the server returns nothing.
     /// </summary>
-    public async Task<List<Agent>> GetTasksAsync()
-        => await _http.GetFromJsonAsync<List<Agent>>("/api/v1/agents") ?? [];
+    public async Task<List<AgentResponse>> GetTasksAsync()
+        => await _http.GetFromJsonAsync<List<AgentResponse>>("/api/v1/agents") ?? [];
 
     /// <summary>
     /// GET /api/v1/agents/{id} — returns one specific agent, or null if not found.

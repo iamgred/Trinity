@@ -88,14 +88,10 @@
         _sending = true;
         try
         {
-            var dto      = Interpreter.ProcessRawInput(input);
-            var route    = Interpreter.GetCommandEndpoint(dto);
-            var endpoint = $"/api/v1/agents/{AgentId}{route}";
-
-            var result = await TaskService.PostCommandAsync(endpoint, dto);
-            _outputs.Add(result is not null
-                ? $"[+] Task queued — ID: {result.TaskID}"
-                : "[-] TeamServer did not accept the command.");
+            var result = await Interpreter.Interpret(AgentId, input);
+            _outputs.Add(result.IsSuccess
+                ? $"[+] {result.Response}"
+                : $"[-] {result.Error.Description}");
         }
         catch (NotSupportedException ex) { _outputs.Add($"[!] {ex.Message}"); }
         catch (Exception ex)             { _outputs.Add($"[!] Error: {ex.Message}"); }

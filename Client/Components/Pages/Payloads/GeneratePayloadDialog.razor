@@ -3,6 +3,7 @@
 @using Client.Components.UI
 @using Client.Services
 @using Trinity.Shared.DTOs.Payload
+@using Trinity.Shared.Enums
 @using Campaign = Trinity.Shared.Models.Campaign
 @inject ListenerApiClient ListenerApi
 @inject CampaignService CampaignService
@@ -116,9 +117,8 @@
             Name = _name.Trim(),
             ListenerID = _listenerId,
             CampaignID = _campaignId,
-            Architecture = "x64",
-            Type = _type,
-            OutputFormat = _type,
+            Architecture = Arch.x64,
+            Type = _type == "dll" ? PayloadType.WINDOWS_DLL : PayloadType.WINDOWS_EXE,
         };
 
         _busy = true;

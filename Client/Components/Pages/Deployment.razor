@@ -693,13 +693,10 @@ private record AgentDto(int ID, string Username, DateTime LastCheckIn, int Campa
     {
         try
         {
-            var dto      = Interpreter.ProcessRawInput(cmd);
-            var route    = Interpreter.GetCommandEndpoint(dto);
-            var endpoint = $"/api/v1/agents/{_activeAgentId}{route}";
-            var result   = await TaskService.PostCommandAsync(endpoint, dto);
-            _termOutput += result is not null
-                ? $"<span style='color:#4CAF50;'>[+] Task queued — ID: {result.TaskID}</span>\n\n"
-                : "<span style='color:#f44336;'>[-] TeamServer rejected the command.</span>\n\n";
+            var result = await Interpreter.Interpret(_activeAgentId!.Value, cmd);
+            _termOutput += result.IsSuccess
+                ? $"<span style='color:#4CAF50;'>[+] {Esc(result.Response ?? string.Empty)}</span>\n\n"
+                : $"<span style='color:#f44336;'>[-] {Esc(result.Error.Description)}</span>\n\n";
         }
         catch (NotSupportedException ex)
         {

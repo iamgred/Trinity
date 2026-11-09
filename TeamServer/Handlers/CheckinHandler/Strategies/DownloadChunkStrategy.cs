@@ -16,13 +16,13 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         private readonly IDownloadService _downloadService;
         private readonly CommandService _commandService;
         private readonly TaskRepository _taskRepo;
-        private readonly INotificationHub _hub;
+        private readonly INotificationDispatcher _hub;
 
         public DownloadChunkStrategy(
             IDownloadService downloadService,
             CommandService commandService,
             TaskRepository taskRepo,
-            INotificationHub notificationHub)
+            INotificationDispatcher notificationHub)
         {
             _downloadService = downloadService;
             _commandService = commandService;

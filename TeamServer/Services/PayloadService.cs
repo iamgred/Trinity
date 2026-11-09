@@ -18,7 +18,7 @@ namespace TeamServer.Services
         private readonly ListenerRespository _listenerRepository;
         private readonly IPayloadBuilder _payloadBuilder;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly INotificationHub _hub;
+        private readonly INotificationDispatcher _hub;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         public PayloadService(
@@ -26,7 +26,7 @@ namespace TeamServer.Services
             ListenerRespository listenerRepository, 
             IPayloadBuilder payloadBuilder, 
             IWebHostEnvironment webHostEnvironment,
-            INotificationHub notificationHub)
+            INotificationDispatcher notificationHub)
         {
             _payloadRepository = payloadRepository;
             _listenerRepository = listenerRepository;

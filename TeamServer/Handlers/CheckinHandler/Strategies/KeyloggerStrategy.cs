@@ -15,9 +15,9 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
         private readonly TaskRepository _taskRepo;
         private readonly IKeyloggerService _keyloggerService;
         private readonly AgentRepository _agentRepo;
-        private readonly INotificationHub _hub;
+        private readonly INotificationDispatcher _hub;
 
-        public KeyloggerStrategy(TaskRepository taskRepository, IKeyloggerService keyloggerService, AgentRepository agentRepository, INotificationHub notificationHub)
+        public KeyloggerStrategy(TaskRepository taskRepository, IKeyloggerService keyloggerService, AgentRepository agentRepository, INotificationDispatcher notificationHub)
         {
             _taskRepo = taskRepository;
             _keyloggerService = keyloggerService;

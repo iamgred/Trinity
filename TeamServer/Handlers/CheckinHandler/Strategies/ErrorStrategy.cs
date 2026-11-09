@@ -13,14 +13,14 @@ namespace TeamServer.Handlers.CheckinHandler.Strategies
     {
         private readonly TaskRepository _taskRepo;
 
-        private readonly INotificationHub _hub;
+        private readonly INotificationDispatcher _hub;
 
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="taskRepository"></param>
-        public ErrorStrategy(TaskRepository taskRepository, INotificationHub notificationHub)
+        public ErrorStrategy(TaskRepository taskRepository, INotificationDispatcher notificationHub)
         {
             _taskRepo = taskRepository;
             _hub = notificationHub;

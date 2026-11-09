@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using Client.Interpreter
 @using Client.Services
+@using Trinity.Shared.DTOs.Notification
 @implements IAsyncDisposable
 
 @inject CommandInterpreter Interpreter
@@ -56,15 +57,16 @@
         .WithAutomaticReconnect()
         .Build();
 
-    _hubConnection.On<string>("RecieveTaskOutput", async output =>
+    _hubConnection.On<TaskNotification>("TaskNotification", async notification =>
     {
-        _outputs.Add(output);
+        _outputs.Add(notification.message);
         await InvokeAsync(StateHasChanged);
     });
 
     try
     {
         await _hubConnection.StartAsync();
+        await _hubConnection.InvokeAsync("SubscribeToAgent", AgentId.ToString());
         _outputs.Add("[+] Connected to TeamServer");
     }
     catch (Exception ex)

@@ -29,8 +29,8 @@
             <div class="nld-row">
                 <span class="nld-label">Type</span>
                 <div class="nld-toggle-group">
-                    <button type="button" class="nld-toggle-btn @(_type == "HTTP"  ? "nld-toggle-on" : "")" @onclick='() => SetType("HTTP")'>HTTP</button>
-                    <button type="button" class="nld-toggle-btn @(_type == "HTTPS" ? "nld-toggle-on" : "")" @onclick='() => SetType("HTTPS")'>HTTPS</button>
+                    <button type="button" class="nld-toggle-btn @(_type == "HTTP"  ? "nld-toggle-on" : "")" disabled="@IsEdit" @onclick='() => SetType("HTTP")'>HTTP</button>
+                    <button type="button" class="nld-toggle-btn @(_type == "HTTPS" ? "nld-toggle-on" : "")" disabled="@IsEdit" @onclick='() => SetType("HTTPS")'>HTTPS</button>
                 </div>
             </div>
 

@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
+using MudBlazor;
 using Client.Services;
+using Client.Components.Pages.Dialogs;
 using Tool = Trinity.Shared.Models.Tool;
 using SysTask = System.Threading.Tasks.Task;
 
@@ -12,6 +14,7 @@ public partial class ArmouryPanel : ComponentBase
     [Inject] ArmouryService ArmouryService { get; set; } = null!;
     [Inject] IJSRuntime JS { get; set; } = null!;
     [Inject] IConfiguration Config { get; set; } = null!;
+    [Inject] IDialogService DialogService { get; set; } = null!;
 
     private List<Tool> _tools = [];
     private Tool? _selected;
@@ -43,12 +46,18 @@ public partial class ArmouryPanel : ComponentBase
 
     private bool IsCopied(Tool tool) => _copied.Contains(tool.ID);
 
-    private async SysTask HandleUpload(InputFileChangeEventArgs e)
+    private async SysTask HandleAdd()
     {
-        var file = e.File;
-        await using var stream = file.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024);
-        await ArmouryService.UploadAsync(file.Name, 1, stream, file.Name);
-        await RefreshAsync();
+        var dialog = await DialogService.ShowAsync<AddToolDialog>(
+            string.Empty,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: (string name, IBrowserFile file) })
+        {
+            await using var stream = file.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024);
+            await ArmouryService.UploadAsync(name, 1, stream, file.Name);
+            await RefreshAsync();
+        }
     }
 
     private async SysTask HandleRemove()

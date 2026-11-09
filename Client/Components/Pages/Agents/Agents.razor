@@ -5,9 +5,9 @@
 @using Trinity.Shared.DTOs.Agent
 @using Client.Components.UI
 
-<div class="agents-layout @(_openTerminals.Count > 0 ? "agents-layout--split" : "")">
+<div>
 
-    <div class="agents-top">
+    <div>
         <div class="v2-header">
             <div class="v2-header-left">
                 <span class="v2-header-title">Agents</span>
@@ -88,40 +88,6 @@
             </MudTable>
         </div>
     </div>
-
-    @if (_openTerminals.Count > 0)
-    {
-        <div class="agents-terminal">
-            <MudTabs @bind-ActivePanelIndex="_activeTabIndex"
-                     KeepPanelsAlive="true"
-                     Rounded="false"
-                     Border="false"
-                     Elevation="0"
-                     PanelClass="pa-0 term-tab-panel"
-                     Class="term-tabs"
-                     TabHeaderClass="term-tab-header">
-                @foreach (var term in _openTerminals)
-                {
-                    var t = term;
-                    <MudTabPanel @key="t.agentID" PanelClass="pa-0 term-tab-panel">
-                        <TabContent>
-                            <span class="term-tab-label">
-                                <MudIcon Icon="@Icons.Material.Filled.Terminal" Size="Size.Small" Class="term-tab-icon" />
-                                @(t.username ?? $"agent {t.agentID}")
-                                <MudIconButton Icon="@Icons.Material.Filled.Close"
-                                               Size="Size.Small"
-                                               Class="term-tab-close"
-                                               OnClick="@(() => CloseTerminal(t))" />
-                            </span>
-                        </TabContent>
-                        <ChildContent>
-                            <AgentTerminal AgentId="@t.agentID" OnClose="@(() => CloseTerminal(t))" />
-                        </ChildContent>
-                    </MudTabPanel>
-                }
-            </MudTabs>
-        </div>
-    }
 
 </div>
 

@@ -404,3 +404,15 @@
 .c2-err {
     color: #F44336;
 }
+
+.agent-term-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.agent-term-container--hidden {
+    display: none !important;
+}

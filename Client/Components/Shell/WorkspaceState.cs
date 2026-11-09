@@ -14,9 +14,35 @@ public sealed class WorkspaceState
 
     public List<ShellTab> Tabs { get; } = [new("Event Log", "logs")];
 
+    public int ActiveBottomTab { get; set; } = 0;
+    public List<AgentResponse> OpenAgentTerminals { get; } = [];
+
     public event Action? Changed;
 
     public void Notify() => Changed?.Invoke();
+
+    public void OpenAgentTerminal(AgentResponse agent)
+    {
+        var existing = OpenAgentTerminals.FindIndex(t => t.agentID == agent.agentID);
+        if (existing >= 0)
+            ActiveBottomTab = existing + 2;
+        else
+        {
+            OpenAgentTerminals.Add(agent);
+            ActiveBottomTab = OpenAgentTerminals.Count - 1 + 2;
+        }
+        Notify();
+    }
+
+    public void CloseAgentTerminal(int agentId)
+    {
+        var idx = OpenAgentTerminals.FindIndex(t => t.agentID == agentId);
+        if (idx < 0) return;
+        OpenAgentTerminals.RemoveAt(idx);
+        if (ActiveBottomTab >= idx + 2)
+            ActiveBottomTab = Math.Max(0, ActiveBottomTab - 1);
+        Notify();
+    }
 
     public IEnumerable<AgentResponse> FilteredAgents
     {

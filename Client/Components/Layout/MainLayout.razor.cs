@@ -54,8 +54,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     ];
 
     private int _bottomH = 220;
-    private int _bottomTab = 0;
-    private void SetBottomTab(int idx) => _bottomTab = idx;
+    private void SetBottomTab(int idx) { _workspaceState.ActiveBottomTab = idx; }
     private bool _serverOnline = false;
     private string _termHtml = "<span style='color:#E87722;font-weight:600;'>Trinity C2 v2.0 — Terminal Ready</span>\n\n";
     private string _termInput = string.Empty;
@@ -66,6 +65,11 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private readonly List<EventEntry> _events = [];
     private record EventEntry(string Stamp, string Level, string Message);
     private readonly WorkspaceState _workspaceState = new();
+
+    protected override void OnInitialized()
+    {
+        _workspaceState.Changed += () => InvokeAsync(StateHasChanged);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

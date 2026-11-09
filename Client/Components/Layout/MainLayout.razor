@@ -3,6 +3,7 @@
 @using MudBlazor
 @using Microsoft.AspNetCore.Components.Routing
 @using Client.Components.Shell
+@using Client.Components.UI
 
 <MudThemeProvider Theme="_theme" IsDarkMode="true" />
 <MudDialogProvider />
@@ -74,15 +75,26 @@
     <div class="c2-bottom-panel" id="bottom-panel" style="height: @(_bottomH)px;">
         <div class="c2-panel-draghandle"></div>
         <div class="c2-panel-tabs">
-            <button class="c2-panel-tab @(_bottomTab == 0 ? "active" : "")" @onclick="() => SetBottomTab(0)">
+            <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == 0 ? "active" : "")" @onclick="() => SetBottomTab(0)">
                 Event Log <span class="c2-tab-x">×</span>
             </button>
-            <button class="c2-panel-tab @(_bottomTab == 1 ? "active" : "")" @onclick="() => SetBottomTab(1)">
+            <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == 1 ? "active" : "")" @onclick="() => SetBottomTab(1)">
                 Terminal <span class="c2-tab-x">×</span>
             </button>
+            @foreach (var (term, ti) in _workspaceState.OpenAgentTerminals.Select((a, i) => (a, i)))
+            {
+                var tabIdx = ti + 2;
+                var t = term;
+                <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == tabIdx ? "active" : "")"
+                        @onclick="() => SetBottomTab(tabIdx)">
+                    @(t.username ?? $"agent {t.agentID}")
+                    <span class="c2-tab-x" @onclick:stopPropagation="true"
+                          @onclick="() => _workspaceState.CloseAgentTerminal(t.agentID)">×</span>
+                </button>
+            }
         </div>
         <div class="c2-panel-body">
-            @if (_bottomTab == 0)
+            @if (_workspaceState.ActiveBottomTab == 0)
             {
                 @if (_events.Count == 0)
                 {
@@ -100,7 +112,7 @@
                     }
                 }
             }
-            @if (_bottomTab == 1)
+            @if (_workspaceState.ActiveBottomTab == 1)
             {
                 <div class="term-output" id="term-output">@((MarkupString)_termHtml)</div>
                 <div class="term-input-row">
@@ -113,6 +125,16 @@
                            @bind:event="oninput"
                            @onkeydown="OnTermKeyDown"
                            placeholder="type a command..." />
+                </div>
+            }
+            @foreach (var (term, ti) in _workspaceState.OpenAgentTerminals.Select((a, i) => (a, i)))
+            {
+                var tabIdx = ti + 2;
+                var t = term;
+                <div @key="t.agentID"
+                     class="@(_workspaceState.ActiveBottomTab == tabIdx ? "agent-term-container" : "agent-term-container agent-term-container--hidden")">
+                    <AgentTerminal AgentId="@t.agentID"
+                                   OnClose="() => _workspaceState.CloseAgentTerminal(t.agentID)" />
                 </div>
             }
         </div>

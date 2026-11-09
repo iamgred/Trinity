@@ -16,6 +16,7 @@ public partial class LootPanel : ComponentBase
         public long   Received    { get; set; }
         public required string Status      { get; set; }
         public required DateTime Collected { get; init; }
+        public string? Note       { get; set; }
     }
 
     [Inject] private IJSRuntime    JS      { get; set; } = default!;
@@ -27,9 +28,8 @@ public partial class LootPanel : ComponentBase
     private bool      _isLoading;
     private LootItem? _selected;
     private string?   _copyStatus;
-    private bool      _noteOpen;
-    private string    _noteName  = "";
-    private string    _noteText  = "";
+    private LootItem? _noteTarget;
+    private string    _noteDraft  = "";
     private string?   _noteError;
 
     private IEnumerable<LootItem> Filtered => _items;
@@ -85,19 +85,18 @@ public partial class LootPanel : ComponentBase
         _copyStatus = null;
     }
 
-    private void OpenNote() { _noteName = ""; _noteText = ""; _noteError = null; _noteOpen = true; }
+    private void OpenNote(LootItem item) { _noteTarget = item; _noteDraft = item.Note ?? ""; _noteError = null; }
 
     private void SaveNote()
     {
-        if (string.IsNullOrWhiteSpace(_noteName) || string.IsNullOrWhiteSpace(_noteText))
+        if (_noteTarget is null) return;
+        if (string.IsNullOrWhiteSpace(_noteDraft))
         {
-            _noteError = "Fill in a title and the note.";
+            _noteError = "Note cannot be empty.";
             return;
         }
-        var note = new LootItem { Type = "Note", Name = _noteName.Trim(), PathOrValue = _noteText.Trim(), Status = "saved", Collected = DateTime.Now };
-        _items.Insert(0, note);
-        _selected = note;
-        _noteOpen = false;
+        _noteTarget.Note = _noteDraft.Trim();
+        _noteTarget = null;
     }
 
     private void Remove()

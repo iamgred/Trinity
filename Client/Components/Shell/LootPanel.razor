@@ -15,19 +15,19 @@
     <div class="lp2-scroll">
         <table class="lp2-table">
             <colgroup>
-                <col style="width:12%" /><col style="width:28%" />
-                <col style="width:8%" /><col style="width:24%" /><col style="width:13%" /><col style="width:15%" />
+                <col style="width:11%" /><col style="width:26%" />
+                <col style="width:7%" /><col style="width:22%" /><col style="width:12%" /><col style="width:14%" /><col style="width:8%" />
             </colgroup>
             <thead>
                 <tr>
                     <th>type</th><th>name</th>
-                    <th>size</th><th>received</th><th>status</th><th>collected</th>
+                    <th>size</th><th>received</th><th>status</th><th>collected</th><th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Filtered.Any())
                 {
-                    <tr class="lp2-empty"><td colspan="6">@(_isLoading ? "Loading…" : "Nothing collected yet.")</td></tr>
+                    <tr class="lp2-empty"><td colspan="7">@(_isLoading ? "Loading…" : "Nothing collected yet.")</td></tr>
                 }
                 @foreach (var item in Filtered)
                 {
@@ -48,6 +48,14 @@
                         </td>
                         <td><StatusPill Text="@it.Status" Tone="@StatusTone(it.Status)" /></td>
                         <td>@it.Collected.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <button class="lp2-note-btn @(it.Note is not null ? "lp2-note-btn--has" : "")"
+                                    title="@(it.Note ?? "Add note")"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => OpenNote(it)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -59,37 +67,27 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Save to Disk
         </button>
-        <button class="lp2-btn" disabled="@(!CanCancel)" @onclick="CancelDownload">Cancel</button>
         <button class="lp2-btn" disabled="@(_selected is null)" @onclick="CopyValueAsync">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             @(_copyStatus ?? "Copy Value")
-        </button>
-        <button class="lp2-btn" @onclick="OpenNote">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add Note
         </button>
         <button class="lp2-btn lp2-btn-danger" disabled="@(_selected is null)" @onclick="Remove">Remove</button>
     </div>
 
 </div>
 
-@if (_noteOpen)
+@if (_noteTarget is not null)
 {
-    <Modal Title="Add Note" Subtitle="Saved to campaign loot" IconName="loot-note.svg" OnClose="() => _noteOpen = false"
-           FootNote="Notes are saved to the campaign loot." Error="@_noteError">
+    <Modal Title="@(_noteTarget.Note is null ? "Add Note" : "Edit Note")" Subtitle="@_noteTarget.Name" IconName="loot-note.svg" OnClose="() => _noteTarget = null"
+           FootNote="" Error="@_noteError">
         <ChildContent>
             <div class="ts-modal__row">
-                <label for="lp2-note-name">Title</label>
-                <div class="ts-field"><input id="lp2-note-name" @bind="_noteName" @bind:event="oninput" /></div>
-            </div>
-            <div class="ts-modal__row">
                 <label for="lp2-note-text">Note</label>
-                <div class="ts-field"><input id="lp2-note-text" @bind="_noteText" @bind:event="oninput" /></div>
+                <div class="ts-field"><input id="lp2-note-text" @bind="_noteDraft" @bind:event="oninput" /></div>
             </div>
         </ChildContent>
         <Footer>
-            <button type="button" class="ts-btn" @onclick="() => _noteOpen = false">Cancel</button>
-            <button type="button" class="ts-btn ts-btn--primary" @onclick="SaveNote">Add Note</button>
+            <button type="button" class="ts-btn ts-btn--primary" @onclick="SaveNote">Save</button>
         </Footer>
     </Modal>
 }

@@ -63,9 +63,9 @@ public partial class LootPanel : ComponentBase
     private async Task SaveToDiskAsync()
     {
         if (_selected is null) return;
-        var url = await Files.GetDownloadUrlAsync(_selected.Name);
-        if (url is not null)
-            await JS.InvokeVoidAsync("open", url, "_blank");
+        var bytes = await Files.DownloadFileBytesAsync(_selected.Name);
+        if (bytes is not null)
+            await JS.InvokeVoidAsync("downloadBlob", _selected.Name, bytes);
     }
 
 

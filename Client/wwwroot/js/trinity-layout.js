@@ -92,3 +92,15 @@ window.trinityResize = {
         if (el) el.scrollTop = el.scrollHeight;
     }
 };
+
+window.downloadBlob = function (fileName, bytes) {
+    const blob = new Blob([new Uint8Array(bytes)]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};

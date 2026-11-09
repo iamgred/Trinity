@@ -17,13 +17,14 @@ public sealed class FilesApiClient(IFilesAPI api)
         catch (ApiException) { return []; }
     }
 
-    public async Task<string?> GetDownloadUrlAsync(string fileName)
+    public async Task<byte[]?> DownloadFileBytesAsync(string fileName)
     {
         try
         {
             using var resp = await api.DownloadFileAsync(fileName);
-            return resp.RequestMessage?.RequestUri?.ToString();
+            resp.EnsureSuccessStatusCode();
+            return await resp.Content.ReadAsByteArrayAsync();
         }
-        catch (ApiException) { return null; }
+        catch (Exception) { return null; }
     }
 }

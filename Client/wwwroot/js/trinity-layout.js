@@ -1,5 +1,5 @@
 window.trinityResize = {
-    init: function (dotNetRef, panelId, minH, maxH) {
+    init: function (dotNetRef, panelId, minH) {
         const handle = document.getElementById('bottom-resizer');
         if (!handle) return;
         handle.addEventListener('mousedown', function (startEvt) {
@@ -7,6 +7,7 @@ window.trinityResize = {
             const panel = document.getElementById(panelId);
             const startY = startEvt.clientY;
             const startH = panel ? panel.offsetHeight : 220;
+            const maxH = Math.floor(window.innerHeight * 0.88);
             function onMove(e) {
                 const delta = startY - e.clientY;
                 const newH = Math.max(minH, Math.min(maxH, startH + delta));

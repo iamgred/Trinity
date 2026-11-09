@@ -15,11 +15,28 @@ public sealed class WorkspaceState
     public List<ShellTab> Tabs { get; } = [new("Event Log", "logs")];
 
     public int ActiveBottomTab { get; set; } = 0;
+    public bool EventLogVisible { get; set; } = true;
+    public bool PanelVisible => EventLogVisible || OpenAgentTerminals.Count > 0;
     public List<AgentResponse> OpenAgentTerminals { get; } = [];
 
     public event Action? Changed;
 
     public void Notify() => Changed?.Invoke();
+
+    public void CloseEventLog()
+    {
+        EventLogVisible = false;
+        if (ActiveBottomTab == 0 && OpenAgentTerminals.Count > 0)
+            ActiveBottomTab = 1;
+        Notify();
+    }
+
+    public void OpenEventLog()
+    {
+        EventLogVisible = true;
+        ActiveBottomTab = 0;
+        Notify();
+    }
 
     public void OpenAgentTerminal(AgentResponse agent)
     {

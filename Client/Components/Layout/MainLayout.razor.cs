@@ -74,7 +74,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
 
     private async Task InitResizeAsync()
     {
-        await JS.InvokeVoidAsync("trinityResize.init", DotNetObjectReference.Create(this), "bottom-panel", 140, 600);
+        await JS.InvokeVoidAsync("trinityResize.init", DotNetObjectReference.Create(this), "bottom-panel", 140);
     }
 
     private async Task ConnectHubAsync()

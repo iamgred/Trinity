@@ -72,12 +72,19 @@
 
     <div class="c2-workspace">@Body</div>
 
+    @if (_workspaceState.PanelVisible)
+    {
     <div class="c2-bottom-panel" id="bottom-panel" style="height: @(_bottomH)px;">
-        <div class="c2-panel-draghandle"></div>
+        <div class="c2-panel-draghandle" id="bottom-resizer"></div>
         <div class="c2-panel-tabs">
+            @if (_workspaceState.EventLogVisible)
+            {
             <button class="c2-panel-tab @(_workspaceState.ActiveBottomTab == 0 ? "active" : "")" @onclick="() => SetBottomTab(0)">
-                Event Log <span class="c2-tab-x">×</span>
+                Event Log
+                <span class="c2-tab-x" @onclick:stopPropagation="true"
+                      @onclick="() => _workspaceState.CloseEventLog()">×</span>
             </button>
+            }
             @foreach (var (term, ti) in _workspaceState.OpenAgentTerminals.Select((a, i) => (a, i)))
             {
                 var tabIdx = ti + 1;
@@ -91,7 +98,7 @@
             }
         </div>
         <div class="c2-panel-body">
-            @if (_workspaceState.ActiveBottomTab == 0)
+            @if (_workspaceState.EventLogVisible && _workspaceState.ActiveBottomTab == 0)
             {
                 @if (_events.Count == 0)
                 {
@@ -121,6 +128,7 @@
             }
         </div>
     </div>
+    }
 
     <footer class="c2-status-bar">
         <span class="@(_serverOnline ? "c2-ok" : "c2-err")">@(_serverOnline ? "● Connected" : "● Disconnected")</span>
@@ -128,6 +136,12 @@
         <span>0 SMB peers</span>
         <span>0 listeners</span>
         <div class="c2-status-spacer"></div>
+        @if (!_workspaceState.EventLogVisible)
+        {
+            <button class="c2-statusbar-toggle" @onclick="() => _workspaceState.OpenEventLog()" title="Show Event Log">
+                ⌨ Event Log
+            </button>
+        }
         <span class="c2-status-version">Trinity C2 · v2.0</span>
     </footer>
 

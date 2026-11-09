@@ -72,7 +72,8 @@ namespace Client.Interpreter
                 return CommandError.NotFound(command.Trim());
             }
 
-            return await strategy(agentID, command[1..]);
+            var args = tokens.Length > 1 ? command[(tokens[0].Length + 1)..] : string.Empty;
+            return await strategy(agentID, args);
         }
     }
 }

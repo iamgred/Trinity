@@ -67,7 +67,7 @@ public partial class Login
 
             var user = new ShellUser(_username.Trim(), await IsAdminAsync(_username.Trim()) ? "admin" : "operator");
             await Session.SetAsync(ShellUser.StorageKey, user);
-            Nav.NavigateTo(user.IsAdmin ? "campaigns" : "logs");
+            Nav.NavigateTo("agents");
         }
         catch (HttpRequestException)
         {

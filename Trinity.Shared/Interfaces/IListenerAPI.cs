@@ -13,6 +13,9 @@ namespace Trinity.Shared.Interfaces
         [Get("/api/v1/listeners")]
         Task<List<ListenerResponse>> GetListenersAsync();
 
+        [Get("/api/v1/listeners/http/{id}")]
+        Task<GetListenerDetailsResponse> GetListenerByIDAsync(int id);
+
         [Post("/api/v1/listeners/http")]
         Task CreateHttpListenerAsync([Body] CreateHttpListenerRequest request);
 
@@ -24,6 +27,12 @@ namespace Trinity.Shared.Interfaces
 
         [Post("/api/v1/listeners/smb")]
         Task CreateSmbListenerAsync([Body] CreateSmbRequest request);
+
+        [Put("/api/v1/listeners/http/{id}")]
+        Task UpdateHttpListenerAsync(int id, [Body] UpdateHttpListenerRequest request);
+
+        [Put("/api/v1/listeners/https/{id}")]
+        Task UpdateHttpsListenerAsync(int id, [Body] UpdateHttpsListenerRequest request);
 
         [Delete("/api/v1/listeners/{id}")]
         Task DeleteAsync(int id);

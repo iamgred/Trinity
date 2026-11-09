@@ -1,4 +1,5 @@
 using Refit;
+using System.Text.Json;
 using Trinity.Shared.DTOs.Listener.Http;
 using Trinity.Shared.DTOs.Listener.Https;
 using Trinity.Shared.DTOs.Listener.Tcp;
@@ -8,6 +9,12 @@ using Trinity.Shared.Interfaces;
 namespace Client.Services;
 
 public sealed record ListenerResponse(int id, string name, string protocol);
+
+public sealed record ListenerDetails(
+    int Id, string Name, string Protocol,
+    int C2Port, int BindPort,
+    List<string> Hosts, string RotationStrategy,
+    string? UserAgent, string? Header);
 
 public sealed class ListenerApiClient(IListenerAPI api)
 {
@@ -19,6 +26,40 @@ public sealed class ListenerApiClient(IListenerAPI api)
             return items.Select(l => new ListenerResponse(l.ID, l.name, l.protocol)).ToList();
         }
         catch (ApiException) { return []; }
+    }
+
+    public async Task<ListenerDetails?> GetListenerDetailsAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var resp = await api.GetListenerByIDAsync(id);
+            var root = resp.config.RootElement;
+
+            var proto = resp.name.Contains("https", StringComparison.OrdinalIgnoreCase) ? "HTTPS" : "HTTP";
+
+            root.TryGetProperty("c2Port", out var c2El);
+            root.TryGetProperty("bindPort", out var bpEl);
+            root.TryGetProperty("userAgent", out var uaEl);
+            root.TryGetProperty("header", out var hdEl);
+            root.TryGetProperty("rotationStrategy", out var rotEl);
+
+            var hosts = new List<string>();
+            if (root.TryGetProperty("hosts", out var hostsEl) && hostsEl.ValueKind == JsonValueKind.Array)
+                foreach (var h in hostsEl.EnumerateArray())
+                    hosts.Add(h.GetString() ?? "");
+
+            return new ListenerDetails(
+                Id: resp.ID,
+                Name: resp.name,
+                Protocol: proto,
+                C2Port: c2El.ValueKind == JsonValueKind.Number ? c2El.GetInt32() : 443,
+                BindPort: bpEl.ValueKind == JsonValueKind.Number ? bpEl.GetInt32() : 8080,
+                Hosts: hosts,
+                RotationStrategy: rotEl.ValueKind == JsonValueKind.String ? rotEl.GetString()! : "round-robin",
+                UserAgent: uaEl.ValueKind == JsonValueKind.String ? uaEl.GetString() : null,
+                Header: hdEl.ValueKind == JsonValueKind.String ? hdEl.GetString() : null);
+        }
+        catch (ApiException) { return null; }
     }
 
     public async Task<bool> CreateHttpListenerAsync(string name, string host, int port, CancellationToken cancellationToken = default)
@@ -49,6 +90,26 @@ public sealed class ListenerApiClient(IListenerAPI api)
         {
             var request = new CreateHttpsListenerRequest(name, new HttpsConfig(c2Port, userAgent, header, hosts, rotationStrategy, "3"));
             await api.CreateHttpsListenerAsync(request);
+            return true;
+        }
+        catch (ApiException) { return false; }
+    }
+
+    public async Task<bool> UpdateHttpAsync(int id, List<string> hosts, int bindPort, int c2Port, string? userAgent, string? header, string rotationStrategy, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await api.UpdateHttpListenerAsync(id, new UpdateHttpListenerRequest(new HttpConfig(bindPort, c2Port, userAgent, header, hosts, rotationStrategy, "3")));
+            return true;
+        }
+        catch (ApiException) { return false; }
+    }
+
+    public async Task<bool> UpdateHttpsAsync(int id, List<string> hosts, int c2Port, string? userAgent, string? header, string rotationStrategy, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await api.UpdateHttpsListenerAsync(id, new UpdateHttpsListenerRequest(new HttpsConfig(c2Port, userAgent, header, hosts, rotationStrategy, "3")));
             return true;
         }
         catch (ApiException) { return false; }

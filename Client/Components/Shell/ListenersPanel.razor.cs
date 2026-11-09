@@ -27,7 +27,7 @@ public partial class ListenersPanel : ComponentBase
     {
         var dialog = await DialogService.ShowAsync<NewListenerDialog>(
             string.Empty,
-            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = false });
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
         var result = await dialog.Result;
         if (result is { Canceled: false, Data: NewListenerDialog.Result r })
         {
@@ -41,7 +41,40 @@ public partial class ListenersPanel : ComponentBase
         }
     }
 
-    private SysTask HandleEdit() => SysTask.CompletedTask;
+    private async SysTask HandleEdit()
+    {
+        if (_selected == null) return;
+        var details = await ListenerClient.GetListenerDetailsAsync(_selected.id);
+        if (details == null) return;
+
+        var parameters = new DialogParameters<NewListenerDialog>
+        {
+            { x => x.IsEdit,          true            },
+            { x => x.InitialName,     details.Name    },
+            { x => x.InitialType,     details.Protocol },
+            { x => x.InitialHosts,    details.Hosts   },
+            { x => x.InitialC2Port,   details.C2Port  },
+            { x => x.InitialBindPort, details.BindPort },
+            { x => x.InitialRotation, details.RotationStrategy },
+            { x => x.InitialUserAgent, details.UserAgent },
+            { x => x.InitialHeader,   details.Header  },
+        };
+
+        var dialog = await DialogService.ShowAsync<NewListenerDialog>(
+            string.Empty, parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: NewListenerDialog.Result r })
+        {
+            bool ok;
+            if (r.IsHttps)
+                ok = await ListenerClient.UpdateHttpsAsync(_selected.id, r.Hosts, r.C2Port, r.UserAgent, r.Header, r.RotationStrategy);
+            else
+                ok = await ListenerClient.UpdateHttpAsync(_selected.id, r.Hosts, r.BindPort, r.C2Port, r.UserAgent, r.Header, r.RotationStrategy);
+
+            if (ok) await RefreshAsync();
+        }
+    }
 
     private async SysTask HandleRestart()
     {

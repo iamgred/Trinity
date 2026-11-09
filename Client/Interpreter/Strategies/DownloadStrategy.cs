@@ -35,20 +35,20 @@ namespace Client.Interpreter.Strategies
                 return CommandError.TooFewArgs(Keyword);
             }
 
-            var arg = command.Split();
-            if (arg.Length > 1)
-            {
-                // Too many arguements
-                return CommandError.TooFewArgs(Keyword);
-            }
+            var args = command.Split(' ', 2);
+            var sourcePath      = args[0];
+            var destinationPath = args.Length > 1 && !string.IsNullOrWhiteSpace(args[1])
+                ? args[1].Trim()
+                : Path.GetFileName(sourcePath);
 
             var dto = new DownloadDTO
             {
-                Path = arg[0]
+                Path            = sourcePath,
+                DestinationPath = destinationPath,
             };
 
             var taskID = await _client.QueueDownloadCommandAsync(agentID, dto);
-            return $"Tasked agent to download {command} #{taskID}";
+            return $"Tasked agent to download {sourcePath} -> {destinationPath} #{taskID}";
         }
     }
 }

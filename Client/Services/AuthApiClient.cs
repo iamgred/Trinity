@@ -5,22 +5,19 @@ using Trinity.Shared.Interfaces;
 
 namespace Client.Services;
 
-public sealed class AuthApiClient(IAuthAPI api)
+public sealed class AuthApiClient(IAuthAPI api, TeamServerConnection connection)
 {
-    public enum LoginResult
-    {
-        Success,
-        InvalidCredentials,
-    }
+    public enum LoginResult { Success, InvalidCredentials }
 
-    public async Task<LoginResult> LoginAsync(string username, string password, CancellationToken cancellationToken = default)
+    public async Task<LoginResult> LoginAsync(string username, string password, CancellationToken ct = default)
     {
         try
         {
-            await api.LoginAsync(new LoginDTO { Username = username, Password = password });
+            var response = await api.LoginAsync(new LoginDTO { Username = username, Password = password });
+            connection.SetToken(response.Token);
             return LoginResult.Success;
         }
-        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.BadRequest)
+        catch (ApiException ex) when (ex.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.BadRequest)
         {
             return LoginResult.InvalidCredentials;
         }

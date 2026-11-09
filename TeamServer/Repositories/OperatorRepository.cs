@@ -22,6 +22,11 @@ namespace TeamServer.Repositories
             Operator? result = await _context.Operators.FirstOrDefaultAsync(o => o.ID.Equals(operatorID));
             return result;
         }
+
+        public async Task<Operator?> GetByUsernameAsync(string username)
+        {
+            return await _context.Operators.FirstOrDefaultAsync(o => o.Username == username);
+        }
         /// <summary>
         /// Retrieves all Operators from the database.
         /// </summary>

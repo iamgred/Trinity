@@ -1,5 +1,10 @@
+using System.Text;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using TeamServer.Data;
 using TeamServer.ExceptionHandlers;
 using TeamServer.Handlers.CheckinHandler;
@@ -70,9 +75,29 @@ namespace TeamServer
             builder.Services.AddSingleton<INotificationDispatcher, NotificationDispatcher>();
             builder.Services.AddHostedService<AgentStatusMonitorService>();
 
+            // JWT authentication
+            var jwtKey = builder.Configuration["Jwt:Key"]!;
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer           = true,
+                        ValidateAudience         = true,
+                        ValidateLifetime         = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer              = builder.Configuration["Jwt:Issuer"],
+                        ValidAudience            = builder.Configuration["Jwt:Audience"],
+                        IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+                    };
+                });
+
             builder.Services.AddControllers(options =>
             {
                 options.Filters.Add<ValidationFilter>();
+                options.Filters.Add(new AuthorizeFilter(new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build()));
             });
 
             builder.Services.AddSwaggerGen(options =>
@@ -161,6 +186,7 @@ namespace TeamServer
             {
                 app.UseHttpsRedirection();
             }
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
             app.MapControllers();

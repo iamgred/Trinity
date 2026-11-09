@@ -14,5 +14,6 @@ public class AuthService(IAuthAPI api)
             return true;
         }
         catch (ApiException) { return false; }
+        catch (Exception)    { return false; }
     }
 }

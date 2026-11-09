@@ -24,33 +24,35 @@ namespace Client
             // Runtime-configured TeamServer connection (used by old API client wrappers).
             builder.Services.AddScoped<TeamServerConnection>();
 
-            var teamServerUrl = builder.Configuration["TeamServer:BaseUrl"]!;
+            // Scoped per Blazor circuit — attaches Bearer token to every outgoing request.
+            builder.Services.AddScoped<AuthTokenHandler>();
 
-            // Refit typed HTTP clients — all targeting TeamServer
-            builder.Services.AddRefitClient<ICommandAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IAgentAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IListenerAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<ICampaignAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IOperatorAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IAdminAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IPayloadAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IAuthAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IServerAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<ITaskAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IArmouryAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
-            builder.Services.AddRefitClient<IFilesAPI>()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(teamServerUrl));
+            var teamServerUrl = builder.Configuration["TeamServer:BaseUrl"]!;
+            var refitSettings = new RefitSettings();
+
+            // Refit typed HTTP clients — all scoped, all share the circuit's AuthTokenHandler.
+            // Using RestService.For<T> (not IHttpClientFactory) so the scoped handler is
+            // resolved from the correct Blazor circuit scope, not the root DI container.
+            TApi MakeRefit<TApi>(IServiceProvider sp)
+            {
+                var handler = sp.GetRequiredService<AuthTokenHandler>();
+                var client  = new HttpClient(handler, disposeHandler: false)
+                              { BaseAddress = new Uri(teamServerUrl) };
+                return RestService.For<TApi>(client, refitSettings);
+            }
+
+            builder.Services.AddScoped(MakeRefit<ICommandAPI>);
+            builder.Services.AddScoped(MakeRefit<IAgentAPI>);
+            builder.Services.AddScoped(MakeRefit<IListenerAPI>);
+            builder.Services.AddScoped(MakeRefit<ICampaignAPI>);
+            builder.Services.AddScoped(MakeRefit<IOperatorAPI>);
+            builder.Services.AddScoped(MakeRefit<IAdminAPI>);
+            builder.Services.AddScoped(MakeRefit<IPayloadAPI>);
+            builder.Services.AddScoped(MakeRefit<IAuthAPI>);
+            builder.Services.AddScoped(MakeRefit<IServerAPI>);
+            builder.Services.AddScoped(MakeRefit<ITaskAPI>);
+            builder.Services.AddScoped(MakeRefit<IArmouryAPI>);
+            builder.Services.AddScoped(MakeRefit<IFilesAPI>);
 
             // Thin wrappers that pages inject directly (internally use Refit interfaces)
             builder.Services.AddScoped<AgentApiClient>();

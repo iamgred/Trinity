@@ -7,7 +7,7 @@ namespace Trinity.Shared.Interfaces
     public interface IAuthAPI
     {
         [Post("/api/v1/auth/login")]
-        Task LoginAsync([Body] LoginDTO dto);
+        Task<LoginResponse> LoginAsync([Body] LoginDTO dto);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

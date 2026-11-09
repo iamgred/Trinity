@@ -32,7 +32,6 @@
                     <button type="button" class="nld-toggle-btn @(_type == "HTTP"  ? "nld-toggle-on" : "")" @onclick='() => SetType("HTTP")'>HTTP</button>
                     <button type="button" class="nld-toggle-btn @(_type == "HTTPS" ? "nld-toggle-on" : "")" @onclick='() => SetType("HTTPS")'>HTTPS</button>
                 </div>
-                <span class="nld-note" style="margin-top:4px;">SMB is peer-to-peer only. Tor publishes the listener as an onion service.</span>
             </div>
 
             <!-- Hosts -->
@@ -92,21 +91,6 @@
                     }
                 </div>
             </div>
-
-            <!-- TLS Certificate (HTTPS only) -->
-            @if (_type == "HTTPS")
-            {
-                <div class="nld-row">
-                    <span class="nld-label">TLS Certificate</span>
-                    <div>
-                        <div class="nld-toggle-group">
-                            <button type="button" class="nld-toggle-btn nld-toggle-on">Self-signed</button>
-                            <button type="button" class="nld-toggle-btn" disabled>Upload .pfx</button>
-                        </div>
-                        <div class="nld-note" style="margin-top:5px;">A self-signed certificate is generated when the listener starts.</div>
-                    </div>
-                </div>
-            }
 
             <!-- User-Agent -->
             <div class="nld-row">

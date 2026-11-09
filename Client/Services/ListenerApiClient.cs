@@ -37,14 +37,15 @@ public sealed class ListenerApiClient(IListenerAPI api)
 
             var proto = resp.name.Contains("https", StringComparison.OrdinalIgnoreCase) ? "HTTPS" : "HTTP";
 
-            root.TryGetProperty("c2Port", out var c2El);
-            root.TryGetProperty("bindPort", out var bpEl);
-            root.TryGetProperty("userAgent", out var uaEl);
-            root.TryGetProperty("header", out var hdEl);
-            root.TryGetProperty("rotationStrategy", out var rotEl);
+            TryGet(root, out var c2El,  "C2Port",           "c2Port");
+            TryGet(root, out var bpEl,  "BindPort",         "bindPort");
+            TryGet(root, out var uaEl,  "UserAgent",        "userAgent");
+            TryGet(root, out var hdEl,  "Header",           "header");
+            TryGet(root, out var rotEl, "RotationStrategy", "rotationStrategy");
 
             var hosts = new List<string>();
-            if (root.TryGetProperty("hosts", out var hostsEl) && hostsEl.ValueKind == JsonValueKind.Array)
+            TryGet(root, out var hostsEl, "Hosts", "hosts");
+            if (hostsEl.ValueKind == JsonValueKind.Array)
                 foreach (var h in hostsEl.EnumerateArray())
                     hosts.Add(h.GetString() ?? "");
 
@@ -60,6 +61,13 @@ public sealed class ListenerApiClient(IListenerAPI api)
                 Header: hdEl.ValueKind == JsonValueKind.String ? hdEl.GetString() : null);
         }
         catch (ApiException) { return null; }
+    }
+
+    private static void TryGet(JsonElement root, out JsonElement el, params string[] keys)
+    {
+        foreach (var k in keys)
+            if (root.TryGetProperty(k, out el)) return;
+        el = default;
     }
 
     public async Task<bool> CreateHttpListenerAsync(string name, string host, int port, CancellationToken cancellationToken = default)

@@ -10,10 +10,9 @@
             <thead>
                 <tr>
                     <th class="lp-th lp-th-ico"></th>
+                    <th class="lp-th">id</th>
                     <th class="lp-th">name</th>
-                    <th class="lp-th">type</th>
-                    <th class="lp-th">hosts</th>
-                    <th class="lp-th">error</th>
+                    <th class="lp-th">protocol</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,16 +22,15 @@
                     var sel  = _selected?.id == item.id;
                     <tr class="lp-row @(sel ? "lp-row-sel" : "")" @onclick="() => _selected = sel ? null : item">
                         <td class="lp-td lp-td-ico">@((MarkupString)TypeIcon(item))</td>
+                        <td class="lp-td lp-td-dim">@item.id</td>
                         <td class="lp-td lp-td-name">@item.name</td>
                         <td class="lp-td lp-td-type">@item.protocol</td>
-                        <td class="lp-td lp-td-dim">—</td>
-                        <td class="lp-td lp-td-dim lp-td-err">—</td>
                     </tr>
                 }
                 @if (!_listeners.Any())
                 {
                     <tr>
-                        <td colspan="5" class="lp-empty">No listeners configured</td>
+                        <td colspan="4" class="lp-empty">No listeners configured</td>
                     </tr>
                 }
             </tbody>
@@ -59,12 +57,6 @@
             </button>
         </div>
 
-        <div class="lp-footer-info">
-            @if (_listeners.Any())
-            {
-                <span class="lp-info-text">@_listeners.Count listener@(_listeners.Count == 1 ? "" : "s")</span>
-            }
-        </div>
     </div>
 
 </div>

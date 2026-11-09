@@ -175,6 +175,16 @@ namespace TeamServer.Services
             return name;
         }
 
+        public async Task<Result> DeletePayloadAsync(int payloadID)
+        {
+            var payload = await _payloadRepository.GetByIdAsync(payloadID);
+            if (payload == null)
+                return PayloadError.NotFound(payloadID);
+
+            _payloadRepository.Delete(payload);
+            await _payloadRepository.CommitAsync();
+            return Result.Success();
+        }
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

@@ -9,6 +9,7 @@ namespace Trinity.Shared.Interfaces
         Task<Result> GeneratePayloadAsync(PayloadCreationDTO payloadCreationDTO);
         Task<Result<List<PayloadDTO>>> GetPayloadsAsync();
         Task<Result<string>> GetPayloadFilePathAsync(int payloadID);
+        Task<Result> DeletePayloadAsync(int payloadID);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

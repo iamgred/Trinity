@@ -56,6 +56,15 @@ namespace TeamServer.Controllers
         /// </summary>
         /// <param name="payloadID"></param>
         /// <returns>The file path of the payload, or an error result if the payload is not found.</returns>
+        [HttpDelete("{payloadID}")]
+        public async Task<IActionResult> DeletePayloadAsync(int payloadID)
+        {
+            var result = await _payloadService.DeletePayloadAsync(payloadID);
+            if (!result.IsSuccess)
+                return NotFound(result);
+            return Ok();
+        }
+
         [HttpGet("{payloadID}")]
         public async Task<IActionResult> GetPayloadAsync(int payloadID)
         {

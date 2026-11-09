@@ -41,6 +41,11 @@ namespace TeamServer.Repositories
         /// Asynchronously commits all changes made in the context to the underlying database.
         /// </summary>
         /// <returns>A task that represents the asynchronous save operation.</returns>
+        public void Delete(T entity)
+        {
+            _dbSet.Remove(entity);
+        }
+
         public async Task CommitAsync()
         {
             await _context.SaveChangesAsync();

@@ -61,6 +61,35 @@
                 <Icon Name="select-chevron.svg" Size="14" />
             </div>
         </div>
+
+        <div class="ts-modal__row">
+            <label for="gp-sleep">Sleep (s)</label>
+            <div class="ts-field"><input id="gp-sleep" type="number" min="1" @bind="_sleep" /></div>
+        </div>
+
+        <div class="ts-modal__row">
+            <label for="gp-jitter">Jitter (%)</label>
+            <div class="ts-field"><input id="gp-jitter" type="number" min="0" max="100" @bind="_jitter" /></div>
+        </div>
+
+        <div class="ts-modal__row">
+            <label for="gp-rotation">Rotation</label>
+            <div class="ts-field">
+                <select id="gp-rotation" @bind="_rotationStrategy">
+                    <option value="@RotationStrategy.ROUND_ROBIN">Round Robin</option>
+                    <option value="@RotationStrategy.RANDOM">Random</option>
+                </select>
+                <Icon Name="select-chevron.svg" Size="14" />
+            </div>
+        </div>
+
+        <div class="ts-modal__row">
+            <label>Stageless</label>
+            <div>
+                <span class="gp-arch"><Icon Name="lucide-lock.svg" Size="12" /> Yes</span>
+                <p class="ts-modal__hint">Trinity payloads are always stageless.</p>
+            </div>
+        </div>
     </ChildContent>
     <Footer>
         <button type="button" class="ts-btn" @onclick="OnClose">Cancel</button>
@@ -77,6 +106,9 @@
     private string _name = "agent_x64";
     private int _listenerId;
     private int _campaignId;
+    private int _sleep = 60;
+    private int _jitter = 0;
+    private RotationStrategy _rotationStrategy = RotationStrategy.ROUND_ROBIN;
     private string? _error;
     private bool _busy;
 
@@ -112,6 +144,10 @@
             CampaignID = _campaignId,
             Architecture = Arch.x64,
             Type = PayloadType.WINDOWS_EXE,
+            Sleep = _sleep,
+            Jitter = _jitter,
+            RotationStrategy = _rotationStrategy,
+            isStageless = true,
         };
 
         _busy = true;
@@ -122,7 +158,8 @@
         }
         catch (Refit.ApiException e)
         {
-            _error = $"The team server refused the build ({(int)e.StatusCode}).";
+            var detail = string.IsNullOrWhiteSpace(e.Content) ? string.Empty : $" — {e.Content}";
+            _error = $"The team server refused the build ({(int)e.StatusCode}){detail}";
         }
         catch (HttpRequestException e)
         {

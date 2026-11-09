@@ -54,10 +54,10 @@ namespace Trinity.Shared.Interfaces
         Task<CommandCreationResponse> QueueEscalateCommandAsync(int agentID, [Body] EscalateDTO dto);
 
         [Post("/api/v1/commands/{agentID}/execute/startkeylogger")]
-        Task<CommandCreationResponse> QueueStartKeyloggerCommandAsync(int agentID);
+        Task<CommandCreationResponse> QueueStartKeyloggerCommandAsync(int agentID, [Body] StartKeyloggerDTO dto);
 
         [Post("/api/v1/commands/{agentID}/execute/stopkeylogger")]
-        Task<CommandCreationResponse> QueueStopKeyloggerCommandAsync(int agentID);
+        Task<CommandCreationResponse> QueueStopKeyloggerCommandAsync(int agentID, [Body] StartKeyloggerDTO dto);
     }
 }
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ END OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//

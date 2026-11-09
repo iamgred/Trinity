@@ -28,6 +28,12 @@ namespace Client
             builder.Services.AddScoped<AuthTokenHandler>();
 
             var teamServerUrl = builder.Configuration["TeamServer:BaseUrl"]!;
+
+            // Named client used by admin pages (Operators.razor, Admin.razor, CreateOperatorDialog.razor)
+            // via IHttpClientFactory.CreateClient("TeamServer"). Those pages hit [AllowAnonymous] endpoints
+            // so no Bearer token is required here.
+            builder.Services.AddHttpClient("TeamServer", c => c.BaseAddress = new Uri(teamServerUrl));
+
             var refitSettings = new RefitSettings();
 
             // Refit typed HTTP clients — all scoped, all share the circuit's AuthTokenHandler.

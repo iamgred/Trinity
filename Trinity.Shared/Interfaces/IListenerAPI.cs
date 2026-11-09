@@ -16,6 +16,9 @@ namespace Trinity.Shared.Interfaces
         [Get("/api/v1/listeners/http/{id}")]
         Task<GetListenerDetailsResponse> GetListenerByIDAsync(int id);
 
+        [Get("/api/v1/listeners/https/{id}")]
+        Task<GetListenerDetailsResponse> GetHttpsListenerByIDAsync(int id);
+
         [Post("/api/v1/listeners/http")]
         Task CreateHttpListenerAsync([Body] CreateHttpListenerRequest request);
 

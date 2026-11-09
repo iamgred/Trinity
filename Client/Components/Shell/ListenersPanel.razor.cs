@@ -44,7 +44,7 @@ public partial class ListenersPanel : ComponentBase
     private async SysTask HandleEdit()
     {
         if (_selected == null) return;
-        var details = await ListenerClient.GetListenerDetailsAsync(_selected.id);
+        var details = await ListenerClient.GetListenerDetailsAsync(_selected.id, _selected.protocol);
         if (details == null) return;
 
         var parameters = new DialogParameters<NewListenerDialog>

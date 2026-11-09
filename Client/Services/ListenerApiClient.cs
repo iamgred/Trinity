@@ -28,23 +28,24 @@ public sealed class ListenerApiClient(IListenerAPI api)
         catch (ApiException) { return []; }
     }
 
-    public async Task<ListenerDetails?> GetListenerDetailsAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<ListenerDetails?> GetListenerDetailsAsync(int id, string protocol, CancellationToken cancellationToken = default)
     {
         try
         {
-            var resp = await api.GetListenerByIDAsync(id);
+            var isHttps = protocol.Equals("HTTPS", StringComparison.OrdinalIgnoreCase);
+            var resp = isHttps
+                ? await api.GetHttpsListenerByIDAsync(id)
+                : await api.GetListenerByIDAsync(id);
             var root = resp.config.RootElement;
 
-            var proto = resp.name.Contains("https", StringComparison.OrdinalIgnoreCase) ? "HTTPS" : "HTTP";
-
-            TryGet(root, out var c2El,  "C2Port",           "c2Port");
-            TryGet(root, out var bpEl,  "BindPort",         "bindPort");
-            TryGet(root, out var uaEl,  "UserAgent",        "userAgent");
-            TryGet(root, out var hdEl,  "Header",           "header");
-            TryGet(root, out var rotEl, "RotationStrategy", "rotationStrategy");
+            var c2El  = Prop(root, "C2Port");
+            var bpEl  = Prop(root, "BindPort");
+            var uaEl  = Prop(root, "UserAgent");
+            var hdEl  = Prop(root, "Header");
+            var rotEl = Prop(root, "RotationStrategy");
 
             var hosts = new List<string>();
-            TryGet(root, out var hostsEl, "Hosts", "hosts");
+            var hostsEl = Prop(root, "Hosts");
             if (hostsEl.ValueKind == JsonValueKind.Array)
                 foreach (var h in hostsEl.EnumerateArray())
                     hosts.Add(h.GetString() ?? "");
@@ -52,22 +53,24 @@ public sealed class ListenerApiClient(IListenerAPI api)
             return new ListenerDetails(
                 Id: resp.ID,
                 Name: resp.name,
-                Protocol: proto,
-                C2Port: c2El.ValueKind == JsonValueKind.Number ? c2El.GetInt32() : 443,
-                BindPort: bpEl.ValueKind == JsonValueKind.Number ? bpEl.GetInt32() : 8080,
-                Hosts: hosts,
+                Protocol: protocol,
+                C2Port:   c2El.ValueKind  == JsonValueKind.Number ? c2El.GetInt32()   : 443,
+                BindPort: bpEl.ValueKind  == JsonValueKind.Number ? bpEl.GetInt32()   : 8080,
+                Hosts:    hosts,
                 RotationStrategy: rotEl.ValueKind == JsonValueKind.String ? rotEl.GetString()! : "round-robin",
-                UserAgent: uaEl.ValueKind == JsonValueKind.String ? uaEl.GetString() : null,
-                Header: hdEl.ValueKind == JsonValueKind.String ? hdEl.GetString() : null);
+                UserAgent: uaEl.ValueKind == JsonValueKind.String ? uaEl.GetString()  : null,
+                Header:    hdEl.ValueKind == JsonValueKind.String ? hdEl.GetString()  : null);
         }
-        catch (ApiException) { return null; }
+        catch (Exception) { return null; }
     }
 
-    private static void TryGet(JsonElement root, out JsonElement el, params string[] keys)
+    // Case-insensitive JSON property lookup — handles both PascalCase and camelCase from the server
+    private static JsonElement Prop(JsonElement el, string name)
     {
-        foreach (var k in keys)
-            if (root.TryGetProperty(k, out el)) return;
-        el = default;
+        foreach (var p in el.EnumerateObject())
+            if (p.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                return p.Value;
+        return default;
     }
 
     public async Task<bool> CreateHttpListenerAsync(string name, string host, int port, CancellationToken cancellationToken = default)

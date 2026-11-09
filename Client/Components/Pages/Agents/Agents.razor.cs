@@ -54,16 +54,23 @@ public partial class Agents : IDisposable
     protected override async Task OnInitializedAsync()
     {
         Workspace.Changed += OnWorkspaceChanged;
+        Workspace.AgentsChanged += OnAgentsChanged;
         await LoadAgentsAsync();
     }
 
     private void OnWorkspaceChanged()
     {
-        if (_view == "graph") _graphPanReady = false; // ensure pan re-inits on next render
+        if (_view == "graph") _graphPanReady = false;
         InvokeAsync(StateHasChanged);
     }
 
-    public void Dispose() => Workspace.Changed -= OnWorkspaceChanged;
+    private void OnAgentsChanged() => InvokeAsync(LoadAgentsAsync);
+
+    public void Dispose()
+    {
+        Workspace.Changed -= OnWorkspaceChanged;
+        Workspace.AgentsChanged -= OnAgentsChanged;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

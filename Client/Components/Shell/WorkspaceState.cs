@@ -22,8 +22,10 @@ public sealed class WorkspaceState
     public string AgentView { get; private set; } = "table";
 
     public event Action? Changed;
+    public event Action? AgentsChanged;
 
     public void Notify() => Changed?.Invoke();
+    public void NotifyAgentsChanged() => AgentsChanged?.Invoke();
 
     public void SetAgentView(string view) { AgentView = view; Notify(); }
 

@@ -95,12 +95,14 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
             {
                 var level = n.Status == Status.ERROR ? "ERROR" : "INFO";
                 AddEvent(level, $"Task #{n.TaskID}: {n.message}");
+                _workspaceState.NotifyAgentsChanged();
                 await InvokeAsync(StateHasChanged);
             });
 
             _hub.On<EventLog>("EventLogNotification", async ev =>
             {
                 AddEvent(ev.Type.ToString(), ev.message);
+                _workspaceState.NotifyAgentsChanged();
                 await InvokeAsync(StateHasChanged);
             });
 

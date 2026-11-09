@@ -13,6 +13,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
 {
     [Inject] IConfiguration Config { get; set; } = null!;
     [Inject] IJSRuntime JS { get; set; } = null!;
+    [Inject] NavigationManager Nav { get; set; } = null!;
 
     private readonly MudTheme _theme = new()
     {
@@ -138,6 +139,18 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
         {
             _subscribedAgents.Remove(id);
         }
+    }
+
+    private bool IsOnAgentsPage =>
+        Nav.ToBaseRelativePath(Nav.Uri).StartsWith("agents", StringComparison.OrdinalIgnoreCase);
+
+    private string AgentsNavClass(string view) =>
+        IsOnAgentsPage && _workspaceState.AgentView == view ? "c2-nav-item active" : "c2-nav-item";
+
+    private void NavigateToAgentView(string view)
+    {
+        _workspaceState.SetAgentView(view);
+        if (!IsOnAgentsPage) Nav.NavigateTo("/agents");
     }
 
     public async ValueTask DisposeAsync()

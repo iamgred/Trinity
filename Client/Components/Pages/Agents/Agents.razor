@@ -26,10 +26,6 @@
                 <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"           Size="Size.Small" OnClick="ZoomOut" />
                 <MudIconButton Icon="@Icons.Material.Filled.CenterFocusStrong" Size="Size.Small" OnClick="ResetZoom" />
             }
-            <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
-                <MudButton OnClick="SwitchToGraph" Color="@(_view == "graph" ? Color.Primary : Color.Default)">Pivot Graph</MudButton>
-                <MudButton OnClick="SwitchToTable" Color="@(_view == "table" ? Color.Primary : Color.Default)">Agents</MudButton>
-            </MudButtonGroup>
             <MudTooltip Text="Refresh">
                 <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAgentsAsync" />
             </MudTooltip>

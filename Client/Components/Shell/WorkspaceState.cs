@@ -19,9 +19,13 @@ public sealed class WorkspaceState
     public bool PanelVisible => EventLogVisible || OpenAgentTerminals.Count > 0;
     public List<AgentResponse> OpenAgentTerminals { get; } = [];
 
+    public string AgentView { get; private set; } = "table";
+
     public event Action? Changed;
 
     public void Notify() => Changed?.Invoke();
+
+    public void SetAgentView(string view) { AgentView = view; Notify(); }
 
     public void CloseEventLog()
     {

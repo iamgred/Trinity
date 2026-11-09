@@ -39,10 +39,14 @@
             <svg class="c2-ni" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
             Listeners
         </NavLink>
-        <NavLink class="c2-nav-item" href="/agents" Match="NavLinkMatch.Prefix">
+        <button class="@AgentsNavClass("table")" @onclick='() => NavigateToAgentView("table")'>
             <svg class="c2-ni" viewBox="0 0 24 24" fill="currentColor"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
             Agents
-        </NavLink>
+        </button>
+        <button class="@AgentsNavClass("graph")" @onclick='() => NavigateToAgentView("graph")'>
+            <svg class="c2-ni" viewBox="0 0 24 24" fill="currentColor"><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3z"/></svg>
+            Pivot Graph
+        </button>
         <NavLink class="c2-nav-item" href="/logs" Match="NavLinkMatch.Prefix">
             <svg class="c2-ni" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
             Event Log

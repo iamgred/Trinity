@@ -7,7 +7,7 @@ using Trinity.Shared.DTOs.Agent;
 
 namespace Client.Components.Pages;
 
-public partial class Agents
+public partial class Agents : IDisposable
 {
     [Inject] AgentService AgentService { get; set; } = null!;
     [Inject] NavigationManager Nav { get; set; } = null!;
@@ -25,8 +25,8 @@ public partial class Agents
     private double _menuX, _menuY;
     private bool _menuOpen;
 
-    // graph state
-    private string _view = "table";
+    // graph state — view is driven by WorkspaceState.AgentView
+    private string _view => Workspace.AgentView;
     private string _svgViewBox = "0 0 850 500";
     private double _zoom = 1.0;
     private bool _graphPanReady = false;
@@ -51,7 +51,19 @@ public partial class Agents
         }
     }
 
-    protected override async Task OnInitializedAsync() => await LoadAgentsAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        Workspace.Changed += OnWorkspaceChanged;
+        await LoadAgentsAsync();
+    }
+
+    private void OnWorkspaceChanged()
+    {
+        if (_view == "graph") _graphPanReady = false; // ensure pan re-inits on next render
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => Workspace.Changed -= OnWorkspaceChanged;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -78,8 +90,6 @@ public partial class Agents
         finally { _loading = false; }
     }
 
-    private void SwitchToGraph() { _graphPanReady = false; _view = "graph"; }
-    private void SwitchToTable() { _view = "table"; }
 
     [JSInvokable] public void SyncViewBox(string vb) { _svgViewBox = vb; }
 

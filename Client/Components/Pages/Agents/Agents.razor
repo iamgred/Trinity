@@ -6,27 +6,150 @@
 @using Client.Components.UI
 @using Client.Components.Shell
 
-<div>
+<div class="ag-dashboard">
 
-    <div>
-        <div class="v2-header">
-            <div class="v2-header-left">
-                <span class="v2-header-title">Agents</span>
-                <span class="v2-header-count">@_agents.Count registered · @OnlineCount online</span>
-            </div>
+    <div class="ag-toolbar">
+        <div class="ag-toolbar-left">
+            <span class="ag-title">@(_view == "graph" ? "Network Graph" : "Agents")</span>
+            <span class="ag-count">@_agents.Count registered · @OnlineCount online</span>
+        </div>
+        <div class="ag-toolbar-right">
+            @if (_view == "graph")
+            {
+                <div class="ag-legend">
+                    <span><span class="ag-leg-dot ag-leg-srv"></span>TeamServer</span>
+                    <span><span class="ag-leg-dot ag-leg-on"></span>Online</span>
+                    <span><span class="ag-leg-dot ag-leg-off"></span>Offline</span>
+                    <span class="ag-leg-hint">MMB pan · scroll to zoom</span>
+                </div>
+                <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"            Size="Size.Small" OnClick="ZoomIn" />
+                <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"           Size="Size.Small" OnClick="ZoomOut" />
+                <MudIconButton Icon="@Icons.Material.Filled.CenterFocusStrong" Size="Size.Small" OnClick="ResetZoom" />
+            }
+            <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                <MudButton OnClick="SwitchToGraph" Color="@(_view == "graph" ? Color.Primary : Color.Default)">Graph</MudButton>
+                <MudButton OnClick="SwitchToTable" Color="@(_view == "table" ? Color.Primary : Color.Default)">Table</MudButton>
+            </MudButtonGroup>
             <MudTooltip Text="Refresh">
                 <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAgentsAsync" />
             </MudTooltip>
         </div>
+    </div>
 
-        <div class="v2-table-wrap">
+    @{
+        var _n    = _agents.Count;
+        var _svgH = SvgH;
+        var _svgW = SvgW;
+        var _srvX = 130;
+        var _srvY = _svgH / 2;
+        var _agX  = 700;
+    }
+
+    @if (_view == "graph")
+    {
+        <div class="ag-graph-wrap" id="ag-graph-viewport">
+            <svg class="ag-graph-svg" viewBox="@_svgViewBox" id="agent-graph-svg">
+
+                @* edges *@
+                @{ int idx = 0; }
+                @foreach (var agent in _agents)
+                {
+                    var agY    = _n == 1 ? _srvY : 60 + idx * (_svgH - 120) / Math.Max(_n - 1, 1);
+                    var online = IsOnline(agent);
+                    var midX   = (_srvX + _agX - 38) / 2;
+                    var midY   = (_srvY + agY) / 2;
+                    idx++;
+                    <path d="M @_srvX,@_srvY C @(_srvX + 200),@_srvY @(_agX - 258),@agY @(_agX - 38),@agY"
+                          fill="none"
+                          class="@(online ? "edge-online-v2" : "edge-offline-v2")" />
+                    @((MarkupString)$"<text x=\"{midX}\" y=\"{midY - 7}\" class=\"edge-label-v2\" text-anchor=\"middle\">{Shorten(agent.listener, 12)}</text>")
+                }
+
+                @* agent nodes *@
+                @{ idx = 0; }
+                @foreach (var agent in _agents)
+                {
+                    var agY       = _n == 1 ? _srvY : 60 + idx * (_svgH - 120) / Math.Max(_n - 1, 1);
+                    var online    = IsOnline(agent);
+                    var selected  = _selectedAgent?.agentID == agent.agentID;
+                    var monStroke = selected ? "#E87722" : online ? "rgba(53,199,89,0.80)" : "rgba(44,44,50,0.9)";
+                    var monSW     = selected ? "2" : "1";
+                    var hornFill  = online ? "#E87722" : "#2E2E32";
+                    var hornGlow  = online ? "filter:drop-shadow(0 0 5px rgba(232,119,34,0.65));" : "";
+                    var monGlow   = online ? "filter:drop-shadow(0 0 6px rgba(53,199,89,0.3));" : "";
+                    var ledFill   = online ? "#35C759" : "#252528";
+                    idx++;
+
+                    <g transform="translate(@_agX,@agY)" @onclick="() => SelectAgent(agent)" style="cursor:pointer;">
+                        <polygon points="-22,-40 -11,-40 -19,-61" fill="@hornFill" style="@hornGlow" />
+                        <polygon points="11,-40 22,-40 19,-61"    fill="@hornFill" style="@hornGlow" />
+                        <rect x="-38" y="-40" width="76" height="58" rx="2"
+                              fill="#070A0E" stroke="@monStroke" stroke-width="@monSW" style="@monGlow" />
+                        <rect x="-32" y="-36" width="64" height="47" rx="1" fill="#030507" />
+                        <circle cx="29" cy="-33" r="3.5" fill="@ledFill"
+                                style="@(online ? "filter:drop-shadow(0 0 4px rgba(53,199,89,0.9));" : "")" />
+                        @((MarkupString)$"<text x=\"0\" y=\"-19\" class=\"{(online ? "node-card-name-online" : "node-card-name-offline")}\" text-anchor=\"middle\">{Shorten(agent.username, 10)}</text>")
+                        @((MarkupString)$"<text x=\"0\" y=\"-5\"  class=\"{(online ? "node-card-ip-online" : "node-card-ip-offline")}\"  text-anchor=\"middle\">{Shorten(agent.externalIP, 14)}</text>")
+                        @((MarkupString)$"<text x=\"0\" y=\"8\"   class=\"node-card-pid\" text-anchor=\"middle\">PID {agent.PID}</text>")
+                        <rect x="-5"  y="18" width="10" height="11" fill="#13161C" />
+                        <rect x="-22" y="29" width="44" height="5"  rx="1" fill="#13161C" />
+                    </g>
+                }
+
+                @* TeamServer node *@
+                <g transform="translate(@_srvX,@_srvY)" style="filter:drop-shadow(0 0 12px rgba(232,119,34,0.5));">
+                    <circle r="40" class="node-server-ring" />
+                    <circle r="28" class="node-server-bg" />
+                    <line x1="-40" y1="0" x2="40" y2="0" class="node-server-cross" />
+                    <line x1="0" y1="-40" x2="0" y2="40" class="node-server-cross" />
+                    <circle r="6" class="node-server-core" />
+                    @((MarkupString)"<text class=\"node-server-label\" y=\"54\" text-anchor=\"middle\">TEAMSERVER</text>")
+                </g>
+
+                @if (_n == 0)
+                {
+                    @((MarkupString)$"<text x=\"{_svgW / 2}\" y=\"{_svgH / 2}\" class=\"graph-empty-text\" text-anchor=\"middle\">No agents connected</text>")
+                }
+            </svg>
+
+            @if (_selectedAgent is not null)
+            {
+                <div class="ag-detail-panel">
+                    <div class="ag-detail-header">
+                        <span class="ag-detail-name">@_selectedAgent.username</span>
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="() => _selectedAgent = null" />
+                    </div>
+                    <div class="ag-detail-body">
+                        <div class="gd-row"><span class="gd-key">ID</span>       <span class="gd-val gd-mono">@_selectedAgent.agentID</span></div>
+                        <div class="gd-row"><span class="gd-key">User</span>     <span class="gd-val">@_selectedAgent.username</span></div>
+                        <div class="gd-row"><span class="gd-key">PID</span>      <span class="gd-val gd-mono">@_selectedAgent.PID</span></div>
+                        <div class="gd-row"><span class="gd-key">Arch</span>     <span class="gd-val gd-mono">@_selectedAgent.arch</span></div>
+                        <div class="gd-row"><span class="gd-key">Ext IP</span>   <span class="gd-val gd-mono">@_selectedAgent.externalIP</span></div>
+                        <div class="gd-row"><span class="gd-key">Int IP</span>   <span class="gd-val gd-mono">@_selectedAgent.internalIP</span></div>
+                        <div class="gd-row"><span class="gd-key">Listener</span> <span class="gd-val gd-mono">@_selectedAgent.listener</span></div>
+                        <div class="gd-row"><span class="gd-key">Seen</span>     <span class="gd-val">@FormatLastSeen(_selectedAgent.lastCheckIn)</span></div>
+                        <div class="gd-row">
+                            <span class="gd-key">Status</span>
+                            <span class="gd-val @(IsOnline(_selectedAgent) ? "gd-online" : "gd-offline")">
+                                @(IsOnline(_selectedAgent) ? "● online" : "○ offline")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="ag-table-wrap">
             <MudTable Items="@FilteredAgents"
                       Dense="true"
                       Hover="true"
                       Elevation="0"
                       Loading="@_loading"
                       LoadingProgressColor="Color.Primary"
-                      FixedHeader="true">
+                      FixedHeader="true"
+                      Height="100%">
                 <HeaderContent>
                     <MudTh>id</MudTh>
                     <MudTh>external</MudTh>
@@ -71,7 +194,7 @@
                 </NoRecordsContent>
             </MudTable>
         </div>
-    </div>
+    }
 
 </div>
 

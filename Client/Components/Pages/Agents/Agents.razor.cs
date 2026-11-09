@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Client.Services;
 using Client.Components.Shell;
 using Trinity.Shared.DTOs.Agent;
@@ -10,6 +11,7 @@ public partial class Agents
 {
     [Inject] AgentService AgentService { get; set; } = null!;
     [Inject] NavigationManager Nav { get; set; } = null!;
+    [Inject] IJSRuntime JS { get; set; } = null!;
     [CascadingParameter] private WorkspaceState Workspace { get; set; } = default!;
 
     private List<AgentResponse> _agents = [];
@@ -22,6 +24,15 @@ public partial class Agents
     private AgentResponse? _contextAgent;
     private double _menuX, _menuY;
     private bool _menuOpen;
+
+    // graph state
+    private string _view = "table";
+    private string _svgViewBox = "0 0 850 500";
+    private double _zoom = 1.0;
+    private bool _graphPanReady = false;
+
+    private int SvgW => 850;
+    private int SvgH => Math.Max(500, _agents.Count * 105 + 100);
 
     private int OnlineCount => _agents.Count(IsOnline);
 
@@ -42,6 +53,16 @@ public partial class Agents
 
     protected override async Task OnInitializedAsync() => await LoadAgentsAsync();
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_view == "graph" && !_graphPanReady)
+        {
+            _graphPanReady = true;
+            var r = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("trinityResize.initGraphPan", r, "ag-graph-viewport");
+        }
+    }
+
     private async Task LoadAgentsAsync()
     {
         _loading = true;
@@ -50,14 +71,54 @@ public partial class Agents
             _agents = await AgentService.GetTasksAsync();
             var latest = _agents.Where(a => a.lastCheckIn != default).OrderByDescending(a => a.lastCheckIn).FirstOrDefault();
             _latestSeen = latest is null ? null : FormatLastSeen(latest.lastCheckIn);
+            _svgViewBox = $"0 0 {SvgW} {SvgH}";
         }
         catch (InvalidOperationException) { _agents = []; }
         catch { _agents = []; }
         finally { _loading = false; }
     }
 
-    private static bool IsOnline(AgentResponse a) => a.lastCheckIn != default && (DateTime.UtcNow - a.lastCheckIn).TotalSeconds < 120;
-    private static string FormatLastSeen(DateTime dt) { if (dt == default) return "Never"; var diff = DateTime.UtcNow - dt; return diff.TotalSeconds < 10 ? "Just now" : diff.TotalMinutes < 1 ? $"{(int)diff.TotalSeconds}s ago" : diff.TotalHours < 1 ? $"{(int)diff.TotalMinutes}m ago" : diff.TotalDays < 1 ? $"{(int)diff.TotalHours}h ago" : dt.ToString("dd MMM HH:mm"); }
+    private void SwitchToGraph() { _graphPanReady = false; _view = "graph"; }
+    private void SwitchToTable() { _view = "table"; }
+
+    [JSInvokable] public void SyncViewBox(string vb) { _svgViewBox = vb; }
+
+    private void ZoomIn()  { _zoom = Math.Min(_zoom + 0.2, 3.0); UpdateViewBox(); }
+    private void ZoomOut() { _zoom = Math.Max(_zoom - 0.2, 0.3); UpdateViewBox(); }
+    private void ResetZoom() { _zoom = 1.0; _svgViewBox = $"0 0 {SvgW} {SvgH}"; }
+
+    private void UpdateViewBox()
+    {
+        double w = SvgW / _zoom, h = SvgH / _zoom;
+        double x = (SvgW - w) / 2, y = (SvgH - h) / 2;
+        _svgViewBox = $"{x:F0} {y:F0} {w:F0} {h:F0}";
+    }
+
+    private static bool IsOnline(AgentResponse a) =>
+        a.lastCheckIn != default && (DateTime.UtcNow - a.lastCheckIn).TotalSeconds < 120;
+
+    private static string FormatLastSeen(DateTime dt)
+    {
+        if (dt == default) return "Never";
+        var diff = DateTime.UtcNow - dt;
+        return diff.TotalSeconds < 10 ? "Just now"
+             : diff.TotalMinutes < 1 ? $"{(int)diff.TotalSeconds}s ago"
+             : diff.TotalHours   < 1 ? $"{(int)diff.TotalMinutes}m ago"
+             : diff.TotalDays    < 1 ? $"{(int)diff.TotalHours}h ago"
+             : dt.ToString("dd MMM HH:mm");
+    }
+
+    private static string Shorten(string? value, int max = 12)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "?";
+        return value.Length <= max ? value : value[..max] + "…";
+    }
+
+    private void SelectAgent(AgentResponse agent)
+    {
+        _selectedAgent = _selectedAgent?.agentID == agent.agentID ? null : agent;
+    }
+
     private void OnAgentSelected(AgentResponse? agent) => _selectedAgent = agent;
 
     private void InteractWithAgent(AgentResponse agent)

@@ -202,8 +202,9 @@
 .c2-workspace {
     overflow: hidden;
     background: var(--bg);
-    position: relative;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* resizable bottom panel */

@@ -1,4 +1,5 @@
 ﻿//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{ BEGINNING OF FILE }^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^//
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Buffers;
 using System.Text.Json;
@@ -8,6 +9,7 @@ using Trinity.Shared.Interfaces;
 
 namespace TeamServer.Controllers
 {
+    [AllowAnonymous]
     [Route(Routes.Agents)]
     [ApiController]
     public class AgentController : ControllerBase

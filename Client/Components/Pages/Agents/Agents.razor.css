@@ -158,6 +158,10 @@
     height: auto !important;
 }
 
+::deep .ag-table-wrap .mud-table-loading {
+    display: none !important;
+}
+
 .ctx-backdrop {
     position: fixed;
     inset: 0;

@@ -67,6 +67,7 @@ namespace TeamServer
             builder.Services.AddSingleton<IToolFactory, ToolFactory>();
 
             builder.Services.AddSingleton<INotificationDispatcher, NotificationDispatcher>();
+            builder.Services.AddHostedService<AgentStatusMonitorService>();
 
             builder.Services.AddControllers(options =>
             {

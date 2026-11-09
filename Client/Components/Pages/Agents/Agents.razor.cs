@@ -14,6 +14,8 @@ public partial class Agents : IDisposable
     [Inject] IJSRuntime JS { get; set; } = null!;
     [CascadingParameter] private WorkspaceState Workspace { get; set; } = default!;
 
+    private System.Timers.Timer? _statusTimer;
+
     private List<AgentResponse> _agents = [];
     private AgentResponse? _selectedAgent = null;
     private bool _loading = false;
@@ -56,6 +58,11 @@ public partial class Agents : IDisposable
         Workspace.Changed += OnWorkspaceChanged;
         Workspace.AgentsChanged += OnAgentsChanged;
         await LoadAgentsAsync();
+
+        _statusTimer = new System.Timers.Timer(10_000);
+        _statusTimer.Elapsed += (_, _) => InvokeAsync(StateHasChanged);
+        _statusTimer.AutoReset = true;
+        _statusTimer.Start();
     }
 
     private void OnWorkspaceChanged()
@@ -70,6 +77,7 @@ public partial class Agents : IDisposable
     {
         Workspace.Changed -= OnWorkspaceChanged;
         Workspace.AgentsChanged -= OnAgentsChanged;
+        _statusTimer?.Dispose();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -112,7 +120,7 @@ public partial class Agents : IDisposable
     }
 
     private static bool IsOnline(AgentResponse a) =>
-        a.lastCheckIn != default && (DateTime.UtcNow - a.lastCheckIn).TotalSeconds < 120;
+        a.lastCheckIn != default && (DateTime.UtcNow - a.lastCheckIn).TotalMilliseconds < (a.sleep * 1.5);
 
     private static string FormatLastSeen(DateTime dt)
     {

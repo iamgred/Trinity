@@ -120,7 +120,7 @@ public partial class Agents : IDisposable
     }
 
     private static bool IsOnline(AgentResponse a) =>
-        a.lastCheckIn != default && (DateTime.UtcNow - a.lastCheckIn).TotalMilliseconds < (a.sleep * 1.5);
+        a.lastCheckIn != default && (DateTime.UtcNow - a.lastCheckIn).TotalSeconds < (a.sleep * 1.5);
 
     private static string FormatLastSeen(DateTime dt)
     {
@@ -140,10 +140,11 @@ public partial class Agents : IDisposable
         return "ag-row";
     }
 
-    private static string FormatSleep(int ms)
+    private static string FormatSleep(int seconds)
     {
-        if (ms <= 0) return "—";
-        return ms < 1000 ? $"{ms}ms" : ms % 1000 == 0 ? $"{ms / 1000}s" : $"{ms / 1000.0:F1}s";
+        if (seconds <= 0) return "—";
+        if (seconds < 60) return $"{seconds}s";
+        return seconds % 60 == 0 ? $"{seconds / 60}m" : $"{seconds / 60}m {seconds % 60}s";
     }
 
     private static string Shorten(string? value, int max = 12)

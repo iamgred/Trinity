@@ -133,6 +133,12 @@ public partial class Agents : IDisposable
              : dt.ToString("dd MMM HH:mm");
     }
 
+    private static string FormatSleep(int ms)
+    {
+        if (ms <= 0) return "—";
+        return ms < 1000 ? $"{ms}ms" : ms % 1000 == 0 ? $"{ms / 1000}s" : $"{ms / 1000.0:F1}s";
+    }
+
     private static string Shorten(string? value, int max = 12)
     {
         if (string.IsNullOrWhiteSpace(value)) return "?";

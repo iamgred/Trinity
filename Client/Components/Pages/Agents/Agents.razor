@@ -1,3 +1,4 @@
+@page "/"
 @page "/agents"
 @namespace Client.Components.Pages
 @rendermode InteractiveServer
@@ -25,6 +26,13 @@
                 <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"            Size="Size.Small" OnClick="ZoomIn" />
                 <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"           Size="Size.Small" OnClick="ZoomOut" />
                 <MudIconButton Icon="@Icons.Material.Filled.CenterFocusStrong" Size="Size.Small" OnClick="ResetZoom" />
+            }
+            else
+            {
+                <div class="ag-search-wrap">
+                    <svg class="ag-search-icon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input class="ag-search-input" placeholder="Search agents…" @bind="_search" @bind:event="oninput" />
+                </div>
             }
             <MudTooltip Text="Refresh">
                 <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" OnClick="LoadAgentsAsync" />
@@ -144,47 +152,62 @@
                       Elevation="0"
                       Loading="@_loading"
                       LoadingProgressColor="Color.Primary"
-                      FixedHeader="true">
+                      FixedHeader="true"
+                      SelectedItemChanged="@((AgentResponse a) => OnAgentSelected(a))"
+                      RowClass="ag-row">
                 <HeaderContent>
-                    <MudTh>id</MudTh>
-                    <MudTh>external</MudTh>
-                    <MudTh>internal</MudTh>
-                    <MudTh>listener</MudTh>
-                    <MudTh>user</MudTh>
-                    <MudTh>process</MudTh>
-                    <MudTh>pid</MudTh>
-                    <MudTh>arch</MudTh>
-                    <MudTh>integrity</MudTh>
-                    <MudTh>last</MudTh>
-                    <MudTh>sleep</MudTh>
-                    <MudTh>status</MudTh>
+                    <MudTh Class="ag-th ag-th-status">Status</MudTh>
+                    <MudTh Class="ag-th">User</MudTh>
+                    <MudTh Class="ag-th">External IP</MudTh>
+                    <MudTh Class="ag-th">Internal IP</MudTh>
+                    <MudTh Class="ag-th">Integrity</MudTh>
+                    <MudTh Class="ag-th">Process</MudTh>
+                    <MudTh Class="ag-th">Listener</MudTh>
+                    <MudTh Class="ag-th">Last Seen</MudTh>
+                    <MudTh Class="ag-th">Sleep</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    @{ var ctx = context; }
-                    <MudTd DataLabel="id"       Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.agentID</span></MudTd>
-                    <MudTd DataLabel="external" Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.externalIP</span></MudTd>
-                    <MudTd DataLabel="internal" Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.internalIP</span></MudTd>
-                    <MudTd DataLabel="listener">               <span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.listener</span></MudTd>
-                    <MudTd DataLabel="user">                   <span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.username</span></MudTd>
-                    <MudTd DataLabel="process"  Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.processName</span></MudTd>
-                    <MudTd DataLabel="pid"      Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.PID</span></MudTd>
-                    <MudTd DataLabel="arch"     Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.arch</span></MudTd>
-                    <MudTd DataLabel="integrity"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.integrity</span></MudTd>
-                    <MudTd DataLabel="last"     Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@FormatLastSeen(ctx.lastCheckIn)</span></MudTd>
-                    <MudTd DataLabel="sleep"    Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">—</span></MudTd>
-                    <MudTd DataLabel="status">
+                    @{ var ctx = context; var online = IsOnline(ctx); }
+                    <MudTd DataLabel="Status">
                         <span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">
-                            <span class="v2-badge @(IsOnline(ctx) ? "v2-badge-online" : "v2-badge-offline")">
-                                <span class="v2-dot"></span>
-                                @(IsOnline(ctx) ? "online" : "offline")
+                            <span class="ag-status-badge @(online ? "ag-status-online" : "ag-status-offline")">
+                                <span class="ag-status-dot @(online ? "ag-dot-pulse" : "")"></span>
+                                @(online ? "online" : "offline")
                             </span>
                         </span>
                     </MudTd>
+                    <MudTd DataLabel="User">
+                        <span class="ctx-cell ag-user-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">
+                            <span class="ag-user-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </span>
+                            <span class="ag-user-name">@ctx.username</span>
+                        </span>
+                    </MudTd>
+                    <MudTd DataLabel="External IP" Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.externalIP</span></MudTd>
+                    <MudTd DataLabel="Internal IP" Class="td-mono ag-td-muted"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.internalIP</span></MudTd>
+                    <MudTd DataLabel="Integrity">
+                        <span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">
+                            <span class="ag-integrity-badge ag-integrity-@(ctx.integrity?.ToLower() ?? "low")">@ctx.integrity</span>
+                        </span>
+                    </MudTd>
+                    <MudTd DataLabel="Process" Class="td-mono">
+                        <span class="ctx-cell ag-proc-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">
+                            <span class="ag-proc-name">@ctx.processName</span>
+                            <span class="ag-proc-pid">@ctx.PID</span>
+                        </span>
+                    </MudTd>
+                    <MudTd DataLabel="Listener"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@ctx.listener</span></MudTd>
+                    <MudTd DataLabel="Last Seen" Class="td-mono"><span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@FormatLastSeen(ctx.lastCheckIn)</span></MudTd>
+                    <MudTd DataLabel="Sleep" Class="td-mono ag-td-muted">
+                        <span class="ctx-cell" @oncontextmenu="e => ShowContextMenu(e, ctx)" @oncontextmenu:preventDefault="true">@FormatSleep(ctx.sleep)</span>
+                    </MudTd>
                 </RowTemplate>
                 <NoRecordsContent>
-                    <div class="v2-table-empty">
-                        <span class="v2-empty-title">No agents have checked in</span>
-                        <span class="v2-empty-hint">Deploy a payload to connect agents</span>
+                    <div class="ag-empty">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="ag-empty-icon"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <span class="ag-empty-title">No agents connected</span>
+                        <span class="ag-empty-hint">Deploy a payload to start a session</span>
                     </div>
                 </NoRecordsContent>
             </MudTable>

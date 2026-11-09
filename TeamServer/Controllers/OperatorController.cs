@@ -1,11 +1,13 @@
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ { START OF FILE } ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Trinity.Shared.Interfaces;
 using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers
 {
+    [AllowAnonymous]
     [Route(Routes.Operators)]
     [ApiController]
     public class OperatorController : ControllerBase

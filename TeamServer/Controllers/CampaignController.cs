@@ -2,6 +2,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeamServer.Repositories;
 using Trinity.Shared.Interfaces;
@@ -9,6 +10,7 @@ using Trinity.Shared.Models;
 
 namespace TeamServer.Controllers
 {
+    [AllowAnonymous]
     [ApiController]
     [Route(Routes.Campaigns)]
     public class CampaignController : ControllerBase

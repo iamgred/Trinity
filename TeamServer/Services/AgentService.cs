@@ -128,6 +128,13 @@ namespace TeamServer.Services
             }
 
             var task = await _taskRepo.GetTaskFromQueueAsync(agentID);
+
+            if (task != null)
+            {
+                task.Status = Status.DISPATCHED;
+                await _taskRepo.CommitAsync();
+            }
+
             return _taskRequestFactory.Create(task);
         }
 

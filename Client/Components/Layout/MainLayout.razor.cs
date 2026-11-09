@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -17,6 +18,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     [Inject] NavigationManager Nav { get; set; } = null!;
     [Inject] EventLogService EventLog { get; set; } = null!;
     [Inject] TeamServerConnection Connection { get; set; } = null!;
+    [Inject] ProtectedSessionStorage Session { get; set; } = null!;
 
     private readonly MudTheme _theme = new()
     {
@@ -54,6 +56,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private int _bottomH = 220;
     private void SetBottomTab(int idx) { _workspaceState.ActiveBottomTab = idx; }
     private bool _serverOnline = false;
+    private string _operatorName = "operator";
     private bool _redirecting = false;
     private HubConnection? _hub;
     private readonly HashSet<int> _subscribedAgents = [];
@@ -81,7 +84,21 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
         _bottomH = await JS.InvokeAsync<int>("trinityResize.getHalfHeight");
         await InitResizeAsync();
         await ConnectHubAsync();
+        try
+        {
+            var result = await Session.GetAsync<ShellUser>(ShellUser.StorageKey);
+            if (result.Success && result.Value is not null)
+                _operatorName = result.Value.Name;
+        }
+        catch { }
         StateHasChanged();
+    }
+
+    private async Task LogoutAsync()
+    {
+        try { await Session.DeleteAsync(ShellUser.StorageKey); } catch { }
+        Connection.ClearToken();
+        Nav.NavigateTo("/login", replace: true);
     }
 
     private async Task InitResizeAsync()

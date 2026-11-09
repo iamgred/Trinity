@@ -8,6 +8,7 @@ public sealed class TeamServerConnection
 
     public void SetCampaignId(int id)     => CampaignId = id;
     public void SetToken(string token)    => Token = token;
+    public void ClearToken()              => Token = null;
 
     public void Configure(string address)
     {

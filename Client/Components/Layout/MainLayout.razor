@@ -27,9 +27,9 @@
             </span>
             <span class="c2-operator">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" style="opacity:0.75"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                Administrator <span class="c2-role">operator</span>
+                @_operatorName <span class="c2-role">operator</span>
             </span>
-            <a class="c2-logout-btn" href="/login" title="Logout">
+            <a class="c2-logout-btn" href="#" @onclick="LogoutAsync" @onclick:preventDefault="true" title="Logout">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
             </a>
         </div>
@@ -193,9 +193,8 @@
 
     <footer class="c2-status-bar">
         <span class="@(_serverOnline ? "c2-ok" : "c2-err")">@(_serverOnline ? "● Connected" : "● Disconnected")</span>
-        <span>0 agents</span>
-        <span>0 SMB peers</span>
-        <span>0 listeners</span>
+        <span>@_workspaceState.Agents.Count agents</span>
+        <span>@_workspaceState.ListenerCount listeners</span>
         <div class="c2-status-spacer"></div>
         @if (!_workspaceState.EventLogVisible)
         {

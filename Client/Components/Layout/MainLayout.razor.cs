@@ -106,6 +106,12 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
                 await InvokeAsync(StateHasChanged);
             });
 
+            _hub.On("AgentPulse", () =>
+            {
+                _workspaceState.NotifyAgentsChanged();
+                InvokeAsync(StateHasChanged);
+            });
+
             _hub.Reconnecting += _ => { _serverOnline = false; InvokeAsync(StateHasChanged); return Task.CompletedTask; };
             _hub.Reconnected += async _ => { _serverOnline = true; await SyncAgentSubscriptionsAsync(); await InvokeAsync(StateHasChanged); };
 

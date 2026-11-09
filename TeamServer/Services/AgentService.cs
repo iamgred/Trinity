@@ -8,6 +8,7 @@ using TeamServer.Services.Factories;
 using TeamServer.Utils;
 using Trinity.Shared.DTOs.Agent;
 using Trinity.Shared.DTOs.Checkin;
+using Trinity.Shared.DTOs.Notification;
 using Trinity.Shared.Enums;
 using Trinity.Shared.Enums.Tasks;
 using Trinity.Shared.Interfaces;
@@ -75,6 +76,7 @@ namespace TeamServer.Services
             }
 
             var request = await ProcessFullyEstablishedCheckin(agent.ID, response);
+            await _hubContext.Clients.All.SendAsync("AgentPulse");
             return FormatRequest(uuid, request);
         }
 
@@ -97,6 +99,10 @@ namespace TeamServer.Services
             var host = _hostFactory.CreateHost(agent.ID, ref data!);
             await _hostRepo.AddHostAsync(host);
             await _hostRepo.CommitAsync();
+
+            await _hubContext.Clients.All.SendAsync("EventLogNotification",
+                new EventLog(DateTime.UtcNow, EventLogType.AGENT,
+                    $"New agent checked in: {agent.Username}@{agent.ExternalIP} (PID {agent.ProcessPID})"));
 
             return CreateBase64Blob(agent.CheckInUUID);
         }
